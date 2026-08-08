@@ -140,4 +140,35 @@ describe("importEmployeeRows", () => {
       SELECT count(*)::text AS count FROM employments`);
     expect(Number(rows.rows[0]?.count)).toBe(0);
   });
+
+  it("aborts entire import when unrecognized column exists without --auto-register", async () => {
+    await expect(
+      importEmployeeRows(db, [sampleRow({ "Bonus Amount": "5000.00" })])
+    ).rejects.toThrow(/Unrecognized columns: Bonus Amount/);
+
+    const rows = await db.execute<{ count: string }>(sql`
+      SELECT count(*)::text AS count FROM employments`);
+    expect(Number(rows.rows[0]?.count)).toBe(0);
+
+    const persons = await db.execute<{ count: string }>(sql`
+      SELECT count(*)::text AS count FROM persons`);
+    expect(Number(persons.rows[0]?.count)).toBe(0);
+  });
+
+  it("auto-registers unrecognized column as TEXT custom field with --auto-register", async () => {
+    const report = await importEmployeeRows(
+      db,
+      [sampleRow({ "Bonus Amount": "5000.00" })],
+      { autoRegister: true }
+    );
+    expect(report.created).toBe(1);
+    expect(report.failed).toBe(0);
+
+    const customFields = await db.execute<{ field_key: string; label: string; data_type: string }>(sql`
+      SELECT field_key, label, data_type FROM employee_custom_field_defs
+      WHERE label = 'Bonus Amount'`);
+    expect(customFields.rows.length).toBe(1);
+    expect(customFields.rows[0]?.field_key).toBe("bonus_amount");
+    expect(customFields.rows[0]?.data_type).toBe("TEXT");
+  });
 });

@@ -30,10 +30,21 @@ function loadRows(
 }
 
 async function main(): Promise<void> {
-  const [, , filePath] = process.argv;
+  const args = process.argv.slice(2);
+  let autoRegister = false;
+  let filePath: string | undefined;
+  
+  for (const arg of args) {
+    if (arg === "--auto-register") {
+      autoRegister = true;
+    } else if (!arg.startsWith("--")) {
+      filePath = arg;
+    }
+  }
+  
   if (filePath === undefined) {
     throw new Error(
-      "usage: tsx scripts/employee-import.ts <file.csv|file.json>"
+      "usage: tsx scripts/employee-import.ts [--auto-register] <file.csv|file.json>"
     );
   }
 
@@ -41,7 +52,7 @@ async function main(): Promise<void> {
   try {
     const db = createDatabase(pool);
     const rows = loadRows(filePath);
-    const report = await importEmployeeRows(db, rows);
+    const report = await importEmployeeRows(db, rows, { autoRegister });
 
     process.stdout.write(
       `created ${report.created}, skipped-existing ${report.skippedExisting}, failed ${report.failed}\n`
@@ -59,6 +70,9 @@ async function main(): Promise<void> {
     if (report.failed > 0) {
       process.exitCode = 1;
     }
+  } catch (error) {
+    process.stderr.write(`${(error as Error).message}\n`);
+    process.exitCode = 1;
   } finally {
     await pool.end();
   }

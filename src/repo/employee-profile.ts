@@ -53,6 +53,20 @@ export async function listActiveCustomFieldDefs(
     .orderBy(employeeCustomFieldDefs.sortOrder);
 }
 
+export async function insertCustomFieldDef(
+  db: Database,
+  def: {
+    fieldKey: string;
+    label: string;
+    dataType: "TEXT" | "NUMBER" | "DATE" | "BOOLEAN";
+    required: boolean;
+    sortOrder: number;
+    active: boolean;
+  }
+): Promise<void> {
+  await db.insert(employeeCustomFieldDefs).values(def);
+}
+
 /**
  * Creates person (or reuses one matched by IC) + employment + profile inside
  * one transaction. The caller (`service/employee-import.ts`) has already
