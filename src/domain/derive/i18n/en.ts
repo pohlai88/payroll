@@ -149,6 +149,7 @@ export const EN = {
   // ---- totals ----
   "total.statutoryEe": "Employee statutory deductions",
   "total.otherDeductions": "Other deductions",
+  "total.otherDeductions.none": "No other deductions were recorded",
   "total.deductions": "Total deductions",
   "total.deductions.pendingPcb": "Cannot be determined until PCB is entered",
   "total.net": "Net pay",

@@ -6,7 +6,7 @@
  * conformance suite for citations, translations and dead ends, not just arithmetic.
  */
 
-import { ALL_SOURCE_REFS, type SourceRef } from "./citation";
+import { ALL_SOURCE_REFS, RULE_SOURCE, type SourceRef } from "./citation";
 import { nodeAt, type DerivationGraph } from "./graph";
 import { hasKey, LANGS } from "./i18n/render";
 import { TERMINAL_KINDS, type DerivationNode } from "./node";
@@ -31,6 +31,20 @@ export function assertNoDeadEnds(graph: DerivationGraph): void {
   for (const id of graph.order) {
     const node = nodeAt(graph, id);
     if (node.inputs.length > 0) continue;
+    /**
+     * An aggregate over nothing is a legitimate zero — no other deductions were
+     * recorded — and what explains it is structural, not statutory. Rather than
+     * attach a stretched citation, require it to say so and to actually be zero.
+     */
+    if (node.kind === "AGGREGATE") {
+      if (node.detail === undefined) {
+        throw new InvariantError("empty AGGREGATE must say that nothing was included", id);
+      }
+      if (node.value.t !== "SEN" || node.value.sen !== 0) {
+        throw new InvariantError("empty AGGREGATE must be zero", id);
+      }
+      continue;
+    }
     if (!TERMINAL_KINDS.includes(node.kind)) {
       throw new InvariantError(`${node.kind} has no inputs and is not a terminal kind`, id);
     }
@@ -122,6 +136,18 @@ export function assertCitationsResolve(
     for (const c of node.citations) {
       if (!knownRefs.includes(c.sourceRef)) {
         throw new InvariantError(`citation names unknown source ${c.sourceRef}`, id);
+      }
+      /**
+       * The rule and the document must actually belong together. Without this,
+       * the shape alone permits an EPF rule citing the LHDN source — a citation
+       * that looks authoritative and proves nothing.
+       */
+      const expected = RULE_SOURCE[c.ruleId];
+      if (expected !== c.sourceRef) {
+        throw new InvariantError(
+          `${c.ruleId} is proved by ${expected}, but the citation names ${c.sourceRef}`,
+          id
+        );
       }
       if (c.rulePackId !== graph.rulePackId) {
         throw new InvariantError(

@@ -6,6 +6,7 @@ import { pcbNet } from "./pcb";
 import { regularPay, overtimePay } from "./proration";
 import { wageBases } from "./wage-base";
 import { formatRM, roundHalfUpSen } from "../money";
+import { validateLineInputs, type ValidationIssue } from "./validate";
 import type {
   EmployeeSnapshot,
   LineInputs,
@@ -31,10 +32,29 @@ export interface ComposeOptions {
   hrdfLevyPct?: number;
 }
 
+export type ComputeLineOutcome =
+  | { ok: true; result: LineResult }
+  | { ok: false; issues: ValidationIssue[] };
+
+/**
+ * Validated entry point. Any caller taking input from a user, an API request or
+ * an import should use this rather than `computeLine`: a misconfigured period
+ * comes back as structured issues with field paths instead of a `RangeError`
+ * from the arithmetic primitives.
+ */
+export function computeLineChecked(opts: ComposeOptions): ComputeLineOutcome {
+  const issues = validateLineInputs(opts.employee, opts.inputs);
+  if (issues.length > 0) return { ok: false, issues };
+  return { ok: true, result: computeLine(opts) };
+}
+
 /**
  * Full line computation: earnings → gross → three wage bases →
  * EPF/SOCSO/EIS (with overrides) → PCB net → deductions → net → employer cost.
  * Pure — every figure is traced for the audit annex.
+ *
+ * Assumes inputs already satisfy `validateLineInputs`; unvalidated input can
+ * reach the arithmetic primitives and throw. Prefer `computeLineChecked`.
  */
 export function computeLine(opts: ComposeOptions): LineResult {
   const { employee, inputs, tables, settings } = opts;

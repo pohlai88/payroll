@@ -81,7 +81,12 @@ export interface SettingNode extends NodeBase {
 /** A non-money decision: age, EPF part, SOCSO category, EIS eligibility. */
 export interface ClassificationNode extends NodeBase {
   readonly kind: "CLASSIFICATION";
-  readonly subject: "AGE" | "EPF_PART" | "SOCSO_CATEGORY" | "EIS_ELIGIBILITY";
+  readonly subject:
+    | "AGE"
+    | "EPF_PART"
+    | "SOCSO_CATEGORY"
+    | "EIS_ELIGIBILITY"
+    | "SKBBK_WINDOW";
   /** True when a human set this on the employee record rather than deriving it. */
   readonly manual?: boolean;
 }
@@ -110,7 +115,8 @@ export interface TableLookupNode extends NodeBase {
   readonly keySen: number;
   /** Neighbouring rows, so the UI can show how close the wage is to the next band. */
   readonly neighbours: { readonly prev?: TableRow; readonly next?: TableRow };
-  readonly inputs: readonly [Ref];
+  /** The wage searched for, then the classification that chose this table. */
+  readonly inputs: readonly [Ref, ...Ref[]];
   readonly citations: readonly [Citation, ...Citation[]];
 }
 
@@ -206,7 +212,8 @@ export interface AggregateNode extends NodeBase {
 export interface NotApplicableNode extends NodeBase {
   readonly kind: "NOT_APPLICABLE";
   readonly value: { readonly t: "SEN"; readonly sen: 0 };
-  readonly inputs: readonly [];
+  /** Usually the classification that ruled the contribution out, so the drill continues. */
+  readonly inputs: readonly Ref[];
   readonly citations: readonly [Citation, ...Citation[]];
 }
 

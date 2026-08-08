@@ -151,6 +151,7 @@ export const MS: Record<MessageKey, string> = {
   // ---- totals ----
   "total.statutoryEe": "Potongan berkanun pekerja",
   "total.otherDeductions": "Potongan lain",
+  "total.otherDeductions.none": "Tiada potongan lain direkodkan",
   "total.deductions": "Jumlah potongan",
   "total.deductions.pendingPcb": "Tidak dapat ditentukan sehingga PCB dimasukkan",
   "total.net": "Gaji bersih",

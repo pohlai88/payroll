@@ -35,10 +35,18 @@ describe("parseRM", () => {
     expect(parseRM("-Infinity")).toBeNull();
   });
 
-  it("rejects more than 2 decimals instead of silently truncating", () => {
-    // Policy: loud rejection. "1.234" must not become RM 1.23.
-    expect(parseRM("1.234")).toBeNull();
+  it("accepts exactly 2 decimals and rejects a third", () => {
+    // DECISION: 2dp max. RM has no sub-sen legal tender, and parseRM sits at a
+    // *user-input* boundary — a third decimal means a typo or a paste from a
+    // source with more precision than money. Reject so the user fixes it at the
+    // form, rather than silently rounding away a discrepancy they should see.
+    // An ingestion boundary (CSV of computed third-party rates, where 3dp is a
+    // legitimate intermediate) needs a separate lenient parser, not a looser
+    // contract here.
+    expect(parseRM("1.00")).toBe(100);
     expect(parseRM("1.005")).toBeNull();
+
+    expect(parseRM("1.234")).toBeNull();
     expect(parseRM("8.575")).toBeNull();
   });
 
