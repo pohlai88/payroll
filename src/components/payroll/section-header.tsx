@@ -3,10 +3,10 @@ import { cn } from "@/lib/utils";
 
 type Section = "earning" | "deduction" | "employer" | "summary";
 
-interface SectionHeaderProps {
+interface SectionHeaderProps
+  extends Omit<React.ComponentProps<"th">, "style" | "color"> {
   section: Section;
   children: React.ReactNode;
-  className?: string;
 }
 
 // Section tokens are complete hex values — use var() directly in style prop
@@ -29,10 +29,16 @@ const SECTION_STYLES: Record<Section, { fill: string; ink: string }> = {
   },
 };
 
-function SectionHeader({ section, children, className }: SectionHeaderProps) {
+function SectionHeader({
+  section,
+  children,
+  className,
+  ...props
+}: SectionHeaderProps) {
   const { fill, ink } = SECTION_STYLES[section];
   return (
     <th
+      {...props}
       className={cn(
         "px-3 py-2 text-left font-semibold text-xs uppercase tracking-wide",
         className
