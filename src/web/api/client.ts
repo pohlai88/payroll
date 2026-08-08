@@ -143,6 +143,14 @@ export function createApiClient(deps: ApiClientDeps) {
       ),
     getWorkspace: (runId: string) =>
       requestJson<PayRunWorkspaceView>(`/v1/pay-runs/${runId}/workspace`),
+    recompute: (runId: string) =>
+      requestJson<void>(`/v1/pay-runs/${runId}/recompute`, {
+        method: "POST",
+      }),
+    review: (runId: string) =>
+      requestJson<void>(`/v1/pay-runs/${runId}/review`, { method: "POST" }),
+    approve: (runId: string) =>
+      requestJson<void>(`/v1/pay-runs/${runId}/approve`, { method: "POST" }),
     getEmployees: (params?: GetEmployeesParams) =>
       requestJson<EmployeeSummary[]>(
         `/v1/employees${buildQuery({
