@@ -1,7 +1,7 @@
 /**
  * `scripts/reset.ts` must rebuild schema + seed against a real Postgres.
  *
- * The production path is DROP SCHEMA public CASCADE → migrate → seed. This
+ * The production path is DROP SCHEMA public/drizzle CASCADE → migrate → seed. This
  * test exercises the exported helper against the Docker database the harness
  * already guards, and asserts the post-reset world has the approved rule pack
  * and at least one hashed seed file — the same artefacts `db:seed` leaves.

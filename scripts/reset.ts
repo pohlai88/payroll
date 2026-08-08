@@ -37,7 +37,7 @@ export function assertResetAllowed(connectionString: string): void {
 
   if (!LOCAL_HOSTS.has(host)) {
     throw new Error(
-      `refusing to reset host ${host}: this drops schema public. ` +
+      `refusing to reset host ${host}: this drops schemas public and drizzle. ` +
         `Point DATABASE_URL at the local docker database (${LOCAL_DEV_DATABASE_URL}), ` +
         `or set ${OVERRIDE_FLAG}=1 if you genuinely mean this one.`
     );
@@ -50,7 +50,7 @@ function redact(url: string): string {
 }
 
 /**
- * Drops `public`, re-runs migrations, seeds. Returns the seeded rule-pack id.
+ * Drops `public` and `drizzle`, re-runs migrations, seeds. Returns the seeded rule-pack id.
  */
 export async function resetDatabase(connectionString: string): Promise<string> {
   assertResetAllowed(connectionString);
