@@ -37,6 +37,7 @@ const EXPECTED: Record<string, readonly string[]> = {
   pay_item_kind: ["EARNING", "DEDUCTION"],
   rate_basis: ["FIXED_MONTHLY", "PER_DAY", "PER_HOUR", "PER_UNIT", "AMOUNT"],
   pay_basis: ["MONTHLY", "DAILY", "HOURLY"],
+  employee_custom_field_data_type: ["TEXT", "NUMBER", "DATE", "BOOLEAN"],
   epf_part: ["A", "C", "E", "F", "NONE"],
   socso_category: ["FIRST", "SECOND", "NONE"],
   rule_pack_layer: [
@@ -79,6 +80,29 @@ const EXPECTED: Record<string, readonly string[]> = {
     "SOCSO_WAGES",
     "EIS_WAGES",
   ],
+  pcb_residence: ["RESIDENT", "NON_RESIDENT"],
+  pcb_category: ["1", "2", "3"],
+  pcb_formula_regime: ["NORMAL", "REP", "KNOWLEDGE_WORKER", "C_SUITE"],
+  user_status: ["ACTIVE", "DISABLED"],
+  role_scope: ["GLOBAL", "COMPANY"],
+  permission_resource: [
+    "COMPANY",
+    "EMPLOYMENT",
+    "PAY_RUN",
+    "PAY_ITEM",
+    "RULE_PACK",
+    "REPORT",
+  ],
+  permission_action: ["CREATE", "READ", "UPDATE", "DELETE"],
+  termination_reason: [
+    "RESIGNATION",
+    "DISMISSAL",
+    "CONTRACT_END",
+    "INTERNAL_GROUP_TRANSFER",
+    "RETIREMENT",
+    "OTHER",
+  ],
+  group_service_continuity: ["CONTINUOUS", "RESET"],
 };
 
 describe("Postgres enums match the domain unions", () => {

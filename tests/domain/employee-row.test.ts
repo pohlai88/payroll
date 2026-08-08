@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  type CustomFieldDef,
   FIXED_HEADERS,
   parseEmployeeRow,
-  type CustomFieldDef,
 } from "@/domain/import/employee-row";
 
 function baseRow(): Record<string, string> {
@@ -55,7 +55,9 @@ describe("parseEmployeeRow", () => {
   it("parses a complete valid row", () => {
     const result = parseEmployeeRow(baseRow(), []);
     if ("errors" in result) {
-      throw new Error(`expected success, got errors: ${JSON.stringify(result.errors)}`);
+      throw new Error(
+        `expected success, got errors: ${JSON.stringify(result.errors)}`
+      );
     }
     expect(result.row.employeeCode).toBe("DLBB1001");
     expect(result.row.baseRateSen).toBe(1_000_000);
@@ -109,19 +111,31 @@ describe("parseEmployeeRow", () => {
 
   it("parses a custom field by label into extraAttributes keyed by fieldKey", () => {
     const defs: CustomFieldDef[] = [
-      { fieldKey: "uniform_size", label: "Uniform Size", dataType: "TEXT", required: false },
+      {
+        fieldKey: "uniform_size",
+        label: "Uniform Size",
+        dataType: "TEXT",
+        required: false,
+      },
     ];
     const row = { ...baseRow(), "Uniform Size": "L" };
     const result = parseEmployeeRow(row, defs);
     if ("errors" in result) {
-      throw new Error(`expected success, got errors: ${JSON.stringify(result.errors)}`);
+      throw new Error(
+        `expected success, got errors: ${JSON.stringify(result.errors)}`
+      );
     }
     expect(result.row.extraAttributes).toEqual({ uniform_size: "L" });
   });
 
   it("fails when a required custom field is blank", () => {
     const defs: CustomFieldDef[] = [
-      { fieldKey: "badge_no", label: "Badge No", dataType: "TEXT", required: true },
+      {
+        fieldKey: "badge_no",
+        label: "Badge No",
+        dataType: "TEXT",
+        required: true,
+      },
     ];
     const result = parseEmployeeRow(baseRow(), defs);
     if (!("errors" in result)) {

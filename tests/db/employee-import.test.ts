@@ -10,7 +10,11 @@ import path from "node:path";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { importEmployeeRows } from "@/service/employee-import";
-import { ALL_TABLES, connectTestDatabase, type TestDatabase } from "./harness/database";
+import {
+  ALL_TABLES,
+  connectTestDatabase,
+  type TestDatabase,
+} from "./harness/database";
 
 const REPO_CUSTOM_FIELDS_SEED = path.join(
   process.cwd(),
@@ -24,9 +28,6 @@ const database: TestDatabase = connectTestDatabase();
 const { db } = database;
 
 afterAll(async () => {
-  expect(fs.readFileSync(REPO_CUSTOM_FIELDS_SEED, "utf8")).toBe(
-    PRISTINE_SEED_CONTENT
-  );
   await database.close();
 });
 
@@ -37,7 +38,9 @@ beforeEach(async () => {
     VALUES ('11111111-1111-1111-1111-111111111111', 'DLBB', 'DLBB Sdn Bhd')`);
 });
 
-function sampleRow(overrides: Record<string, string> = {}): Record<string, string> {
+function sampleRow(
+  overrides: Record<string, string> = {}
+): Record<string, string> {
   return {
     "Employee Code": "DLBB1001",
     "Payroll Company Code": "DLBB",
@@ -117,7 +120,9 @@ describe("importEmployeeRows", () => {
       UPDATE employment_profiles SET job_title = 'PROMOTED TITLE'
       WHERE employment_id = (SELECT id FROM employments WHERE employee_code = 'DLBB1001')`);
 
-    await importEmployeeRows(db, [sampleRow({ "Job Title": "R&D DIRECTOR (FROM SHEET)" })]);
+    await importEmployeeRows(db, [
+      sampleRow({ "Job Title": "R&D DIRECTOR (FROM SHEET)" }),
+    ]);
 
     const rows = await db.execute<{ job_title: string }>(sql`
       SELECT p.job_title FROM employment_profiles p
@@ -210,5 +215,11 @@ describe("importEmployeeRows", () => {
     } finally {
       fs.unlinkSync(tempSeedPath);
     }
+  });
+
+  it("leaves repo employee-custom-fields.json unchanged", () => {
+    expect(fs.readFileSync(REPO_CUSTOM_FIELDS_SEED, "utf8")).toBe(
+      PRISTINE_SEED_CONTENT
+    );
   });
 });

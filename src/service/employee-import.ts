@@ -7,17 +7,17 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Database } from "@/db/client";
 import {
-  parseEmployeeRow,
-  FIXED_HEADERS,
   type CustomFieldDef,
+  FIXED_HEADERS,
+  parseEmployeeRow,
   type RowError,
 } from "@/domain/import/employee-row";
 import {
   createEmployeeFromImport,
   findCompanyIdByCode,
   findExistingEmploymentId,
-  listActiveCustomFieldDefs,
   insertCustomFieldDef,
+  listActiveCustomFieldDefs,
 } from "@/repo/employee-profile";
 
 export const DEFAULT_CUSTOM_FIELDS_SEED_PATH = path.join(
@@ -79,7 +79,7 @@ async function autoRegisterUnrecognizedHeaders(
   const content = fs.existsSync(seedFilePath)
     ? JSON.parse(fs.readFileSync(seedFilePath, "utf8"))
     : { fields: [] };
-  
+
   const existing = content.fields as Array<{
     fieldKey: string;
     label: string;
@@ -88,10 +88,10 @@ async function autoRegisterUnrecognizedHeaders(
     sortOrder: number;
     active: boolean;
   }>;
-  
+
   const maxSort = existing.reduce((max, f) => Math.max(max, f.sortOrder), 0);
   const newDefs: CustomFieldDef[] = [];
-  
+
   let index = 0;
   for (const header of unrecognizedHeaders) {
     const fieldKey = slugify(header);
@@ -110,7 +110,7 @@ async function autoRegisterUnrecognizedHeaders(
       dataType: "TEXT",
       required: false,
     });
-    
+
     await insertCustomFieldDef(db, {
       fieldKey,
       label: header,
@@ -121,8 +121,12 @@ async function autoRegisterUnrecognizedHeaders(
     });
     index += 1;
   }
-  
-  fs.writeFileSync(seedFilePath, JSON.stringify(content, null, 2) + "\n", "utf8");
+
+  fs.writeFileSync(
+    seedFilePath,
+    `${JSON.stringify(content, null, 2)}\n`,
+    "utf8"
+  );
   return newDefs;
 }
 
@@ -130,21 +134,24 @@ export async function validateImportHeaders(
   db: Database,
   rawRows: readonly Record<string, string | undefined>[],
   options: ImportOptions = {}
-): Promise<{ valid: true; customFieldDefs: CustomFieldDef[] } | { valid: false; unrecognizedHeaders: string[] }> {
+): Promise<
+  | { valid: true; customFieldDefs: CustomFieldDef[] }
+  | { valid: false; unrecognizedHeaders: string[] }
+> {
   const headers = extractHeaders(rawRows);
   const defs = await listActiveCustomFieldDefs(db);
   const knownHeaders = new Set([
     ...FIXED_HEADERS.map((h) => h.header),
     ...defs.map((d) => d.label),
   ]);
-  
+
   const unrecognizedHeaders = headers.filter((h) => !knownHeaders.has(h));
-  
+
   if (unrecognizedHeaders.length > 0) {
     if (!options.autoRegister) {
       return { valid: false, unrecognizedHeaders };
     }
-    
+
     const seedFilePath =
       options.customFieldsSeedPath ?? DEFAULT_CUSTOM_FIELDS_SEED_PATH;
     const newDefs = await autoRegisterUnrecognizedHeaders(
@@ -163,7 +170,7 @@ export async function validateImportHeaders(
     ];
     return { valid: true, customFieldDefs: allDefs };
   }
-  
+
   return {
     valid: true,
     customFieldDefs: defs.map((d) => ({
@@ -182,13 +189,13 @@ export async function importEmployeeRows(
 ): Promise<ImportReport> {
   const validation = await validateImportHeaders(db, rawRows, options);
   if (!validation.valid) {
-    const errorMsg = 
+    const errorMsg =
       `Unrecognized columns: ${validation.unrecognizedHeaders.join(", ")}. ` +
-      `Use --auto-register to automatically create custom fields for unrecognized columns.`;
+      "Use --auto-register to automatically create custom fields for unrecognized columns.";
     throw new Error(errorMsg);
   }
-  
-  const customFieldDefs = validation.customFieldDefs;
+
+  const { customFieldDefs } = validation;
 
   const rows: RowOutcome[] = [];
   let created = 0;

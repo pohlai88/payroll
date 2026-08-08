@@ -15,9 +15,7 @@ import {
 } from "../src/db/client";
 import { importEmployeeRows } from "../src/service/employee-import";
 
-function loadRows(
-  filePath: string
-): Record<string, string | undefined>[] {
+function loadRows(filePath: string): Record<string, string | undefined>[] {
   const raw = fs.readFileSync(filePath, "utf8");
   if (path.extname(filePath).toLowerCase() === ".json") {
     const parsed = JSON.parse(raw);
@@ -33,7 +31,7 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2);
   let autoRegister = false;
   let filePath: string | undefined;
-  
+
   for (const arg of args) {
     if (arg === "--auto-register") {
       autoRegister = true;
@@ -41,7 +39,7 @@ async function main(): Promise<void> {
       filePath = arg;
     }
   }
-  
+
   if (filePath === undefined) {
     throw new Error(
       "usage: tsx scripts/employee-import.ts [--auto-register] <file.csv|file.json>"
