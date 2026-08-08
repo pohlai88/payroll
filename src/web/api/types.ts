@@ -24,11 +24,17 @@ export class SessionExpiredError extends Error {
   }
 }
 
+export interface MeCompany {
+  readonly id: string;
+  readonly name: string;
+}
+
 export interface MeResponse {
   readonly id: string;
   readonly email: string;
   readonly name: string;
   readonly status: string;
+  readonly companies: readonly MeCompany[];
 }
 
 export interface PermissionsResponse {
@@ -79,4 +85,106 @@ export interface ImportReportResponse {
   readonly skippedExisting: number;
   readonly failed: number;
   readonly rows: readonly ImportRowOutcome[];
+}
+
+/**
+ * `GET /v1/pay-runs` row — see `src/repo/pay-run.ts` `PayRunSummary`.
+ */
+export interface PayRunSummary {
+  readonly id: string;
+  readonly companyId: string;
+  readonly companyName: string;
+  readonly label: string;
+  readonly year: number;
+  readonly month: number;
+  readonly status: string;
+  readonly employeeCount: number;
+  readonly createdAt: string;
+}
+
+/**
+ * `GET /v1/employees` row — see `src/server/routes/employees.ts` `EmployeeSummary`.
+ */
+export interface EmployeeSummary {
+  readonly id: string;
+  readonly code: string;
+  readonly name: string;
+  readonly companyId: string;
+  readonly status: "ACTIVE" | "TERMINATED";
+}
+
+/**
+ * The workspace read model — see `src/repo/workspace.ts`.
+ * Mirrors the server's `PayRunWorkspaceView` and its nested DTOs exactly;
+ * this is the client-side twin of that file, not an independent contract.
+ */
+export interface VarianceDto {
+  readonly previousSen: number | null;
+  readonly deltaSen: number | null;
+  readonly deltaBps: number | null;
+  readonly direction: "UP" | "DOWN" | "SAME" | "NO_PRIOR";
+}
+
+export interface SparkPoint {
+  readonly reportingMonth: string;
+  readonly sen: number;
+}
+
+export interface AggregateTile {
+  readonly key: string;
+  readonly label: string;
+  readonly currentSen: number | null;
+  readonly variance: VarianceDto;
+  readonly history: readonly SparkPoint[];
+}
+
+export interface RunSummary {
+  readonly id: string;
+  readonly companyId: string;
+  readonly companyName: string;
+  /** `YYYY-MM`. */
+  readonly reportingMonth: string;
+  readonly status: string;
+  readonly label: string;
+}
+
+export interface ActionAvailability {
+  readonly canRecompute: boolean;
+  readonly canReview: boolean;
+  readonly canApprove: boolean;
+  readonly canClose: boolean;
+}
+
+export interface FindingsSummary {
+  readonly blockingCount: number;
+  readonly warningCount: number;
+}
+
+export interface RootValue {
+  readonly sen: number | null;
+  readonly notApplicable: boolean;
+}
+
+export interface EmployeeVarianceDto {
+  readonly hasChanges: boolean;
+  readonly changedRootKeys: readonly string[];
+  readonly direction: "UP" | "DOWN" | "SAME" | "NO_PRIOR";
+}
+
+export interface EmployeeLineDto {
+  readonly employeeId: string;
+  readonly employeeCode: string;
+  readonly employeeName: string;
+  readonly roots: Readonly<Record<string, RootValue>>;
+  readonly previousRoots: Readonly<Record<string, RootValue>> | null;
+  readonly variance: EmployeeVarianceDto | null;
+  readonly findingsCount: number;
+}
+
+export interface PayRunWorkspaceView {
+  readonly run: RunSummary;
+  readonly actionAvailability: ActionAvailability;
+  readonly totals: readonly AggregateTile[];
+  readonly findingsSummary: FindingsSummary | null;
+  readonly lines: readonly EmployeeLineDto[];
 }

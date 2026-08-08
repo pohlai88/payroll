@@ -174,6 +174,22 @@ describe("importEmployeeRows", () => {
     expect(Number(persons.rows[0]?.count)).toBe(0);
   });
 
+  it("aborts entire import when only a later row has an unrecognized column (JSON-style)", async () => {
+    const firstRow = sampleRow({ "Employee Code": "DLBB1001" });
+    const secondRow = sampleRow({
+      "Employee Code": "DLBB1002",
+      "Bonus Amount": "5000.00",
+    });
+
+    await expect(importEmployeeRows(db, [firstRow, secondRow])).rejects.toThrow(
+      /Unrecognized columns: Bonus Amount/
+    );
+
+    const rows = await db.execute<{ count: string }>(sql`
+      SELECT count(*)::text AS count FROM employments`);
+    expect(Number(rows.rows[0]?.count)).toBe(0);
+  });
+
   it("auto-registers unrecognized column as TEXT custom field with --auto-register", async () => {
     const tempSeedPath = path.join(
       os.tmpdir(),
@@ -212,6 +228,44 @@ describe("importEmployeeRows", () => {
       expect(seedContent.fields[0]?.fieldKey).toBe("bonus_amount");
       expect(seedContent.fields[0]?.label).toBe("Bonus Amount");
       expect(seedContent.fields[0]?.dataType).toBe("TEXT");
+    } finally {
+      fs.unlinkSync(tempSeedPath);
+    }
+  });
+
+  it("auto-registers headers that slugify to the same key with unique suffixes", async () => {
+    // Slugify collision: "Foo-Bar" and "Foo Bar" both become "foo_bar".
+    // The second header receives field_key "foo_bar_2".
+    const tempSeedPath = path.join(
+      os.tmpdir(),
+      `employee-custom-fields-${process.pid}-${Date.now()}.json`
+    );
+    fs.writeFileSync(
+      tempSeedPath,
+      `${JSON.stringify({ fields: [] }, null, 2)}\n`,
+      "utf8"
+    );
+
+    try {
+      const report = await importEmployeeRows(
+        db,
+        [sampleRow({ "Foo-Bar": "alpha", "Foo Bar": "beta" })],
+        { autoRegister: true, customFieldsSeedPath: tempSeedPath }
+      );
+      expect(report.created).toBe(1);
+      expect(report.failed).toBe(0);
+
+      const customFields = await db.execute<{
+        field_key: string;
+        label: string;
+      }>(sql`
+        SELECT field_key, label FROM employee_custom_field_defs
+        WHERE label IN ('Foo-Bar', 'Foo Bar')
+        ORDER BY label`);
+      expect(customFields.rows).toEqual([
+        { field_key: "foo_bar_2", label: "Foo Bar" },
+        { field_key: "foo_bar", label: "Foo-Bar" },
+      ]);
     } finally {
       fs.unlinkSync(tempSeedPath);
     }

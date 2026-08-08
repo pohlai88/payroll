@@ -1,5 +1,11 @@
 # Developer Handoff — Plan 1: Control Foundation
 
+> **HISTORICAL / ARCHIVE.** This handoff describes the prior SQLite + Next.js
+> Plan1 control-foundation branch (`src/server/payments.ts`, better-sqlite3, etc.).
+> It is **not** the authority for the current Postgres rebuild. Current architecture:
+> `docs/architecture/payroll-architecture.md`. Current Phase 3 auth API:
+> `docs/superpowers/specs/2026-08-08-hono-neon-auth-design.md`.
+
 **Date:** 2026-08-08 · **Branch:** `plan1-control-foundation` (off `master`) · **Status:** Tasks 1–9 of 10 complete and reviewed clean; Task 10 not started.
 
 This note is for whoever picks this branch up next — a human developer or a fresh agent session with no memory of how we got here.

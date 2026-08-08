@@ -1,10 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
+  divTruncateSen,
   formatRM,
   mulDivSen,
   parseRM,
+  pctHalfUpSen,
   pctRoundUpToRinggitSen,
+  pctTruncateSen,
+  quantityAmountSen,
   roundHalfUpSen,
+  roundUpToFiveSen,
+  truncateSen,
 } from "@/domain/money";
 
 describe("parseRM", () => {
@@ -63,6 +69,26 @@ describe("parseRM", () => {
   });
 });
 
+describe("truncateSen / divTruncateSen / pctTruncateSen / roundUpToFiveSen", () => {
+  it("truncates toward zero (LHDN 2dp omit)", () => {
+    expect(truncateSen(123.4534)).toBe(123);
+    expect(truncateSen(-1.9)).toBe(-1);
+  });
+
+  it("divides and applies percent with truncate toward zero", () => {
+    expect(divTruncateSen(339_500, 11)).toBe(30_863);
+    expect(pctTruncateSen(1_200_007, 6)).toBe(72_000);
+    expect(pctTruncateSen(-1_200_007, 6)).toBe(-72_000);
+  });
+
+  it("rounds up to the next 5 sen", () => {
+    expect(roundUpToFiveSen(28_702)).toBe(28_705);
+    expect(roundUpToFiveSen(15_206)).toBe(15_210);
+    expect(roundUpToFiveSen(0)).toBe(0);
+    expect(() => roundUpToFiveSen(-1)).toThrow(RangeError);
+  });
+});
+
 describe("roundHalfUpSen", () => {
   it("rounds half away from zero", () => {
     expect(roundHalfUpSen(2.5)).toBe(3);
@@ -82,6 +108,7 @@ describe("roundHalfUpSen", () => {
   it("throws on non-finite input", () => {
     expect(() => roundHalfUpSen(Number.NaN)).toThrow(RangeError);
     expect(() => roundHalfUpSen(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+    expect(() => roundHalfUpSen(Number.NEGATIVE_INFINITY)).toThrow(RangeError);
   });
 });
 
@@ -118,6 +145,22 @@ describe("mulDivSen", () => {
   it("rejects non-integer sen amounts", () => {
     expect(() => mulDivSen(100.5, 1, 2)).toThrow(RangeError);
   });
+
+  it("throws on non-finite numerator or denominator", () => {
+    expect(() => mulDivSen(100000, Number.NaN, 2)).toThrow(RangeError);
+    expect(() => mulDivSen(100000, 1, Number.NaN)).toThrow(RangeError);
+    expect(() => mulDivSen(100000, Number.POSITIVE_INFINITY, 2)).toThrow(
+      RangeError
+    );
+    expect(() => mulDivSen(100000, 1, Number.NEGATIVE_INFINITY)).toThrow(
+      RangeError
+    );
+  });
+
+  it("throws on NaN or Infinity in sen amounts", () => {
+    expect(() => mulDivSen(Number.NaN, 1, 2)).toThrow(RangeError);
+    expect(() => mulDivSen(Number.POSITIVE_INFINITY, 1, 2)).toThrow(RangeError);
+  });
 });
 
 describe("pctRoundUpToRinggitSen", () => {
@@ -147,6 +190,19 @@ describe("pctRoundUpToRinggitSen", () => {
     expect(() => pctRoundUpToRinggitSen(-100, 11)).toThrow(RangeError);
     expect(() => pctRoundUpToRinggitSen(100, 11.234)).toThrow(RangeError);
   });
+
+  it("rejects non-finite amounts and rates", () => {
+    expect(() => pctRoundUpToRinggitSen(Number.NaN, 11)).toThrow(RangeError);
+    expect(() => pctRoundUpToRinggitSen(Number.POSITIVE_INFINITY, 11)).toThrow(
+      RangeError
+    );
+    expect(() => pctRoundUpToRinggitSen(100000, Number.NaN)).toThrow(
+      RangeError
+    );
+    expect(() =>
+      pctRoundUpToRinggitSen(100000, Number.NEGATIVE_INFINITY)
+    ).toThrow(RangeError);
+  });
 });
 
 describe("formatRM", () => {
@@ -166,5 +222,76 @@ describe("formatRM", () => {
 
   it("throws on non-integer sen", () => {
     expect(() => formatRM(100.5)).toThrow(RangeError);
+  });
+
+  it("throws on NaN and Infinity at boundary", () => {
+    expect(() => formatRM(Number.NaN)).toThrow(RangeError);
+    expect(() => formatRM(Number.POSITIVE_INFINITY)).toThrow(RangeError);
+    expect(() => formatRM(Number.NEGATIVE_INFINITY)).toThrow(RangeError);
+  });
+});
+
+describe("quantityAmountSen", () => {
+  it("calculates quantity × rate properly", () => {
+    expect(quantityAmountSen(40, 2500)).toBe(100000); // 40 hours × RM25.00/hour = RM1000
+    expect(quantityAmountSen(22.5, 30000)).toBe(675000); // 22.5 days × RM300/day = RM6750
+    expect(quantityAmountSen(0.5, 5000)).toBe(2500); // 0.5 units × RM50/unit = RM25
+  });
+
+  it("rounds half away from zero", () => {
+    expect(quantityAmountSen(1.5, 167)).toBe(251); // 1.5 × 167 = 250.5 → 251
+    expect(quantityAmountSen(2.5, 101)).toBe(253); // 2.5 × 101 = 252.5 → 253
+    expect(quantityAmountSen(-1.5, 167)).toBe(-251); // -1.5 × 167 = -250.5 → -251
+  });
+
+  it("handles zero quantities and rates", () => {
+    expect(quantityAmountSen(0, 2500)).toBe(0);
+    expect(quantityAmountSen(40, 0)).toBe(0);
+    expect(quantityAmountSen(0, 0)).toBe(0);
+  });
+
+  it("rejects non-finite quantities", () => {
+    expect(() => quantityAmountSen(Number.NaN, 2500)).toThrow(RangeError);
+    expect(() => quantityAmountSen(Number.POSITIVE_INFINITY, 2500)).toThrow(
+      RangeError
+    );
+  });
+
+  it("rejects non-integer rate sen", () => {
+    expect(() => quantityAmountSen(40, 2500.5)).toThrow(RangeError);
+    expect(() => quantityAmountSen(40, Number.NaN)).toThrow(RangeError);
+  });
+});
+
+describe("pctHalfUpSen", () => {
+  it("calculates percentages with half-up rounding", () => {
+    expect(pctHalfUpSen(100000, 0.25)).toBe(250); // RM1000 × 0.25% = RM2.50
+    expect(pctHalfUpSen(500000, 1.75)).toBe(8750); // RM5000 × 1.75% = RM87.50
+    expect(pctHalfUpSen(275000, 0.5)).toBe(1375); // RM2750 × 0.5% = RM13.75
+  });
+
+  it("rounds half away from zero on boundaries", () => {
+    expect(pctHalfUpSen(100000, 0.255)).toBe(255); // RM1000 × 0.255% = 255.0 → 255
+    expect(pctHalfUpSen(200001, 0.25)).toBe(500); // RM2000.01 × 0.25% = 500.0025 → 500 (not a half boundary)
+    expect(pctHalfUpSen(200200, 0.25)).toBe(501); // RM2002.00 × 0.25% = 500.5 → 501 (half up)
+  });
+
+  it("handles zero amounts and percentages", () => {
+    expect(pctHalfUpSen(0, 0.25)).toBe(0);
+    expect(pctHalfUpSen(100000, 0)).toBe(0);
+  });
+
+  it("rejects negative amounts and invalid percentages", () => {
+    expect(() => pctHalfUpSen(-100000, 0.25)).toThrow(RangeError);
+    expect(() => pctHalfUpSen(100000, -0.25)).toThrow(RangeError);
+    expect(() => pctHalfUpSen(100000, Number.NaN)).toThrow(RangeError);
+    expect(() => pctHalfUpSen(100000, Number.POSITIVE_INFINITY)).toThrow(
+      RangeError
+    );
+  });
+
+  it("rejects non-integer sen amounts", () => {
+    expect(() => pctHalfUpSen(100000.5, 0.25)).toThrow(RangeError);
+    expect(() => pctHalfUpSen(Number.NaN, 0.25)).toThrow(RangeError);
   });
 });

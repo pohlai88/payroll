@@ -16,13 +16,13 @@ and the feature inventory beneath these layers, see
 
 ```
   ┌─────────────────────────────────────────────────────────────┐
-  │  L5  PRESENTATION FACADE            not built (Phase 4/5)   │
-  │      renders · formats · navigates · collects intent        │
+  │  L5  PRESENTATION FACADE            Phase 4 shell partial   │
+  │      auth · permissions · import panel; Phase 5 payroll UI  │
   └─────────────────────────────────────────────────────────────┘
                     ▲ read model               │ intent
   ┌─────────────────────────────────────────────────────────────┐
-  │  L4  API                            not built (Phase 3)     │
-  │      one transaction per commit · server-authoritative      │
+  │  L4  API                  Neon Auth + RBAC; employee import │
+  │      pay-run create/recompute + control/findings routes     │
   └─────────────────────────────────────────────────────────────┘
                     ▲                          │
   ┌─────────────────────────────────────────────────────────────┐
@@ -101,12 +101,25 @@ Four properties matter to the UI:
 triggers, not in application code, so they hold regardless of which client writes.
 Approval locks the calculation.
 
-### L4 — the API (Phase 3, not built)
+### L4 — the API (auth + import + pay-run/control routes built)
 
-Server-authoritative. Every mutation is one transaction that validates, persists,
-recomputes the line, re-evaluates findings, and returns row values + findings +
-counters + revision hash **together**. The facade never assembles a coherent state
-from independently racing requests.
+**Built today:** Hono under `src/server/` — Neon Auth Bearer JWT verification,
+invite-only `users.auth_subject` linking, `/health`, `/v1/me` /
+`/v1/me/permissions`, SYSTEM_ADMIN `/v1/admin/users*`, create-only
+`/v1/employee-import*`, pay-run create/recompute, and Phase 6–7 control routes.
+See [hono-neon-auth-design](../superpowers/specs/2026-08-08-hono-neon-auth-design.md)
+and [phase4b-employee-import-api-design](../superpowers/specs/2026-08-08-phase4b-employee-import-api-design.md).
+
+**Phase 5A (frozen):** pay-run mutations return `PayRunMutationEnvelope` — run
+identity, `calcRevision` / certification fields, findings counters, and gate
+readiness together. Canonical mutation response contract only — no per-line
+derivation presentation, no new payroll behavior, no control/gate semantics.
+See
+[phase5a-mutation-envelope-design](../superpowers/specs/2026-08-08-phase5a-mutation-envelope-design.md).
+
+**Still required for the full L4→L5 contract:** line-root payloads + derivation
+graph read for the drawer; workspace UI; adopting the same envelope on remaining
+payment/release routes where needed.
 
 ---
 
@@ -233,14 +246,15 @@ worth keeping true.
 
 ## 8. Seams not yet closed
 
-- **L4 does not exist.** The transaction contract in §2 is specified in the
-  [pay-run workspace spec](../superpowers/specs/2026-08-08-payrun-workspace-design.md),
-  not implemented.
+- **L4 payroll workspace contract incomplete.** Auth, employee import, pay-run
+  create/recompute, and control HTTP exist; the unified
+  validate→persist→recompute→findings→revision response for every payroll UI
+  mutation (pay-run workspace) is not fully wired into L5.
+- **L5 product payroll UI.** Phase 4 shell (auth, permissions, import panel,
+  design-system foundation) exists; Phase 5 derivation drawer / payroll screens
+  do not.
 - **Graph persistence.** `deriveLine` runs in-process today; which graphs are stored
   versus re-derived on read is undecided, and it determines whether the drill-down
   is a fetch or a recompute.
-- **`tests/db` is red.** The Postgres constraint suite does not typecheck
-  (`constraints.test.ts`), so the L3 invariants are asserted by triggers but not yet
-  by tests.
 - **Rule-pack resolution at render time** has no query layer yet; §5.6 describes the
   contract it must satisfy.

@@ -6,7 +6,7 @@
  * caller ever assembles engine input by hand.
  */
 
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import type { Database } from "@/db/client";
 import { payItems } from "@/db/schema/catalog";
 import {
@@ -135,6 +135,7 @@ export async function loadRuleSettings(
 export async function loadPayItems(db: Database): Promise<PayItemDef[]> {
   const rows = await db
     .select({
+      id: payItems.id,
       code: payItems.code,
       kind: payItems.kind,
       rateBasis: payItems.rateBasis,
@@ -151,5 +152,66 @@ export async function loadPayItems(db: Database): Promise<PayItemDef[]> {
       "no pay items are defined: the catalog has not been seeded"
     );
   }
-  return rows;
+
+  const treatmentRows = await db.execute<{
+    pay_item_id: string;
+    scheme: string;
+    subject: boolean;
+  }>(sql`
+    SELECT DISTINCT ON (pay_item_id, scheme)
+      pay_item_id, scheme, subject
+    FROM pay_item_treatments
+    WHERE effective_to IS NULL OR effective_to >= CURRENT_DATE
+    ORDER BY pay_item_id, scheme, effective_from DESC`);
+
+  const pcbRows = await db.execute<{
+    pay_item_id: string;
+    class: string;
+  }>(sql`
+    SELECT DISTINCT ON (pay_item_id)
+      pay_item_id, class
+    FROM pay_item_pcb_classes
+    WHERE effective_to IS NULL OR effective_to >= CURRENT_DATE
+    ORDER BY pay_item_id, effective_from DESC`);
+
+  type Scheme = "EPF" | "SOCSO" | "EIS" | "HRD";
+  const subjectByItem = new Map<string, Partial<Record<Scheme, boolean>>>();
+  for (const t of treatmentRows.rows) {
+    const scheme = t.scheme as Scheme;
+    const cur = subjectByItem.get(t.pay_item_id) ?? {};
+    cur[scheme] = t.subject;
+    subjectByItem.set(t.pay_item_id, cur);
+  }
+  const pcbByItem = new Map<
+    string,
+    NonNullable<PayItemDef["pcbRemunerationClass"]>
+  >();
+  for (const p of pcbRows.rows) {
+    pcbByItem.set(
+      p.pay_item_id,
+      p.class as NonNullable<PayItemDef["pcbRemunerationClass"]>
+    );
+  }
+
+  return rows.map((r) => {
+    const subjects = subjectByItem.get(r.id) ?? {};
+    return {
+      code: r.code,
+      kind: r.kind,
+      rateBasis: r.rateBasis,
+      // Treatments are authority; boolean columns are deprecated mirrors.
+      epfWages: subjects.EPF ?? r.epfWages,
+      socsoWages: subjects.SOCSO ?? r.socsoWages,
+      eisWages: subjects.EIS ?? r.eisWages,
+      hrdWages: subjects.HRD ?? r.epfWages,
+      prorates: r.prorates,
+      pcbRemunerationClass:
+        pcbByItem.get(r.id) ??
+        (r.kind === "DEDUCTION"
+          ? "EXCLUDED"
+          : r.code === "BONUS"
+            ? "ADDITIONAL"
+            : "NORMAL"),
+    };
+  });
 }

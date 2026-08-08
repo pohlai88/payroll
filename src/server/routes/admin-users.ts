@@ -1,0 +1,126 @@
+import { Hono } from "hono";
+import { z } from "zod";
+import type { Database } from "@/db/client";
+import {
+  assignUserRole,
+  inviteUser,
+  listUsers,
+  revokeUserRoleAssignment,
+  updateUserStatus,
+} from "@/service/admin-users";
+import type { AuthVariables } from "../auth/middleware";
+import { handleRouteError } from "../errors";
+
+const inviteBody = z.object({
+  email: z.string().min(1),
+  name: z.string().min(1),
+  roleCode: z.string().min(1).optional(),
+  companyId: z.string().uuid().nullable().optional(),
+});
+
+const statusBody = z.object({
+  status: z.enum(["ACTIVE", "DISABLED"]),
+});
+
+const roleBody = z.object({
+  roleCode: z.string().min(1),
+  companyId: z.string().uuid().nullable().optional(),
+});
+
+export function adminUserRoutes(db: Database) {
+  const app = new Hono<{ Variables: AuthVariables }>();
+
+  app.post("/admin/users", async (c) => {
+    try {
+      const body = inviteBody.parse(await c.req.json());
+      const user = await inviteUser(db, {
+        actorUserId: c.get("user").id,
+        email: body.email,
+        name: body.name,
+        roleCode: body.roleCode,
+        companyId: body.companyId,
+      });
+      return c.json(
+        {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          status: user.status,
+          authSubject: user.authSubject,
+        },
+        201
+      );
+    } catch (error) {
+      return handleRouteError(c, error);
+    }
+  });
+
+  app.get("/admin/users", async (c) => {
+    try {
+      const rows = await listUsers(db, c.get("user").id);
+      return c.json({
+        users: rows.map((u) => ({
+          id: u.id,
+          email: u.email,
+          name: u.name,
+          status: u.status,
+          authSubject: u.authSubject,
+        })),
+      });
+    } catch (error) {
+      return handleRouteError(c, error);
+    }
+  });
+
+  app.patch("/admin/users/:userId", async (c) => {
+    try {
+      const body = statusBody.parse(await c.req.json());
+      const user = await updateUserStatus(db, {
+        actorUserId: c.get("user").id,
+        userId: c.req.param("userId"),
+        status: body.status,
+      });
+      return c.json({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        status: user.status,
+        authSubject: user.authSubject,
+      });
+    } catch (error) {
+      return handleRouteError(c, error);
+    }
+  });
+
+  app.post("/admin/users/:userId/roles", async (c) => {
+    try {
+      const body = roleBody.parse(await c.req.json());
+      await assignUserRole(db, {
+        actorUserId: c.get("user").id,
+        userId: c.req.param("userId"),
+        roleCode: body.roleCode,
+        companyId: body.companyId,
+      });
+      return c.json({ ok: true as const });
+    } catch (error) {
+      return handleRouteError(c, error);
+    }
+  });
+
+  app.delete("/admin/users/:userId/roles", async (c) => {
+    try {
+      const body = roleBody.parse(await c.req.json());
+      await revokeUserRoleAssignment(db, {
+        actorUserId: c.get("user").id,
+        userId: c.req.param("userId"),
+        roleCode: body.roleCode,
+        companyId: body.companyId,
+      });
+      return c.json({ ok: true as const });
+    } catch (error) {
+      return handleRouteError(c, error);
+    }
+  });
+
+  return app;
+}

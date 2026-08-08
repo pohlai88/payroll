@@ -47,6 +47,14 @@ export interface RuleResolutionRequest {
   readonly ruleCode: string;
   /** ISO `yyyy-mm-dd`: the date payroll treats as "the law in force". */
   readonly statutoryDate: string;
+  /**
+   * `rule_packs.jurisdiction` — ISO 3166-1 alpha-2, or a subdivision code
+   * where a rule is state-level. Defaults to `MY`: every pack seeded so far
+   * is national, but a state-level variant sharing `code` with the national
+   * pack (e.g. a Sabah/Sarawak overtime rule) must not be treated as the same
+   * rule family, or as ambiguous with it.
+   */
+  readonly jurisdiction?: string;
 }
 
 export interface ResolvedRule {
@@ -72,8 +80,8 @@ export async function resolveRule(
   db: Database,
   request: RuleResolutionRequest
 ): Promise<ResolvedRule> {
-  const { scheme, ruleCode, statutoryDate } = request;
-  const what = `scheme=${scheme} ruleCode=${ruleCode} date=${statutoryDate}`;
+  const { scheme, ruleCode, statutoryDate, jurisdiction = "MY" } = request;
+  const what = `scheme=${scheme} ruleCode=${ruleCode} jurisdiction=${jurisdiction} date=${statutoryDate}`;
 
   if (!isIsoDate(statutoryDate)) {
     throw new RuleResolutionError(
@@ -95,6 +103,7 @@ export async function resolveRule(
       and(
         eq(rulePacks.layer, scheme),
         eq(rulePacks.code, ruleCode),
+        eq(rulePacks.jurisdiction, jurisdiction),
         lte(rulePacks.effectiveFrom, statutoryDate),
         or(
           isNull(rulePacks.effectiveTo),

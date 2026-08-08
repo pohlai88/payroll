@@ -43,6 +43,8 @@ export interface RuleSettings {
   epfPartFEePct: number; // 2
   epfPartFErPct: number; // 2
   socsoCeilingSen: number; // 600,000
+  /** Age at which EPF Part A/C switches to E/C and SOCSO FIRST switches to SECOND. */
+  epfSocsoRetirementAge: number; // 60
   skbbkPhaseFrom: string; // 2026-06-01
   skbbkPhaseTo: string; // 2028-05-31
   eisCeilingSen: number; // 600,000
@@ -92,6 +94,9 @@ export function isQuantityBasis(basis: RateBasis): basis is QuantityBasis {
   return (QUANTITY_BASES as readonly RateBasis[]).includes(basis);
 }
 
+/** LHDN Normal vs Additional vs excluded from Y1/Yt (S06 PCB taxonomy). */
+export type PcbRemunerationClass = "NORMAL" | "ADDITIONAL" | "EXCLUDED";
+
 export interface PayItemDef {
   code: string;
   kind: "EARNING" | "DEDUCTION";
@@ -99,8 +104,12 @@ export interface PayItemDef {
   epfWages: boolean;
   socsoWages: boolean;
   eisWages: boolean;
+  /** HRD levy wage base — defaults to EPF at S06 cutover. */
+  hrdWages?: boolean;
   /** MONTHLY-basis pay is reduced by days paid; most allowances are not. */
   prorates?: boolean;
+  /** PCB Y1/Yt class; defaults derived from code when omitted (BONUS → ADDITIONAL). */
+  pcbRemunerationClass?: PcbRemunerationClass;
 }
 
 /**
@@ -176,12 +185,89 @@ export interface OverrideInput {
   overrideSen: number;
 }
 
+/**
+ * Which computerized MTD formula applies for a resident employee.
+ * Non-resident always uses the flat 30% path regardless of this field.
+ */
+export type PcbFormulaRegime =
+  | "NORMAL"
+  | "REP"
+  | "KNOWLEDGE_WORKER"
+  | "C_SUITE";
+
+/** Resident / non-resident standing tax profile for offline PCB compute. */
+export interface PcbTaxProfile {
+  residence: "RESIDENT" | "NON_RESIDENT";
+  /** Category 1 / 2 / 3 per LHDN MTD computerized spec. */
+  category: 1 | 2 | 3;
+  disabledIndividual: boolean;
+  disabledSpouse: boolean;
+  /**
+   * Qualifying child units `C` in `QC = Q × C`. Callers apply OKU / higher-
+   * education multipliers (e.g. disabled child counts as 4 units).
+   */
+  qualifyingChildUnits: number;
+  /**
+   * Formula regime. Default `NORMAL`. Additional remuneration is selected
+   * automatically when `monthContext.ytSen` is set under NORMAL.
+   */
+  formulaRegime?: PcbFormulaRegime;
+}
+
+/**
+ * Current-month and YTD accumulators for PCB
+ * (calculator `PRV_YEAR` / `FRS_REC` surface). Amounts in sen.
+ */
+export interface PcbMonthContext {
+  /** Accumulated prior-months gross remuneration (incl. prior employer). */
+  ySen: number;
+  /** Accumulated prior-months EPF against Y. */
+  kSen: number;
+  /** Current-month normal remuneration. */
+  y1Sen: number;
+  /** Current-month EPF against Y1. */
+  k1Sen: number;
+  /**
+   * Estimated normal remuneration for subsequent months (`Y2`).
+   * Defaults to `y1Sen` when omitted (spec default).
+   */
+  y2Sen?: number;
+  /** Months remaining after the current month (`n`). */
+  n: number;
+  /** Accumulated PCB paid in prior months (excl. voluntary additional / CP500). */
+  xSen: number;
+  /** Accumulated zakat in prior months (excl. current month). */
+  zSen: number;
+  /** Accumulated TP1 allowable deductions prior months (`∑LP`). */
+  accumulatedLpSen: number;
+  /** Current-month TP1 allowable deductions (`LP1`). */
+  lp1Sen: number;
+  /** Current-month additional remuneration (bonus, etc.). */
+  ytSen?: number;
+  /** EPF / approved-scheme contribution against Yt. */
+  ktSen?: number;
+  /**
+   * When true, deduct MTD even if the pre-zakat amount is below RM10.
+   * Spec default: employer is not required to deduct below RM10.
+   */
+  electDeductBelowRm10?: boolean;
+}
+
 export interface PcbInput {
-  // null = not entered (NEVER zero)
+  // null = not entered / not overridden (NEVER silently zero)
   pcbAmountSen: number | null;
   zakatOffsetSen: number;
   cp38Sen: number;
   verified: boolean;
+  /** Standing tax profile — required with `monthContext` for compute path. */
+  taxProfile?: PcbTaxProfile;
+  /** Month / YTD context — required with `taxProfile` for compute path. */
+  monthContext?: PcbMonthContext;
+  /**
+   * When true, compose fills `y1Sen`/`ytSen` from line items and `k1Sen` from
+   * EPF EE (minus `ktSen`) before compute. Used when `pcb_entries.y1_sen` is null.
+   */
+  autoRemunerationFromItems?: boolean;
 }
 
 export interface Classification {

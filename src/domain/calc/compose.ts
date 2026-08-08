@@ -1,8 +1,8 @@
-import { formatRM, roundHalfUpSen } from "../money";
+import { formatRM, pctHalfUpSen } from "../money";
 import { classify } from "./classify";
 import { eis } from "./eis";
 import { epf } from "./epf";
-import { pcbNet } from "./pcb";
+import { enrichPcbForCompute, type PcbResult, pcbNet } from "./pcb";
 import { regularPay } from "./proration";
 import { resolveItems } from "./resolve-items";
 import { socso } from "./socso";
@@ -192,29 +192,35 @@ export function computeLine(opts: ComposeOptions): LineResult {
     detail: `${eisRes.trace.detail} → EE ${formatRM(eisEeSen)} / ER ${formatRM(eisErSen)}`,
   });
 
-  // ---- PCB (controlled input) ----
-  const pcbRes = pcbNet(opts.pcb ?? null);
-  const zakatSen = opts.pcb?.zakatOffsetSen ?? 0;
+  // ---- PCB (compute-first dual path + zakat / CP38) ----
+  const pcbForNet = enrichPcbForCompute(
+    opts.pcb ?? null,
+    items,
+    epfEeSen,
+    matrix
+  );
+  const pcbRes = pcbNet(pcbForNet);
+  const zakatSen = pcbForNet?.zakatOffsetSen ?? 0;
   /**
-   * `null` means "not entered, so unknowable" and must block net pay. An
-   * employee outside PCB with nothing entered is not unknowable — nothing is
-   * due. Reporting `null` there contradicted the totals below, which already
-   * added zero and produced a real net, so the payslip showed an unknown next
-   * to a net that had quietly assumed zero.
+   * `null` means "unknown, so unknowable" and must block net pay. An
+   * employee outside PCB with nothing entered/computed is not unknowable —
+   * nothing is due. Reporting `null` there contradicted the totals below,
+   * which already added zero and produced a real net.
    */
   const pcbNetSen =
     pcbRes.netPcbSen === null &&
     !employee.pcbApplicable &&
-    opts.pcb?.pcbAmountSen == null
+    pcbForNet?.pcbAmountSen == null
       ? 0
       : pcbRes.netPcbSen;
   if (employee.pcbApplicable) {
+    const pathLabel = pcbPathLabel(pcbRes);
     trace.push({
       label: "PCB / MTD",
       detail:
         pcbRes.netPcbSen === null
-          ? "NOT ENTERED — pending verification (never treated as zero)"
-          : `max(PCB − zakat ${formatRM(zakatSen)}, 0)${pcbRes.verified ? " [VERIFIED]" : " [UNVERIFIED]"}`,
+          ? "UNKNOWN — need verified override or complete tax profile / month context"
+          : `max(PCB − zakat ${formatRM(zakatSen)}, 0)${pathLabel}`,
       amountSen: pcbRes.netPcbSen ?? undefined,
     });
   }
@@ -234,11 +240,10 @@ export function computeLine(opts: ComposeOptions): LineResult {
   const netSen =
     deductionsTotalSen === null ? null : grossSen - deductionsTotalSen;
 
+  const hrdWagesSen = computedBases.hrdWagesSen;
   const hrdfLevySen =
     opts.hrdfLevyEnabled && (opts.hrdfLevyPct ?? settings.hrdfLevyPct) > 0
-      ? roundHalfUpSen(
-          (epfWagesSen * (opts.hrdfLevyPct ?? settings.hrdfLevyPct)) / 100
-        )
+      ? pctHalfUpSen(hrdWagesSen, opts.hrdfLevyPct ?? settings.hrdfLevyPct)
       : 0;
 
   const employerCostSen =
@@ -276,4 +281,21 @@ export function computeLine(opts: ComposeOptions): LineResult {
     employerCostSen,
     trace,
   };
+}
+
+/** Trace-annotation suffix describing how a PCB figure was resolved. */
+function pcbPathLabel(pcbRes: PcbResult): string {
+  if (pcbRes.path === "COMPUTED") {
+    return " [COMPUTED]";
+  }
+  if (pcbRes.path === "OVERRIDE") {
+    return " [OVERRIDE VERIFIED]";
+  }
+  if (pcbRes.verified) {
+    return " [VERIFIED]";
+  }
+  if (pcbRes.path === "ENTERED") {
+    return " [UNVERIFIED]";
+  }
+  return "";
 }

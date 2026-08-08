@@ -1,0 +1,87 @@
+{
+  "specificationYear": 2026,
+  "sourceRef": "P-SPEC-2026",
+  "note": "Table 1 from LHDN Specification for MTD Computerized Calculation 2026. Amounts in sen. Brackets are half-open [fromSen, toSen) so every P ≥ RM5,001 maps; toSen null = unbounded. B embeds individual/spouse rebate for P ≤ RM35,000.",
+  "epfAnnualCapSen": 400000,
+  "reliefs": {
+    "individualSen": 900000,
+    "spouseSen": 400000,
+    "childSen": 200000,
+    "disabledIndividualSen": 700000,
+    "disabledSpouseSen": 600000
+  },
+  "table1": [
+    {
+      "fromSen": 500100,
+      "toSen": 2000100,
+      "mSen": 500000,
+      "rPct": 1,
+      "bCat1And3Sen": -40000,
+      "bCat2Sen": -80000
+    },
+    {
+      "fromSen": 2000100,
+      "toSen": 3500100,
+      "mSen": 2000000,
+      "rPct": 3,
+      "bCat1And3Sen": -25000,
+      "bCat2Sen": -65000
+    },
+    {
+      "fromSen": 3500100,
+      "toSen": 5000100,
+      "mSen": 3500000,
+      "rPct": 6,
+      "bCat1And3Sen": 60000,
+      "bCat2Sen": 60000
+    },
+    {
+      "fromSen": 5000100,
+      "toSen": 7000100,
+      "mSen": 5000000,
+      "rPct": 11,
+      "bCat1And3Sen": 150000,
+      "bCat2Sen": 150000
+    },
+    {
+      "fromSen": 7000100,
+      "toSen": 10000100,
+      "mSen": 7000000,
+      "rPct": 19,
+      "bCat1And3Sen": 370000,
+      "bCat2Sen": 370000
+    },
+    {
+      "fromSen": 10000100,
+      "toSen": 40000100,
+      "mSen": 10000000,
+      "rPct": 25,
+      "bCat1And3Sen": 940000,
+      "bCat2Sen": 940000
+    },
+    {
+      "fromSen": 40000100,
+      "toSen": 60000100,
+      "mSen": 40000000,
+      "rPct": 26,
+      "bCat1And3Sen": 8440000,
+      "bCat2Sen": 8440000
+    },
+    {
+      "fromSen": 60000100,
+      "toSen": 200000100,
+      "mSen": 60000000,
+      "rPct": 28,
+      "bCat1And3Sen": 13640000,
+      "bCat2Sen": 13640000
+    },
+    {
+      "fromSen": 200000100,
+      "toSen": null,
+      "mSen": 200000000,
+      "rPct": 30,
+      "bCat1And3Sen": 52840000,
+      "bCat2Sen": 52840000
+    }
+  ]
+}

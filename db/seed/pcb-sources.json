@@ -1,7 +1,7 @@
 {
   "rulePack": {
     "id": "MY-PCB-2026",
-    "name": "PCB / MTD year 2026 (sources captured, implementation not started)",
+    "name": "PCB / MTD year 2026 (Normal Remuneration engine + override)",
     "layer": "STATUTORY_CALCULATION",
     "authority": "HASiL / LHDN",
     "code": "MY-PCB",
@@ -9,14 +9,14 @@
     "effectiveFrom": "2026-01-01",
     "effectiveTo": null,
     "status": "SOURCE_CAPTURED",
-    "notes": "PCB is never calculated by this system. It is a controlled external input recorded with its source and evidence reference, and net pay is unknown without it. This pack exists so that the figure an operator enters can cite the official instrument it came from. Implementing LHDN's computerised calculation specification — with its official test vectors and the LHDN verification procedure — is a separate compliance vertical and a production-readiness gate, not part of this pack."
+    "notes": "MY-STAT-S07 Decision B-v2: offline compute for Normal, Additional, REP, Knowledge Worker, C-Suite, and non-resident 30% from P-SPEC-2026; verified override cites P-CALC-2026. LHDN_VERIFIED remains a human IRBM gate. Table 1 in pcb-table1-2026.json; testing questions in P-TEST-2026."
   },
   "sources": [
     {
       "ref": "P-CALC-2026",
       "issuer": "HASiL / LHDN",
       "title": "Kalkulator PCB (official LHDN PCB calculator), year 2026",
-      "url": "https://calcpcbplus.hasil.gov.my/HITS_CE/x2026",
+      "url": "https://calcpcbplus.hasil.gov.my/HITS_CE/x2026?PRV_YEAR=true&FRS_REC=true",
       "retrievedAt": "2026-08-08",
       "instrumentNumber": null,
       "provisionReference": null,
@@ -24,7 +24,7 @@
       "publishedDate": null,
       "effectiveDate": "2026-01-01",
       "sha256": null,
-      "note": "Identity confirmed by loading the page on 2026-08-08: it renders as 'LEMBAGA HASIL DALAM NEGERI / KALKULATOR PCB' with Tahun fixed at 2026. It accepts accumulated prior-month remuneration, PCB, rebates and deductions including those from a previous employer, which is the TP3-style prior-employment tax basis the workspace design keeps separate from employer YTD. This is the tool an operator uses to obtain a PCB figure; it is the natural value for pcb_entries.source, and a screenshot or reference number is the natural evidence.",
+      "note": "Parity oracle and evidenced override source for year-2026 PCB. Full URL includes PRV_YEAR=true and FRS_REC=true. Living portal page: no document hash. Afenda never scrapes or calls this page at payroll runtime.",
       "targets": ["PCB_MONTHLY_AMOUNT"]
     },
     {
@@ -36,11 +36,27 @@
       "instrumentNumber": null,
       "provisionReference": null,
       "pageReference": null,
+      "publishedDate": "2026-01-01",
+      "effectiveDate": "2026-01-01",
+      "sha256": "a1618051c858393d92d868c9975c183309d3d07e48f0e4f0cdef589f45f5800c",
+      "note": "Official PDF retrieved 2026-08-08 (HTTP 200, 1375535 bytes). Formula authority for offline Normal Remuneration compute (MY-STAT-S07b). EXHIBIT 5 worked examples are the first Normal vector suite. Local evidence: db/evidence/pcb-spec-2026.pdf (sha256 re-verified on download, byte-identical). Table 1 (p.9), Table 2/REP (p.15), Table 3/Knowledge Worker (p.16), and Table 4/C-Suite (p.18) all read directly from this file and cross-checked against src/domain/calc/pcb-tables.ts and pcb-core.ts's flat15RebateTSen — Table 2 and Table 3 are confirmed byte-for-byte identical in the primary source, not merely assumed.",
+      "localPath": "db/evidence/pcb-spec-2026.pdf",
+      "targets": ["PCB_SPECIFICATION"]
+    },
+    {
+      "ref": "P-TEST-2026",
+      "issuer": "HASiL / LHDN",
+      "title": "Monthly Tax Deduction (MTD) Testing Questions Using Computerised Calculation Method, year 2026",
+      "url": "https://www.hasil.gov.my/wp-content/uploads/mtd-testing-question-2026.pdf",
+      "retrievedAt": "2026-08-08",
+      "instrumentNumber": null,
+      "provisionReference": null,
+      "pageReference": null,
       "publishedDate": null,
       "effectiveDate": "2026-01-01",
-      "sha256": null,
-      "note": "Published as PDF. Required reading before any computerised PCB implementation, and the source of the official test vectors such an implementation must reproduce. Not read yet; no value in this system derives from it.",
-      "targets": ["PCB_SPECIFICATION"]
+      "sha256": "d6523266b8b23daca956be0f61ec52879eab364736a9feb5668d7f039ae33517",
+      "note": "Official PDF retrieved 2026-08-08 (HTTP 200, 200396 bytes, %PDF). Local evidence: db/evidence/mtd-testing-question-2026.pdf. Q1–Q5 exercise C-Suite / Additional / REP / expatriate / KW — engines are implemented; no published answer key, so cases are not CI goldens until IRBM verification.",
+      "targets": ["PCB_TESTING_QUESTIONS"]
     }
   ]
 }

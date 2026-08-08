@@ -8,7 +8,12 @@
  * whole rebuild would be worthless.
  */
 
-import { mulDivSen, pctRoundUpToRinggitSen, roundHalfUpSen } from "../money";
+import {
+  mulDivSen,
+  pctHalfUpSen,
+  pctRoundUpToRinggitSen,
+  quantityAmountSen,
+} from "../money";
 import type { Exact } from "./value";
 
 export interface Rounded {
@@ -46,12 +51,14 @@ export function explainPctCeilRinggit(amountSen: number, pct: number): Rounded {
 
 /** A percentage of an amount, half up to the sen. Used by the HRD Corp levy. */
 export function explainPctHalfUp(amountSen: number, pct: number): Rounded {
-  const raw = (amountSen * pct) / 100;
-  return rounded({ num: amountSen * pct, den: 100 }, roundHalfUpSen(raw));
+  return rounded(
+    { num: amountSen * pct, den: 100 },
+    pctHalfUpSen(amountSen, pct)
+  );
 }
 
 /** A bare product, half up to the sen. Used by meal allowance and overtime. */
 export function explainMulHalfUp(amountSen: number, qty: number): Rounded {
   const raw = amountSen * qty;
-  return rounded({ num: raw, den: 1 }, roundHalfUpSen(raw));
+  return rounded({ num: raw, den: 1 }, quantityAmountSen(qty, amountSen));
 }

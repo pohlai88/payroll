@@ -9,10 +9,8 @@ import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { FIXED_HEADERS } from "@/domain/import/employee-row";
-import {
-  csvEscape,
-  writeEmployeeImportTemplate,
-} from "../../scripts/employee-template";
+import { csvEscape } from "@/service/employee-import";
+import { writeEmployeeImportTemplate } from "../../scripts/employee-template";
 import { seed } from "../../scripts/seed";
 import { ALL_TABLES, connectTestDatabase } from "./harness/database";
 

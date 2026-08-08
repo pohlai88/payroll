@@ -63,7 +63,10 @@ export function socso(
       eeSkbbkSen: skbbkActive ? band.cat1EeSkbbkSen : 0,
       trace: {
         label: "SOCSO (First Category)",
-        detail: `Act 4 band ${band.fromSen / 100}–${Math.min(band.toSen, s.socsoCeilingSen * 200) / 100}${skbbkActive ? " incl. SKBBK" : " (SKBBK outside phase window)"}`,
+        // `band.toSen` is a sentinel far above the real wage ceiling for the
+        // open-ended top band (see socso-skbbk.json), so it is capped at the
+        // ceiling — already in sen — before display rather than shown as-is.
+        detail: `Act 4 band ${band.fromSen / 100}–${Math.min(band.toSen, s.socsoCeilingSen) / 100}${skbbkActive ? " incl. SKBBK" : " (SKBBK outside phase window)"}`,
       },
     };
   }

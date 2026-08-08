@@ -1,0 +1,11 @@
+{
+  "roles": [
+    {
+      "code": "SYSTEM_ADMIN",
+      "name": "System Admin",
+      "description": "Implicit full access to every resource and action. Permission matrix rows are never stored for this role.",
+      "scope": "GLOBAL",
+      "isSystem": true
+    }
+  ]
+}

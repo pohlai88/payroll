@@ -17,7 +17,8 @@ Anything not yet built is marked. Nothing here is aspirational.
   src/domain/calc/ pure engine, DB-free           ├─ no dependency downward
   src/domain/derive/ explanation graph           ─┘
   src/db/          Postgres schema + triggers
-  src/server/      API                            not built (Phase 3)
+  src/server/      Hono API — Neon Auth JWT + invite RBAC;
+                   pay-run create/recompute under /v1/pay-runs*
 ```
 
 The engine imports no database client and the graph carries no URLs or hashes.
@@ -89,8 +90,8 @@ MVP of the cross-company transfer capability
 ([design](../superpowers/specs/2026-08-08-internal-group-transfer-design.md)),
 narrower than §8 of the
 [pay-run workspace spec](../superpowers/specs/2026-08-08-payrun-workspace-design.md):
-no findings/gates and no artifacts-backed evidence, because neither
-subsystem exists yet. `src/service/transfer.ts`'s `commitTransfer` ends
+evidence attaches via `evidenceArtifactId`; findings scan post-commit.
+`src/service/transfer.ts`'s `commitTransfer` ends
 Employment A, creates Employment B, and links them via `transfers` in one
 transaction; `recordPriorEmploymentYtd` writes `employment_prior_ytd`
 (TP3-style prior-employer figures for PCB continuity) independently. Three
@@ -315,26 +316,37 @@ Four design decisions worth knowing before touching this layer:
 - **Persistence with self-enforcing invariants** — 18 tables, immutability past
   approval, forward-only lifecycle, append-only audit.
 - **`explain` CLI** — `scripts/explain.ts` walks a line's derivation as a tree.
-- **Internal group transfer (MVP)** — `commitTransfer`/`recordPriorEmploymentYtd`
-  in `src/service/transfer.ts` (§2.2a). No findings/gates rules and no
-  evidence artifacts yet — see "Specified, not built."
+- **Internal group transfer** — `commitTransfer`/`recordPriorEmploymentYtd` in
+  `src/service/transfer.ts` (§2.2a), with `evidenceArtifactId` on transfers /
+  prior YTD, post-commit §8.6 transfer findings scan, and run-scoped §8.6
+  detectors wired into `scanRunFindings`. Wizard UI / DRAFT transfer state
+  remain deferred — see "Specified, not built."
+- **S06 pay-item treatments + PCB class** — `pay_item_treatments` (EPF/SOCSO/EIS/HRD)
+  and `pay_item_pcb_classes` (NORMAL/ADDITIONAL/EXCLUDED); HRDF uses `hrdWagesSen`.
+
+### Auth platform (Phase 3, built)
+
+`src/server/` hosts a Hono Node API (`npm run dev:api`) that verifies Neon Auth
+Bearer JWTs, invite-only links `users.auth_subject`, and exposes `/health`,
+`/v1/me*`, SYSTEM_ADMIN `/v1/admin/users*`, employee import, and pay-run
+control routes (`/v1/pay-runs*`). Design:
+[hono-neon-auth-design](../superpowers/specs/2026-08-08-hono-neon-auth-design.md).
+
+**Phase 6–7 control backend (built):** findings catalog + scan stamp, pure
+`evaluateGate`, revision-bound REVIEW/APPROVE + READY `line_payments`,
+release/settle/reconcile/distribute/close, R2 artifacts —
+[phase6-findings-gates-approval-design](../superpowers/specs/2026-08-08-phase6-findings-gates-approval-design.md),
+[phase6-7-control-backend-design](../superpowers/specs/2026-08-08-phase6-7-control-backend-design.md).
 
 ### Specified, not built
 
-Run lifecycle gates and `calcRevision` certification; the findings/abnormality
-engine (15 rules in the v1 catalog); payment, release, distribution and
-reconciliation; the closure manifest; the teaching payslip; the API; the UI.
-For internal group transfer specifically: the §8.6 findings rules
-(`TRANSFER_OVERLAP_DATES` etc.), artifacts-backed evidence for transfer
-letters, the wizard UI, and a persisted DRAFT transfer state — see the
+The teaching payslip; Phase 5 payroll UI + derivation drawer; SPA wiring for
+control HTTP. For internal group transfer specifically: the wizard UI and
+a persisted DRAFT transfer state — see the
 [transfer design](../superpowers/specs/2026-08-08-internal-group-transfer-design.md)
-for what narrowed the MVP. Same-company department/designation change
-(§8.2) remains unbuilt and unscoped. Everything above is specified in the
-[pay-run workspace spec](../superpowers/specs/2026-08-08-payrun-workspace-design.md).
-
-The schema anticipates several of these — `calcRevision`, `reviewedRevision`,
-`approvedRevision`, `runType`, `offcycleReason`, `linkedRunId`, `bulkOperationId`
-are all present and currently null or unused.
+and
+[transfer/statutory follow-ups](../superpowers/specs/2026-08-08-transfer-statutory-followups-design.md).
+Same-company department/designation change (§8.2) remains unbuilt and unscoped.
 
 ---
 

@@ -9,6 +9,7 @@
 
 import { sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   bigint,
   boolean,
   check,
@@ -31,6 +32,7 @@ import {
   offcycleReason,
   overrideField,
   payItemKind,
+  pcbRemunerationClass,
   rateBasis,
   runStatus,
   runType,
@@ -53,7 +55,9 @@ export const payRuns = pgTable(
     runType: runType("run_type").notNull().default("REGULAR"),
     offcycleReason: offcycleReason("offcycle_reason"),
     /** The regular run an off-cycle run corrects or supplements. */
-    linkedRunId: text("linked_run_id"),
+    linkedRunId: text("linked_run_id").references(
+      (): AnyPgColumn => payRuns.id
+    ),
 
     year: integer().notNull(),
     month: integer().notNull(),
@@ -83,12 +87,25 @@ export const payRuns = pgTable(
      * what consumes it.
      */
     calcRevision: text("calc_revision"),
+    /**
+     * Last revision for which findings scan completed fully. Gate prerequisites
+     * require equality with calcRevision — a failed scan must never advance this.
+     */
+    findingsScannedRevision: text("findings_scanned_revision"),
     reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
     reviewedBy: text("reviewed_by"),
     reviewedRevision: text("reviewed_revision"),
     approvedAt: timestamp("approved_at", { withTimezone: true }),
     approvedBy: text("approved_by"),
     approvedRevision: text("approved_revision"),
+
+    /**
+     * Artifact id of the sealed closure manifest. FK enforced in SQL
+     * (avoids a Drizzle cycle with `control.ts` → `pay_runs`).
+     */
+    closedManifestArtifactId: uuid("closed_manifest_artifact_id"),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    closedBy: text("closed_by"),
 
     createdAt,
     createdBy: text("created_by"),
@@ -221,6 +238,9 @@ export const payLineItems = pgTable(
     socsoWagesSnap: boolean("socso_wages_snap").notNull(),
     eisWagesSnap: boolean("eis_wages_snap").notNull(),
     proratesSnap: boolean("prorates_snap").notNull(),
+    pcbClassSnap: pcbRemunerationClass("pcb_class_snap")
+      .notNull()
+      .default("NORMAL"),
     sortSnap: integer("sort_snap").notNull().default(0),
 
     /** Set for quantity bases only. */
@@ -281,14 +301,21 @@ export const payLineOverrides = pgTable(
       "pay_line_overrides_reason_not_blank",
       sql`length(btrim(${t.reason})) > 0`
     ),
+    // Every other statutory money column in this schema is non-negative; an
+    // override is the one place that figure is hand-entered, which is exactly
+    // where a typo or bad import would otherwise turn into a negative
+    // deduction and an inflated net pay.
+    check("pay_line_overrides_amount_non_negative", sql`${t.overrideSen} >= 0`),
   ]
 );
 
 /**
- * PCB / MTD — a controlled external input, never a calculated figure.
+ * PCB / MTD per line — dual path.
  *
- * A null amount means not entered, which makes net pay unknown. It is never
- * defaulted to zero.
+ * - Override: `pcb_amount_sen` + `verified` + `source` replaces offline compute.
+ * - Compute inputs: optional `y1`/`yt`/`kt`/`lp1` month figures; tax profile and
+ *   YTD come from `employment_tax_profiles` / `employment_pcb_ytd`.
+ * - A null amount with incomplete compute context leaves net pay unknown.
  */
 export const pcbEntries = pgTable(
   "pcb_entries",
@@ -302,13 +329,28 @@ export const pcbEntries = pgTable(
       .notNull()
       .default(0),
     verified: boolean().notNull().default(false),
-    /** Where the figure came from — e-PCB, LHDN calculator, TP1 submission. */
+    /**
+     * Where an override figure came from. For 2026 the canonical verified
+     * source is `P-CALC-2026` — the official LHDN HTML calculator.
+     * See `LHDN_PCB_CALCULATOR_SOURCE_REF` in `src/domain/calc/pcb.ts`.
+     */
     source: text(),
     evidenceRef: text("evidence_ref"),
     enteredBy: text("entered_by"),
     enteredAt: timestamp("entered_at", { withTimezone: true }),
     verifiedBy: text("verified_by"),
     verifiedAt: timestamp("verified_at", { withTimezone: true }),
+    /**
+     * Optional current-month normal remuneration override for compute.
+     * Null → compose auto-fills from non-additional earnings.
+     */
+    y1Sen: bigint("y1_sen", { mode: "number" }),
+    /** Current-month additional remuneration (`Yt`). */
+    ytSen: bigint("yt_sen", { mode: "number" }).notNull().default(0),
+    /** EPF against Yt (`Kt`). */
+    ktSen: bigint("kt_sen", { mode: "number" }).notNull().default(0),
+    /** Current-month TP1 allowable deductions (`LP1`). */
+    lp1Sen: bigint("lp1_sen", { mode: "number" }).notNull().default(0),
   },
   (t) => [
     // Verified means someone checked a real figure against a real source.
@@ -319,7 +361,9 @@ export const pcbEntries = pgTable(
     check(
       "pcb_entries_amounts_non_negative",
       sql`(${t.pcbAmountSen} IS NULL OR ${t.pcbAmountSen} >= 0)
-          AND ${t.cp38Sen} >= 0 AND ${t.zakatOffsetSen} >= 0`
+          AND ${t.cp38Sen} >= 0 AND ${t.zakatOffsetSen} >= 0
+          AND (${t.y1Sen} IS NULL OR ${t.y1Sen} >= 0)
+          AND ${t.ytSen} >= 0 AND ${t.ktSen} >= 0 AND ${t.lp1Sen} >= 0`
     ),
   ]
 );

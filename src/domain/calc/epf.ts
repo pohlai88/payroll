@@ -7,7 +7,16 @@ export interface EpfResult {
   trace: TraceStep;
 }
 
-function lookupBand(bands: Band5[], wageSen: number): Band5 | null {
+/**
+ * Index of the Third Schedule band covering `wageSen`, or -1 if none does.
+ *
+ * The single EPF band-selection algorithm: `epf()` below and the derivation
+ * graph (`derive/emit.ts`) both call this rather than each re-implementing
+ * "find the band containing this wage", so a change to the search — or to a
+ * boundary condition — cannot make the calculated figure and its explanation
+ * disagree on which row produced it.
+ */
+export function findEpfBandIndex(bands: Band5[], wageSen: number): number {
   // bands sorted ascending; binary search
   let lo = 0;
   let hi = bands.length - 1;
@@ -22,10 +31,10 @@ function lookupBand(bands: Band5[], wageSen: number): Band5 | null {
     } else if (wageSen > b.toSen) {
       lo = mid + 1;
     } else {
-      return b;
+      return mid;
     }
   }
-  return null;
+  return -1;
 }
 
 /**
@@ -61,7 +70,8 @@ export function epf(
   }
 
   if (wageSen <= s.epfTableCeilingSen) {
-    const band = lookupBand(tables[part], wageSen);
+    const index = findEpfBandIndex(tables[part], wageSen);
+    const band = index < 0 ? null : tables[part][index];
     if (!band) {
       // The Third Schedule runs unbroken from one sen to the table ceiling, and
       // this branch is only reached inside that range — the RM0.01–RM10 rows are

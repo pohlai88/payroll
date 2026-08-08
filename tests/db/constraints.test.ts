@@ -130,6 +130,130 @@ describe("employment_pay_items compatibility", () => {
   });
 });
 
+describe("an employment cannot become DAILY while it still carries a FIXED_MONTHLY item", () => {
+  it("rejects reclassifying a MONTHLY employment with BASIC to DAILY", async () => {
+    await assignItem(MONTHLY_EMPLOYMENT, BASIC_ITEM, "amount_sen", 350_000);
+
+    await expectRejected(
+      db.execute(sql`
+        UPDATE employments SET pay_basis = 'DAILY', base_rate_sen = 12000
+         WHERE id = ${MONTHLY_EMPLOYMENT}`),
+      /employment M001 cannot become DAILY while assigned FIXED_MONTHLY item\(s\) \(BASIC\)/
+    );
+  });
+
+  it("allows reclassifying to DAILY once the FIXED_MONTHLY item is removed", async () => {
+    await assignItem(MONTHLY_EMPLOYMENT, BASIC_ITEM, "amount_sen", 350_000);
+    await db.execute(sql`
+      DELETE FROM employment_pay_items
+       WHERE employment_id = ${MONTHLY_EMPLOYMENT} AND pay_item_id = ${BASIC_ITEM}`);
+
+    await expect(
+      db.execute(sql`
+        UPDATE employments SET pay_basis = 'DAILY', base_rate_sen = 12000
+         WHERE id = ${MONTHLY_EMPLOYMENT}`)
+    ).resolves.toBeDefined();
+  });
+
+  it("allows reclassifying to DAILY when only a PER_DAY item is assigned", async () => {
+    await assignItem(MONTHLY_EMPLOYMENT, MEAL_ITEM, "rate_sen", 1500);
+
+    await expect(
+      db.execute(sql`
+        UPDATE employments SET pay_basis = 'DAILY', base_rate_sen = 12000
+         WHERE id = ${MONTHLY_EMPLOYMENT}`)
+    ).resolves.toBeDefined();
+  });
+
+  it("allows any pay_basis change that does not move to DAILY", async () => {
+    await assignItem(MONTHLY_EMPLOYMENT, BASIC_ITEM, "amount_sen", 350_000);
+
+    await expect(
+      db.execute(sql`
+        UPDATE employments SET pay_basis = 'HOURLY', base_rate_sen = 2000
+         WHERE id = ${MONTHLY_EMPLOYMENT}`)
+    ).resolves.toBeDefined();
+  });
+});
+
+describe("statutory band tables reject overlapping ranges", () => {
+  // A fresh DRAFT pack, not RULE_PACK: that one is APPROVED in beforeEach, and
+  // enforce_rule_pack_content_frozen refuses any change to an approved pack's
+  // band tables — these tests are about the overlap exclusion, not that guard.
+  const DRAFT_PACK = "RP-DRAFT-BANDS";
+
+  beforeEach(async () => {
+    await db.execute(sql`
+      INSERT INTO rule_packs (id, name, effective_from)
+      VALUES (${DRAFT_PACK}, 'draft test pack', '2026-06-01')`);
+  });
+
+  it("rejects an EPF Part A band overlapping an existing one", async () => {
+    await db.execute(sql`
+      INSERT INTO epf_bands (rule_pack_id, part, from_sen, to_sen, er_sen, ee_sen)
+      VALUES (${DRAFT_PACK}, 'A', 0, 500_000, 1300, 1100)`);
+
+    await expectRejected(
+      db.execute(sql`
+        INSERT INTO epf_bands (rule_pack_id, part, from_sen, to_sen, er_sen, ee_sen)
+        VALUES (${DRAFT_PACK}, 'A', 300_000, 800_000, 1300, 1100)`),
+      /epf_bands_no_overlapping_ranges|exclude/i
+    );
+  });
+
+  it("allows overlapping ranges across different EPF parts", async () => {
+    await db.execute(sql`
+      INSERT INTO epf_bands (rule_pack_id, part, from_sen, to_sen, er_sen, ee_sen)
+      VALUES (${DRAFT_PACK}, 'A', 0, 500_000, 1300, 1100)`);
+
+    await expect(
+      db.execute(sql`
+        INSERT INTO epf_bands (rule_pack_id, part, from_sen, to_sen, er_sen, ee_sen)
+        VALUES (${DRAFT_PACK}, 'C', 0, 500_000, 1200, 1000)`)
+    ).resolves.toBeDefined();
+  });
+
+  it("allows adjacent, non-overlapping EPF bands", async () => {
+    await db.execute(sql`
+      INSERT INTO epf_bands (rule_pack_id, part, from_sen, to_sen, er_sen, ee_sen)
+      VALUES (${DRAFT_PACK}, 'A', 0, 500_000, 1300, 1100)`);
+
+    await expect(
+      db.execute(sql`
+        INSERT INTO epf_bands (rule_pack_id, part, from_sen, to_sen, er_sen, ee_sen)
+        VALUES (${DRAFT_PACK}, 'A', 500_001, 1_000_000, 1300, 1100)`)
+    ).resolves.toBeDefined();
+  });
+
+  it("rejects an overlapping SOCSO band", async () => {
+    await db.execute(sql`
+      INSERT INTO socso_bands
+        (rule_pack_id, from_sen, to_sen, cat1_er_sen, cat1_ee_core_sen, cat1_ee_skbbk_sen, cat2_er_sen, cat2_ee_skbbk_sen)
+      VALUES (${DRAFT_PACK}, 0, 500_000, 1750, 1250, 100, 1750, 100)`);
+
+    await expectRejected(
+      db.execute(sql`
+        INSERT INTO socso_bands
+          (rule_pack_id, from_sen, to_sen, cat1_er_sen, cat1_ee_core_sen, cat1_ee_skbbk_sen, cat2_er_sen, cat2_ee_skbbk_sen)
+        VALUES (${DRAFT_PACK}, 300_000, 800_000, 1750, 1250, 100, 1750, 100)`),
+      /socso_bands_no_overlapping_ranges|exclude/i
+    );
+  });
+
+  it("rejects an overlapping EIS band", async () => {
+    await db.execute(sql`
+      INSERT INTO eis_bands (rule_pack_id, from_sen, to_sen, er_sen, ee_sen)
+      VALUES (${DRAFT_PACK}, 0, 500_000, 100, 100)`);
+
+    await expectRejected(
+      db.execute(sql`
+        INSERT INTO eis_bands (rule_pack_id, from_sen, to_sen, er_sen, ee_sen)
+        VALUES (${DRAFT_PACK}, 300_000, 800_000, 100, 100)`),
+      /eis_bands_no_overlapping_ranges|exclude/i
+    );
+  });
+});
+
 describe("pay item identity", () => {
   it("refuses to change a code", async () => {
     await expectRejected(
@@ -167,6 +291,31 @@ describe("pay item identity", () => {
       db.execute(sql`DELETE FROM pay_items WHERE code = 'MEAL'`),
       /cannot be deleted: deactivate it instead/
     );
+  });
+});
+
+describe("an off-cycle run's linked run must exist", () => {
+  it("rejects a linked_run_id that names no real run", async () => {
+    await expectRejected(
+      db.execute(sql`
+        INSERT INTO pay_runs (id, company_id, run_type, offcycle_reason, linked_run_id,
+                              year, month, period_start, period_end, working_days, rule_pack_id)
+        VALUES ('TEST-2026-07-OC-BAD', ${COMPANY}, 'OFFCYCLE', 'CORRECTION', 'NO-SUCH-RUN',
+                2026, 7, '2026-07-01', '2026-07-31', 26, ${RULE_PACK})`),
+      /pay_runs_linked_run_id_pay_runs_id_fk|foreign key/i
+    );
+  });
+
+  it("accepts a linked_run_id that names a real run", async () => {
+    await insertRun(RUN);
+
+    await expect(
+      db.execute(sql`
+        INSERT INTO pay_runs (id, company_id, run_type, offcycle_reason, linked_run_id,
+                              year, month, period_start, period_end, working_days, rule_pack_id)
+        VALUES ('TEST-2026-07-OC-GOOD', ${COMPANY}, 'OFFCYCLE', 'CORRECTION', ${RUN},
+                2026, 7, '2026-07-01', '2026-07-31', 26, ${RULE_PACK})`)
+    ).resolves.toBeDefined();
   });
 });
 
@@ -238,14 +387,14 @@ describe("pay line item shape", () => {
   });
 
   const columns = sql`(line_id, item_code_snap, kind_snap, basis_snap, name_en_snap, name_ms_snap,
-                       epf_wages_snap, socso_wages_snap, eis_wages_snap, prorates_snap,
+                       epf_wages_snap, socso_wages_snap, eis_wages_snap, prorates_snap, pcb_class_snap,
                        quantity, rate_sen, amount_sen, resolved_amount_sen)`;
 
   it("accepts a well-formed quantity item", async () => {
     await expect(
       db.execute(sql`
         INSERT INTO pay_line_items ${columns}
-        VALUES (${LINE}, 'MEAL', 'EARNING', 'PER_DAY', 'Meal', 'Makan', true, true, true, false,
+        VALUES (${LINE}, 'MEAL', 'EARNING', 'PER_DAY', 'Meal', 'Makan', true, true, true, false, 'NORMAL',
                 26, 1500, NULL, 39000)`)
     ).resolves.toBeDefined();
   });
@@ -254,7 +403,7 @@ describe("pay line item shape", () => {
     await expect(
       db.execute(sql`
         INSERT INTO pay_line_items ${columns}
-        VALUES (${LINE}, 'PERF', 'EARNING', 'AMOUNT', 'Perf', 'Prestasi', true, true, true, false,
+        VALUES (${LINE}, 'PERF', 'EARNING', 'AMOUNT', 'Perf', 'Prestasi', true, true, true, false, 'NORMAL',
                 NULL, NULL, 20000, 20000)`)
     ).resolves.toBeDefined();
   });
@@ -269,7 +418,7 @@ describe("pay line item shape", () => {
     await expectRejected(
       db.execute(sql`
         INSERT INTO pay_line_items ${columns}
-        VALUES (${LINE}, 'MEAL', 'EARNING', 'PER_DAY', 'Meal', 'Makan', true, true, true, false,
+        VALUES (${LINE}, 'MEAL', 'EARNING', 'PER_DAY', 'Meal', 'Makan', true, true, true, false, 'NORMAL',
                 26, 1500, 39000, 39000)`),
       /pay_line_items_quantity_shape_complete/
     );
@@ -279,7 +428,7 @@ describe("pay line item shape", () => {
     await expectRejected(
       db.execute(sql`
         INSERT INTO pay_line_items ${columns}
-        VALUES (${LINE}, 'PERF', 'EARNING', 'AMOUNT', 'Perf', 'Prestasi', true, true, true, false,
+        VALUES (${LINE}, 'PERF', 'EARNING', 'AMOUNT', 'Perf', 'Prestasi', true, true, true, false, 'NORMAL',
                 2, 100, NULL, 200)`),
       /pay_line_items_shape_matches_basis/
     );
@@ -312,6 +461,38 @@ describe("PCB is never verified without a source", () => {
       db.execute(sql`
         INSERT INTO pcb_entries (line_id, pcb_amount_sen, verified, source)
         VALUES (${LINE}, 12500, true, 'e-PCB')`)
+    ).resolves.toBeDefined();
+  });
+});
+
+describe("a statutory override is never negative", () => {
+  beforeEach(async () => {
+    await insertRun(RUN);
+    await insertLine();
+  });
+
+  it("rejects a negative override amount", async () => {
+    await expectRejected(
+      db.execute(sql`
+        INSERT INTO pay_line_overrides (line_id, field, override_sen, reason, actor)
+        VALUES (${LINE}, 'EPF_EE', -100, 'test override', 'test-fixture')`),
+      /pay_line_overrides_amount_non_negative/
+    );
+  });
+
+  it("accepts a zero override", async () => {
+    await expect(
+      db.execute(sql`
+        INSERT INTO pay_line_overrides (line_id, field, override_sen, reason, actor)
+        VALUES (${LINE}, 'EPF_EE', 0, 'test override', 'test-fixture')`)
+    ).resolves.toBeDefined();
+  });
+
+  it("accepts a positive override", async () => {
+    await expect(
+      db.execute(sql`
+        INSERT INTO pay_line_overrides (line_id, field, override_sen, reason, actor)
+        VALUES (${LINE}, 'EPF_EE', 5000, 'test override', 'test-fixture')`)
     ).resolves.toBeDefined();
   });
 });
@@ -380,9 +561,9 @@ describe("an approved run's calculation is frozen", () => {
       db.execute(sql`
         INSERT INTO pay_line_items (line_id, item_code_snap, kind_snap, basis_snap, name_en_snap,
                                     name_ms_snap, epf_wages_snap, socso_wages_snap, eis_wages_snap,
-                                    prorates_snap, amount_sen, resolved_amount_sen)
+                                    prorates_snap, pcb_class_snap, amount_sen, resolved_amount_sen)
         VALUES (${LINE}, 'BONUS', 'EARNING', 'AMOUNT', 'Bonus', 'Bonus', true, false, false, false,
-                100000, 100000)`),
+                'ADDITIONAL', 100000, 100000)`),
       /INSERT on pay_line_items/
     );
   });

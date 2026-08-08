@@ -7,24 +7,24 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { parse as parseCsv } from "csv-parse/sync";
 import {
   createDatabase,
   createPool,
   requireDatabaseUrl,
 } from "../src/db/client";
-import { importEmployeeRows } from "../src/service/employee-import";
+import {
+  importEmployeeRows,
+  parseEmployeeImportBody,
+} from "../src/service/employee-import";
 
 function loadRows(filePath: string): Record<string, string | undefined>[] {
   const raw = fs.readFileSync(filePath, "utf8");
-  if (path.extname(filePath).toLowerCase() === ".json") {
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) {
-      throw new Error("JSON import file must be an array of row objects");
-    }
-    return parsed;
-  }
-  return parseCsv(raw, { columns: true, skip_empty_lines: true });
+  const contentType =
+    path.extname(filePath).toLowerCase() === ".json"
+      ? "application/json"
+      : "text/csv";
+  // CLI stays unbounded; HTTP uses the default 2 MiB cap.
+  return parseEmployeeImportBody(contentType, raw, { maxBytes: null });
 }
 
 async function main(): Promise<void> {

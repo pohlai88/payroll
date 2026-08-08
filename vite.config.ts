@@ -10,6 +10,16 @@ export default defineConfig({
       "@": path.resolve(import.meta.dirname, "src"),
     },
   },
+  build: {
+    rollupOptions: {
+      input: {
+        // The payroll SPA.
+        app: path.resolve(import.meta.dirname, "index.html"),
+        // The standalone marketing surface — shares no styles with the SPA.
+        landing: path.resolve(import.meta.dirname, "landing.html"),
+      },
+    },
+  },
   server: {
     port: 5173,
   },

@@ -1,5 +1,9 @@
 # Plan 1: Control Foundation Implementation Plan
 
+> **HISTORICAL / ARCHIVE.** Written for the prior SQLite + Next.js control layer
+> (`src/server/*`, better-sqlite3). Do not execute against the current Postgres
+> rebuild. Current architecture: `docs/architecture/payroll-architecture.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Implement the spec's control layer — person/employment model, calc-revision certification, findings engine with severity×gate dispositions, line-level payment state machine with immutable attempts, artifacts, and run closure — entirely server-side, keeping the existing UI functional.

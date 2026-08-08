@@ -1,0 +1,1 @@
+ALTER TABLE "pay_runs" ADD CONSTRAINT "pay_runs_linked_run_id_pay_runs_id_fk" FOREIGN KEY ("linked_run_id") REFERENCES "public"."pay_runs"("id") ON DELETE no action ON UPDATE no action;

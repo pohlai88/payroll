@@ -1,0 +1,1 @@
+ALTER TABLE "pay_line_overrides" ADD CONSTRAINT "pay_line_overrides_amount_non_negative" CHECK ("pay_line_overrides"."override_sen" >= 0);

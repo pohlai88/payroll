@@ -17,6 +17,12 @@ tmp/
 tmp-*.json
 biome-check-out.json
 
+# Extracted text from official PDFs (binaries under db/evidence/ are kept)
+db/evidence/*.txt
+
 # Legacy SQLite files from the v1 app (archived in _payroll-v1-backup)
 data/
 .neon
+
+# Local Vite detached-run logs
+.vite-dev.*.log

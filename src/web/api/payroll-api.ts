@@ -3,7 +3,26 @@
  */
 
 import { acquireAccessToken } from "@/web/auth/client";
+import type { GetEmployeesParams, GetPayRunsParams } from "./client";
 import { createApiClient } from "./client";
+
+export type {
+  ActionAvailability,
+  AggregateTile,
+  EmployeeLineDto,
+  EmployeeSummary,
+  EmployeeVarianceDto,
+  FindingsSummary,
+  MeCompany,
+  MeResponse,
+  PayRunSummary,
+  PayRunWorkspaceView,
+  RootValue,
+  RunSummary,
+  SparkPoint,
+  VarianceDto,
+} from "./types";
+export type { GetEmployeesParams, GetPayRunsParams } from "./client";
 
 function requireApiBase(): string {
   const base = import.meta.env.VITE_API_BASE;
@@ -37,4 +56,9 @@ export const payrollApi = {
     getPayrollApi().downloadEmployeeImportTemplate(companyId),
   importEmployees: (body: string, contentType: string) =>
     getPayrollApi().importEmployees(body, contentType),
+  getPayRuns: (params?: GetPayRunsParams) =>
+    getPayrollApi().getPayRuns(params),
+  getWorkspace: (runId: string) => getPayrollApi().getWorkspace(runId),
+  getEmployees: (params?: GetEmployeesParams) =>
+    getPayrollApi().getEmployees(params),
 };

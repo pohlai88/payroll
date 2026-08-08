@@ -232,17 +232,21 @@ export function parseEmployeeRow(
   }
 
   const baseRateRaw = get("Base Rate RM") ?? "";
-  const baseRateSen = parseRM(baseRateRaw.trim());
-  if (baseRateSen === null) {
-    errors.push({
-      field: "Base Rate RM",
-      reason: `not a valid RM amount: ${JSON.stringify(baseRateRaw)}`,
-    });
-  } else if (baseRateSen < 0) {
-    errors.push({
-      field: "Base Rate RM",
-      reason: "base rate must be non-negative",
-    });
+  const baseRateTrimmed = baseRateRaw.trim();
+  let baseRateSen: number | null = null;
+  if (baseRateTrimmed !== "") {
+    baseRateSen = parseRM(baseRateTrimmed);
+    if (baseRateSen === null) {
+      errors.push({
+        field: "Base Rate RM",
+        reason: `not a valid RM amount: ${JSON.stringify(baseRateRaw)}`,
+      });
+    } else if (baseRateSen < 0) {
+      errors.push({
+        field: "Base Rate RM",
+        reason: "base rate must be non-negative",
+      });
+    }
   }
 
   const booleans: Record<string, boolean> = {};

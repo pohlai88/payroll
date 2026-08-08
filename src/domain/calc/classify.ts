@@ -19,17 +19,19 @@ export function classify(
   // happens when no age band applies.
   const age = emp.dob === null ? null : ageAt(emp.dob, periodEnd);
 
+  const retirementAge = settings.epfSocsoRetirementAge;
+
   let epfPart: Classification["epfPart"] = "NONE";
   if (emp.epfApplicable) {
     if (emp.epfPartOverride) {
       epfPart = emp.epfPartOverride;
     } else if (emp.isMalaysian) {
-      epfPart = age !== null && age >= 60 ? "E" : "A";
+      epfPart = age !== null && age >= retirementAge ? "E" : "A";
     } else if (emp.isPermanentResident) {
-      epfPart = age !== null && age >= 60 ? "C" : "A";
+      epfPart = age !== null && age >= retirementAge ? "C" : "A";
     } else if (emp.epfMemberBeforeAug1998) {
       // non-Malaysian, non-PR
-      epfPart = age !== null && age >= 60 ? "C" : "A";
+      epfPart = age !== null && age >= retirementAge ? "C" : "A";
     } else {
       epfPart = "F";
     }
@@ -40,7 +42,7 @@ export function classify(
     if (emp.socsoCategoryOverride) {
       socsoCategory = emp.socsoCategoryOverride;
     } else {
-      socsoCategory = age !== null && age >= 60 ? "SECOND" : "FIRST";
+      socsoCategory = age !== null && age >= retirementAge ? "SECOND" : "FIRST";
     }
   }
 

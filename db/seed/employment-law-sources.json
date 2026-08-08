@@ -1,7 +1,7 @@
 {
   "rulePack": {
     "id": "MY-EMPLOYMENT-LAW-2026",
-    "name": "Malaysian employment-law thresholds (sources captured, values pending verification)",
+    "name": "Malaysian employment-law thresholds (sources captured, values pending human sign-off)",
     "layer": "EMPLOYMENT_LAW",
     "authority": "JTKSM / MOHR",
     "code": "MY-EMPLOYMENT-LAW",
@@ -9,21 +9,21 @@
     "effectiveFrom": "2026-01-01",
     "effectiveTo": null,
     "status": "SOURCE_CAPTURED",
-    "notes": "The instruments that set Malaysia's working-time and wage-floor thresholds, recorded so a reviewer has a work list. No value is stored here yet: employment_law_rules is empty and this pack is not approved, so no payroll can reach it. Each source below names an instrument that must be read directly; provision references are recorded only where the cited page itself attributed them."
+    "notes": "Instruments registered with official PDF hashes. Proposed numeric values are in governance/MY_STAT_S04_EMPLOYMENT_LAW_INTAKE.md awaiting named HUMAN_REVIEW_OF_OFFICIAL_PDF sign-off. employment_law_rules stays empty and this pack is not approved until that sign-off + S04 implementation — no payroll can reach it."
   },
   "sources": [
     {
       "ref": "L-EA265",
-      "issuer": "Attorney General's Chambers of Malaysia",
-      "title": "Employment Act 1955 (Act 265)",
-      "url": "https://lom.agc.gov.my/act-detail.php?act=265&lang=BI",
+      "issuer": "Jabatan Tenaga Kerja Semenanjung Malaysia (JTKSM) / Attorney General's Chambers",
+      "title": "Employment Act 1955 (Act 265) — JTKSM reprint November 2023",
+      "url": "https://jtksm.mohr.gov.my/sites/default/files/2023-11/Akta%20Kerja%201955%20(Akta%20265).pdf",
       "retrievedAt": "2026-08-08",
       "instrumentNumber": "Act 265",
       "provisionReference": null,
       "pageReference": null,
       "publishedDate": null,
-      "effectiveDate": null,
-      "sha256": null,
+      "effectiveDate": "2023-01-01",
+      "sha256": "c4d9d149dc0f1c41c8e28a1fd1cb75f560a808c4b10736aba15a0a6c906d1926",
       "targets": [
         "MAX_WEEKLY_HOURS",
         "OT_MULTIPLIER_WORKDAY",
@@ -31,37 +31,37 @@
         "OT_MULTIPLIER_PUBLIC_HOLIDAY",
         "EA_ENTITLEMENT_WAGE_CEILING"
       ],
-      "note": "AGC publishes the reprint as PDF only; the act-detail page is an amendment index and carries no section text. A reviewer must read the current reprint and record the provision for each target."
+      "note": "Official JTKSM-hosted reprint (1,500,502 bytes) retrieved 2026-08-08. AGC act-detail page is index-only. Weekly hours must be read from the post-A1651 text (45, not the pre-amendment 48). First Schedule para 1A ceiling is P.U.(A) 262/2022 as commenced by P.U.(A) 273/2022. Proposed values in MY_STAT_S04_EMPLOYMENT_LAW_INTAKE.md — not approved until human sign-off."
     },
     {
       "ref": "L-OT1980",
       "issuer": "Jabatan Tenaga Kerja Semenanjung Malaysia (JTKSM)",
       "title": "Employment (Limitation of Overtime Work) Regulations 1980",
-      "url": "https://jtksm.mohr.gov.my/en/acts/list-rules",
+      "url": "https://jtksm.mohr.gov.my/sites/default/files/2023-03/7.%20EMPLOYMENT%20(LIMITATION%20OF%20OVERTIME%20WORK)%20REGULATIONS%201980_0.pdf",
       "retrievedAt": "2026-08-08",
-      "instrumentNumber": null,
-      "provisionReference": null,
+      "instrumentNumber": "P.U. (A) 339/1983 (revised); amended P.U. (A) 433/1991",
+      "provisionReference": "Regulation 2",
       "pageReference": null,
       "publishedDate": null,
-      "effectiveDate": null,
-      "sha256": null,
+      "effectiveDate": "1991-10-17",
+      "sha256": "65ab6d596e1c10c3a72d7fd226f273b0ce6416fb119c8ec2625059cbec67a8e6",
       "targets": ["OT_MAX_HOURS_MONTH"],
-      "note": "Title confirmed verbatim against JTKSM's official regulations index on 2026-08-08. The index offers the instrument as a download only, so the monthly overtime limit must be read from the document itself."
+      "note": "Official JTKSM PDF (61,940 bytes) retrieved 2026-08-08. Reg. 2 sets the s.60A(4)(a) monthly OT limit at 104 hours. Proposed value in MY_STAT_S04_EMPLOYMENT_LAW_INTAKE.md — not approved until human sign-off."
     },
     {
       "ref": "L-MWO2024",
-      "issuer": "Attorney General's Chambers of Malaysia",
+      "issuer": "Ministry of Human Resources / Attorney General's Chambers",
       "title": "Minimum Wages Order 2024",
-      "url": "https://lom.agc.gov.my/act-view.php?type=pua&no=P.U.+%28A%29+376%2F2024&status=PRINCIPAL",
+      "url": "https://gajiminimum.mohr.gov.my/wp-content/uploads/PUA%20376.pdf",
       "retrievedAt": "2026-08-08",
       "instrumentNumber": "P.U. (A) 376/2024",
-      "provisionReference": null,
+      "provisionReference": "paragraphs 3 and 5",
       "pageReference": null,
-      "publishedDate": null,
-      "effectiveDate": null,
-      "sha256": null,
+      "publishedDate": "2024-12-04",
+      "effectiveDate": "2025-08-01",
+      "sha256": "93639079fde537aa745d0d96175bea9aa19f255f7dba74a05e310ee225e99d82",
       "targets": ["MIN_WAGE"],
-      "note": "Title and P.U. (A) number confirmed against the AGC federal legislation portal on 2026-08-08. The portal page is an index; the rate is in the order itself, which is published as PDF."
+      "note": "Official MOHR gazette PDF (277,076 bytes) retrieved 2026-08-08. RM1,700 nationwide for covered private employers from 2025-08-01 (earlier path for ≥5 employees from 2025-02-01). For pack effectiveFrom 2026-01-01 the proposed floor is 170000 sen. AGC index: https://lom.agc.gov.my/act-view.php?type=pua&no=P.U.+%28A%29+376%2F2024&status=PRINCIPAL. Proposed value in MY_STAT_S04_EMPLOYMENT_LAW_INTAKE.md — not approved until human sign-off."
     }
   ]
 }

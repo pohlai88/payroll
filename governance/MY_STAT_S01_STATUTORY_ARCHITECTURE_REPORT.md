@@ -213,29 +213,38 @@ change touches test content, calculation code, or fixtures.
 
 ## Open blockers
 
-- **Overlap prevention is application-level, not a database constraint.**
-  `resolveRule()` refuses to resolve when two approved packs' effective ranges
-  overlap for the same scheme/ruleCode, but nothing stops such a pair from
-  being *approved* in the first place — there is no `EXCLUDE USING gist`
-  constraint on `(layer, code, effective_from, effective_to)` for approved
-  rows (Postgres range-exclusion needs `btree_gist`, not currently installed).
-  Today this is a caught-and-reported error at resolution time, per the spec's
-  "block only the affected rule and report the conflict" — but a same-day
-  guard at approval time would be strictly stronger. Left open because adding
-  an extension and an exclusion constraint is a schema change beyond what this
-  pass's "keep it minimal" scope covers.
+- ~~**Overlap prevention is application-level, not a database constraint.**~~
+  **Closed by MY-STAT-S03** — see
+  [`MY_STAT_S03_OVERLAP_EXCLUSION_REPORT.md`](MY_STAT_S03_OVERLAP_EXCLUSION_REPORT.md).
+  `rule_packs_no_overlapping_approved_ranges` now refuses the second overlapping
+  approval; `resolveRule()` keeps defence-in-depth ambiguity checks.
 - **`resolveRule()` is not wired into any caller.** It exists and is tested,
   but nothing in `src/service/payrun.ts` uses it yet — run creation still
   takes an explicit `rulePackId`. Wiring it in is the natural next step and
   was deliberately left out to avoid touching the payroll-creation path in a
   task scoped to governance only.
 - **The `EMPLOYMENT_LAW` and PCB packs remain `SOURCE_CAPTURED`, not
-  approved** (`MY-EMPLOYMENT-LAW-2026`, `MY-PCB-2026`) — by design, per the
-  prior phase: their instruments are registered with evidence but no value has
-  been read and verified from them yet. `resolveRule()` will correctly refuse
-  to resolve either scheme today (no candidate has ever been approved), which
-  is the intended failure, not a bug to fix here.
-- **PCB/MTD remains a controlled external input, not a computed rule** — the
-  amendment spec's §8 (LHDN specification vertical, official test vectors,
-  `LHDN_VERIFIED` gate) is unstarted, consistent with "do not change PCB
-  calculation" in this task's scope.
+  approved** (`MY-EMPLOYMENT-LAW-2026`, `MY-PCB-2026`) — by design.
+  Proposed employment-law values are now recorded in
+  [`MY_STAT_S04_EMPLOYMENT_LAW_INTAKE.md`](MY_STAT_S04_EMPLOYMENT_LAW_INTAKE.md)
+  awaiting named human sign-off before `employment_law_rules` can be loaded.
+  PCB pack: `P-SPEC-2026` SHA-256 recorded; Decision A keeps PCB as controlled
+  external input (see [`MY_STAT_S07_PCB_SPEC_INTAKE.md`](MY_STAT_S07_PCB_SPEC_INTAKE.md)).
+  `resolveRule()` correctly refuses both schemes until approved.
+- **PCB/MTD remains a controlled external input, not a computed rule** —
+  reaffirmed by S07 Decision A. Computerised vertical + `LHDN_VERIFIED` gate
+  remain a dedicated future slice.
+
+**Governance note on the above:** all four items are deferred statutory
+hardening, not defects. They are **non-blocking until a consuming calculation
+vertical requires them** — e.g. the exclusion constraint matters once packs
+are approved by more than one operator; wiring `resolveRule()` matters once a
+vertical needs date-based resolution instead of an explicit pack id. **No
+deferred item listed here may be silently implemented as a side effect of an
+unrelated slice.** Each requires its own task, its own tests, and its own
+report section before it lands.
+
+## Closed
+
+MY-STAT-S01 is closed as of this report. The four items above are carried
+forward as tracked, non-blocking backlog — not reopened scope.

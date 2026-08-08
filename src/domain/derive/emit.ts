@@ -10,8 +10,8 @@
 
 import { classify } from "../calc/classify";
 import { eis } from "../calc/eis";
-import { epf } from "../calc/epf";
-import { pcbNet } from "../calc/pcb";
+import { epf, findEpfBandIndex } from "../calc/epf";
+import { enrichPcbForCompute, pcbNet } from "../calc/pcb";
 import { regularPay } from "../calc/proration";
 import { resolveItems } from "../calc/resolve-items";
 import { socso } from "../calc/socso";
@@ -833,9 +833,7 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
 
     if (epfWages.amountSen <= settings.epfTableCeilingSen) {
       const table = tables.epf[cls.epfPart as "A" | "C" | "E"];
-      const index = table.findIndex(
-        (b) => epfWages.amountSen >= b.fromSen && epfWages.amountSen <= b.toSen
-      );
+      const index = findEpfBandIndex(table, epfWages.amountSen);
       const band = index < 0 ? undefined : table[index];
       // `epf()` searched the same table under the same predicate and would have
       // thrown on a gap, so reaching here without a row means the two searches
@@ -1401,8 +1399,28 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
 
   // ------------------------------------------------------------------- PCB --
 
-  const pcbRes = pcbNet(opts.pcb ?? null);
-  const zakatSen = opts.pcb?.zakatOffsetSen ?? 0;
+  const resolvedForPcb: ResolvedLineItem[] = [
+    {
+      payItemCode: "BASIC",
+      basis: employee.payBasis === "MONTHLY" ? "FIXED_MONTHLY" : "PER_DAY",
+      qty: null,
+      rateSen: employee.baseRateSen,
+      amountSen: reg.amountSen,
+      computed: true,
+    },
+    ...resolveItems(inputs.items, matrix),
+  ];
+  const epfEeNode = g.get(g.rootOf("epfEe")).value;
+  if (epfEeNode.t !== "SEN") {
+    throw new Error("root epfEe is not a settled money value");
+  }
+  const pcbForNet = enrichPcbForCompute(
+    opts.pcb ?? null,
+    resolvedForPcb,
+    epfEeNode.sen
+  );
+  const pcbRes = pcbNet(pcbForNet);
+  const zakatSen = pcbForNet?.zakatOffsetSen ?? 0;
 
   const zakatId = g.add({
     kind: "INPUT",
@@ -1424,12 +1442,11 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
    * graph showed a figure the arithmetic had not used. NOT_APPLICABLE states the
    * zero and cites why, and the total then adds a number the drill can reach.
    */
-  // An amount that was actually entered is deducted by `computeLine` whatever the
-  // applicability flag says, so the graph follows the engine rather than the flag —
-  // showing zero here while the total deducted a figure is the failure this guards.
-  const pcbEntered = opts.pcb?.pcbAmountSen != null;
+  // An amount that was actually entered or computed is deducted by `computeLine`
+  // whatever the applicability flag says, so the graph follows the engine.
+  const pcbResolved = pcbRes.grossPcbSen != null;
   const pcbNetId =
-    employee.pcbApplicable || pcbEntered
+    employee.pcbApplicable || pcbResolved
       ? emitPcbApplicable()
       : emitPcbNotApplicable();
   g.root("pcbNet", pcbNetId);
@@ -1452,30 +1469,35 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
 
   function emitPcbApplicable(): NodeId {
     const pcbStatus = ((): "VERIFIED" | "UNVERIFIED" | "NOT_ENTERED" => {
-      // `== null` on purpose: absent block and entered-as-unknown are the same
-      // answer here — nobody has told us the figure.
-      if (opts.pcb?.pcbAmountSen == null) {
+      if (pcbRes.grossPcbSen == null) {
         return "NOT_ENTERED";
+      }
+      if (pcbRes.path === "COMPUTED") {
+        return "UNVERIFIED";
       }
       return pcbRes.verified ? "VERIFIED" : "UNVERIFIED";
     })();
+
+    const declaredSource =
+      pcbRes.path === "COMPUTED"
+        ? "P-SPEC-2026"
+        : (opts.pcbSource ?? "manual entry");
 
     const declaredId = g.add({
       kind: "EXTERNAL_VERIFIED",
       id: "line.pcb.declared",
       label: label("pcb.declared"),
       value:
-        opts.pcb?.pcbAmountSen == null
-          ? senUnknown()
-          : sen(opts.pcb.pcbAmountSen),
+        pcbRes.grossPcbSen == null ? senUnknown() : sen(pcbRes.grossPcbSen),
       detail:
         pcbStatus === "NOT_ENTERED"
           ? label("pcb.declared.notEntered")
           : label("pcb.declared.entered", {
-              source: p.text(opts.pcbSource ?? "manual entry"),
+              source: p.text(declaredSource),
               status: p.enum("VERIFICATION_STATUS", pcbStatus),
             }),
-      source: opts.pcbSource ?? null,
+      source:
+        pcbRes.path === "COMPUTED" ? "P-SPEC-2026" : (opts.pcbSource ?? null),
       verificationStatus: pcbStatus,
       ...(opts.pcbEvidenceRef === undefined
         ? {}

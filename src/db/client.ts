@@ -35,11 +35,27 @@ export function requireDatabaseUrl(): string {
 
 export type Database = ReturnType<typeof createDatabase>;
 
+/**
+ * An idle client can be dropped by the backend at any time — a network blip,
+ * a managed Postgres provider scaling to zero, a DBA restart — and `pg`
+ * surfaces that as an `'error'` event on the pool, not as a rejected query.
+ * With no listener, that event is unhandled and crashes the process; a
+ * payroll run in progress should survive a transient connection loss on a
+ * connection it was not even using.
+ */
+function logPoolError(error: Error): void {
+  // No logger is wired into this layer yet; silence is the one option that is
+  // never acceptable here, since it turns a recoverable event into a crash.
+  console.error("pg pool: idle client error", error);
+}
+
 export function createPool(
   connectionString: string,
   config: Omit<PoolConfig, "connectionString"> = {}
 ): Pool {
-  return new Pool({ connectionString, ...config });
+  const pool = new Pool({ connectionString, ...config });
+  pool.on("error", logPoolError);
+  return pool;
 }
 
 /**

@@ -11,6 +11,11 @@ const THOUSANDS_SEPARATOR = /,/g;
 const RM_PATTERN = /^([+-]?)(\d*)(?:\.(\d{0,2}))?$/;
 
 function assertSen(value: number, what: string): void {
+  if (!Number.isFinite(value)) {
+    throw new RangeError(
+      `${what}: expected a finite number, got ${value} (NaN and Infinity are not valid monetary amounts)`
+    );
+  }
   if (!Number.isSafeInteger(value)) {
     throw new RangeError(
       `${what}: expected a safe integer sen value, got ${value}`
@@ -82,6 +87,27 @@ export function mulDivSen(
 }
 
 /**
+ * Calculate quantity × rate in sen, with proper rounding.
+ *
+ * This replaces direct multiplication patterns like `Math.round(quantity * rateSen)`
+ * which bypass the money module's contract and can introduce floating-point drift.
+ *
+ * @param quantity - The quantity (hours, days, units) - may be fractional
+ * @param rateSen - The rate per unit in sen (must be a safe integer)
+ * @returns The total amount in sen, rounded half away from zero
+ */
+export function quantityAmountSen(quantity: number, rateSen: number): number {
+  if (!Number.isFinite(quantity)) {
+    throw new RangeError(
+      `quantityAmountSen: quantity must be finite, got ${quantity}`
+    );
+  }
+  assertSen(rateSen, "quantityAmountSen(rateSen)");
+
+  return roundHalfUpSen(quantity * rateSen);
+}
+
+/**
  * Percentage of a sen amount, rounded UP to the next whole ringgit (KWSP rule
  * for above-ceiling wages). Exact integer arithmetic: `Math.ceil` on a float
  * quotient amplifies epsilon into a whole extra ringgit at exact boundaries.
@@ -115,6 +141,101 @@ export function pctRoundUpToRinggitSen(amountSen: number, pct: number): number {
   const ringgit = (num + den - 1n) / den; // ceil, inputs are non-negative
   const result = Number(ringgit) * 100;
   assertSen(result, "pctRoundUpToRinggitSen");
+  return result;
+}
+
+/**
+ * Calculate percentage of a sen amount, rounded half away from zero.
+ *
+ * This is for standard percentage calculations (like HRDF levy) where the result
+ * stays in sen, distinct from pctRoundUpToRinggitSen which rounds UP to ringgit.
+ *
+ * @param amountSen - Base amount in sen (must be a safe integer, >= 0)
+ * @param pct - Percentage rate (e.g. 0.25 for 0.25%)
+ * @returns The percentage amount in sen, rounded half away from zero
+ */
+export function pctHalfUpSen(amountSen: number, pct: number): number {
+  assertSen(amountSen, "pctHalfUpSen(amountSen)");
+  if (amountSen < 0) {
+    throw new RangeError(
+      `pctHalfUpSen: amountSen must be >= 0, got ${amountSen}`
+    );
+  }
+  if (!Number.isFinite(pct) || pct < 0) {
+    throw new RangeError(
+      `pctHalfUpSen: pct must be finite and >= 0, got ${pct}`
+    );
+  }
+
+  return roundHalfUpSen((amountSen * pct) / 100);
+}
+
+/**
+ * Truncate a (possibly fractional) sen value toward zero to whole sen.
+ *
+ * LHDN MTD computerized spec: calculations are limited to two decimal points
+ * and subsequent figures are omitted (e.g. 123.4534 → 123.45).
+ */
+export function truncateSen(value: number): number {
+  if (!Number.isFinite(value)) {
+    throw new RangeError(`truncateSen: expected a finite number, got ${value}`);
+  }
+  const truncated = value < 0 ? Math.ceil(value) : Math.floor(value);
+  assertSen(truncated, "truncateSen");
+  return truncated === 0 ? 0 : truncated;
+}
+
+/**
+ * Integer division of a sen amount by a safe-integer divisor, truncating toward
+ * zero. Used for K2 = (cap − accum) / n and MTD = annual / (n + 1).
+ */
+export function divTruncateSen(amountSen: number, divisor: number): number {
+  assertSen(amountSen, "divTruncateSen(amountSen)");
+  if (!Number.isSafeInteger(divisor) || divisor === 0) {
+    throw new RangeError(
+      `divTruncateSen: divisor must be a non-zero safe integer, got ${divisor}`
+    );
+  }
+  const result = Number(BigInt(amountSen) / BigInt(divisor));
+  assertSen(result, "divTruncateSen");
+  return result === 0 ? 0 : result;
+}
+
+/**
+ * `amountSen × pct / 100`, truncated toward zero to whole sen (LHDN 2dp omit).
+ * `pct` must be an integer percentage (Table 1 rates are whole numbers).
+ */
+export function pctTruncateSen(amountSen: number, pct: number): number {
+  assertSen(amountSen, "pctTruncateSen(amountSen)");
+  if (!Number.isSafeInteger(pct)) {
+    throw new RangeError(
+      `pctTruncateSen: pct must be a safe integer percentage, got ${pct}`
+    );
+  }
+  const result = Number((BigInt(amountSen) * BigInt(pct)) / 100n);
+  assertSen(result, "pctTruncateSen");
+  return result === 0 ? 0 : result;
+}
+
+/**
+ * Round a non-negative sen amount **up** to the next multiple of 5 sen.
+ *
+ * LHDN MTD computerized spec: 1–4 sen → 5; 6–9 sen → 10
+ * (e.g. 287.02 → 287.05, 152.06 → 152.10).
+ */
+export function roundUpToFiveSen(amountSen: number): number {
+  assertSen(amountSen, "roundUpToFiveSen");
+  if (amountSen < 0) {
+    throw new RangeError(
+      `roundUpToFiveSen: amountSen must be >= 0, got ${amountSen}`
+    );
+  }
+  const rem = amountSen % 5;
+  if (rem === 0) {
+    return amountSen;
+  }
+  const result = amountSen + (5 - rem);
+  assertSen(result, "roundUpToFiveSen");
   return result;
 }
 

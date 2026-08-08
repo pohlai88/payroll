@@ -4,12 +4,14 @@ export interface WageBases {
   epfWagesSen: number;
   socsoWagesSen: number;
   eisWagesSen: number;
+  hrdWagesSen: number;
 }
 
 /**
- * Three separate statutory wage bases from the pay-item inclusion matrix.
+ * Statutory wage bases from the pay-item inclusion matrix.
  * Never "just gross": EPF excludes overtime but includes bonus; SOCSO/EIS
- * include overtime but exclude annual bonus.
+ * include overtime but exclude annual bonus. HRD is its own scheme (S06);
+ * at cutover it mirrors EPF.
  */
 export function wageBases(
   earnings: readonly ResolvedLineItem[],
@@ -18,6 +20,7 @@ export function wageBases(
   let epfWagesSen = 0;
   let socsoWagesSen = 0;
   let eisWagesSen = 0;
+  let hrdWagesSen = 0;
   for (const item of earnings) {
     const def = matrix.get(item.payItemCode);
     if (def?.kind !== "EARNING") {
@@ -32,6 +35,10 @@ export function wageBases(
     if (def.eisWages) {
       eisWagesSen += item.amountSen;
     }
+    const hrd = def.hrdWages ?? def.epfWages;
+    if (hrd) {
+      hrdWagesSen += item.amountSen;
+    }
   }
-  return { epfWagesSen, socsoWagesSen, eisWagesSen };
+  return { epfWagesSen, socsoWagesSen, eisWagesSen, hrdWagesSen };
 }

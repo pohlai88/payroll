@@ -100,6 +100,21 @@ describe("parseEmployeeRow", () => {
     expect(result.errors.some((e) => e.field === "Base Rate RM")).toBe(true);
   });
 
+  it("reports only required-field error for blank Base Rate RM", () => {
+    const row = baseRow();
+    row["Base Rate RM"] = "";
+    const result = parseEmployeeRow(row, []);
+    if (!("errors" in result)) {
+      throw new Error("expected errors");
+    }
+    const baseRateErrors = result.errors.filter(
+      (e) => e.field === "Base Rate RM"
+    );
+    expect(baseRateErrors).toEqual([
+      { field: "Base Rate RM", reason: "required field is blank" },
+    ]);
+  });
+
   it("rejects a negative Base Rate RM", () => {
     const row = baseRow();
     row["Base Rate RM"] = "-100.00";

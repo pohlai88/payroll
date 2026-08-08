@@ -92,3 +92,37 @@ All closeout tasks complete. Final review in progress.
 
 Final review: Ready to merge (I-1 fixed in 56e0ed5). Minors deferred: JSON header union, slugify collisions.
 
+
+
+# SDD Progress Ledger - Phase 4C Straits/shadcn
+
+Plan: docs/superpowers/plans/2026-08-08-phase4c-straits-shadcn.md
+Branch: phase2-persistence
+Base before Task 1: 7e637468b8f0e699baa6f32a71096d145a236b74
+Note: bash unavailable; task-brief/review-package done via PowerShell.
+
+## Tasks
+
+
+Task 1: complete (commits 7e63746..3b962c8, review Approved)
+- Minor: label Studio catalog gap; confirm on add in Task 2/4.
+
+Task 2: complete (commits 3b962c8..fa95c50, review Approved)
+- Minor: untracked button.tsx for Task 4; --sidebar-* CSS until Task 3.
+
+Task 3: complete (commits fa95c50..5f5a6e5, review Approved)
+- Minor: trailing newline; dark chart remap deferred.
+
+Task 4: complete (commits 5f5a6e5..86b234e, review Approved after evidence fix)
+- Minor: table use client directive; button skip wording.
+
+Task 5: complete (commits 86b234e..474ad09, review Approved after foundation fix)
+- Important carried: npm run build/typecheck red on pre-existing files; Task 6 must clear.
+- Fix commits: d7830bb web auth/api entry; 474ad09 UI format.
+
+Task 6: complete (commits 474ad09..605b489, review Approved after gate-evidence fix)
+- Phase 4C check gate = biome src/web src/components; full-repo check pre-existing red.
+- Minor: manual smoke operator; report count staleness.
+
+Final minor fix: 1d317a2 (table use client, sidebar tokens, theme toggle label)
+

@@ -5,6 +5,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { parse as parseCsv } from "csv-parse/sync";
 import type { Database } from "@/db/client";
 import {
   type CustomFieldDef,
@@ -19,6 +20,7 @@ import {
   insertCustomFieldDef,
   listActiveCustomFieldDefs,
 } from "@/repo/employee-profile";
+import { requirePermission } from "@/service/rbac";
 
 export const DEFAULT_CUSTOM_FIELDS_SEED_PATH = path.join(
   process.cwd(),
@@ -26,6 +28,165 @@ export const DEFAULT_CUSTOM_FIELDS_SEED_PATH = path.join(
   "seed",
   "employee-custom-fields.json"
 );
+
+/** HTTP import body limit (2 MiB). CLI is unbounded. */
+export const EMPLOYEE_IMPORT_MAX_BODY_BYTES = 2 * 1024 * 1024;
+
+const CSV_ESCAPE_NEEDED = /[",\n]/;
+const CSV_QUOTE = /"/g;
+
+export type EmployeeImportErrorCode = "VALIDATION_ERROR" | "PAYLOAD_TOO_LARGE";
+
+export class EmployeeImportError extends Error {
+  readonly code: EmployeeImportErrorCode;
+  readonly status: number;
+
+  constructor(
+    code: EmployeeImportErrorCode,
+    message: string,
+    status: number,
+    options?: ErrorOptions
+  ) {
+    super(message, options);
+    this.name = "EmployeeImportError";
+    this.code = code;
+    this.status = status;
+  }
+}
+
+export function csvEscape(value: string): string {
+  return CSV_ESCAPE_NEEDED.test(value)
+    ? `"${value.replace(CSV_QUOTE, '""')}"`
+    : value;
+}
+
+/** CSV header line for the create-only employee import template. */
+export async function buildEmployeeImportTemplateCsv(
+  db: Database
+): Promise<string> {
+  const defs = await listActiveCustomFieldDefs(db);
+  const headers = [
+    ...FIXED_HEADERS.map((h) => h.header),
+    ...defs.map((d) => d.label),
+  ];
+  return `${headers.map(csvEscape).join(",")}\n`;
+}
+
+export interface ParseEmployeeImportBodyOptions {
+  /**
+   * Max UTF-16 code units accepted. Defaults to HTTP cap.
+   * Pass `null` for unbounded (CLI).
+   */
+  readonly maxBytes?: number | null;
+}
+
+function normalizeImportCell(value: unknown): string | undefined {
+  if (value === undefined || value === null) {
+    return;
+  }
+  if (typeof value === "string") {
+    return value;
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  throw new EmployeeImportError(
+    "VALIDATION_ERROR",
+    "JSON import cells must be strings, numbers, booleans, or null",
+    400
+  );
+}
+
+function normalizeImportRows(
+  parsed: unknown[]
+): Record<string, string | undefined>[] {
+  const rows: Record<string, string | undefined>[] = [];
+  for (const entry of parsed) {
+    if (entry === null || typeof entry !== "object" || Array.isArray(entry)) {
+      throw new EmployeeImportError(
+        "VALIDATION_ERROR",
+        "JSON import body must be an array of row objects",
+        400
+      );
+    }
+    const row: Record<string, string | undefined> = {};
+    for (const [key, value] of Object.entries(entry)) {
+      row[key] = normalizeImportCell(value);
+    }
+    rows.push(row);
+  }
+  return rows;
+}
+
+/**
+ * Parse HTTP/CLI body into raw row objects. Never enables auto-register.
+ */
+export function parseEmployeeImportBody(
+  contentType: string | undefined,
+  text: string,
+  options: ParseEmployeeImportBodyOptions = {}
+): Record<string, string | undefined>[] {
+  const maxBytes =
+    options.maxBytes === undefined
+      ? EMPLOYEE_IMPORT_MAX_BODY_BYTES
+      : options.maxBytes;
+  if (maxBytes !== null && text.length > maxBytes) {
+    throw new EmployeeImportError(
+      "PAYLOAD_TOO_LARGE",
+      `import body exceeds ${maxBytes} bytes`,
+      413
+    );
+  }
+
+  const ct =
+    (contentType ?? "").split(";")[0]?.trim().toLowerCase() ?? "text/csv";
+
+  if (ct === "application/json") {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch (error) {
+      // biome-ignore lint/style/useErrorCause: ErrorOptions is the 4th constructor arg
+      throw new EmployeeImportError(
+        "VALIDATION_ERROR",
+        "invalid JSON body",
+        400,
+        { cause: error }
+      );
+    }
+    if (!Array.isArray(parsed)) {
+      throw new EmployeeImportError(
+        "VALIDATION_ERROR",
+        "JSON import body must be an array of row objects",
+        400
+      );
+    }
+    return normalizeImportRows(parsed);
+  }
+
+  if (ct === "text/csv" || ct === "text/plain" || ct === "") {
+    try {
+      return parseCsv(text, {
+        columns: true,
+        skip_empty_lines: true,
+      }) as Record<string, string | undefined>[];
+    } catch (error) {
+      // biome-ignore lint/style/useErrorCause: ErrorOptions is the 4th constructor arg
+      throw new EmployeeImportError(
+        "VALIDATION_ERROR",
+        error instanceof Error ? error.message : "invalid CSV body",
+        400,
+        { cause: error }
+      );
+    }
+  }
+
+  throw new EmployeeImportError(
+    "VALIDATION_ERROR",
+    `unsupported Content-Type: ${ct || "(empty)"}`,
+    400
+  );
+}
 
 export interface ImportOptions {
   autoRegister?: boolean;
@@ -58,10 +219,16 @@ export interface ImportReport {
 function extractHeaders(
   rawRows: readonly Record<string, string | undefined>[]
 ): string[] {
-  if (rawRows.length === 0) {
-    return [];
+  const headers = new Set<string>();
+  for (const row of rawRows) {
+    if (Object.keys(row).length === 0) {
+      continue;
+    }
+    for (const key of Object.keys(row)) {
+      headers.add(key);
+    }
   }
-  return Object.keys(rawRows[0] ?? {});
+  return [...headers];
 }
 
 function slugify(label: string): string {
@@ -71,10 +238,41 @@ function slugify(label: string): string {
     .replace(/^_+|_+$/g, "");
 }
 
+function collectTakenFieldKeys(
+  seedFields: ReadonlyArray<{ fieldKey: string; label: string }>,
+  dbDefs: ReadonlyArray<{ fieldKey: string; label: string }>,
+  batchFieldKeys: ReadonlySet<string>
+): Set<string> {
+  const taken = new Set<string>(batchFieldKeys);
+  for (const field of [...seedFields, ...dbDefs]) {
+    taken.add(field.fieldKey);
+    const fromLabel = slugify(field.label);
+    if (fromLabel !== "") {
+      taken.add(fromLabel);
+    }
+  }
+  return taken;
+}
+
+function resolveUniqueFieldKey(
+  baseKey: string,
+  takenKeys: Set<string>
+): string {
+  if (!takenKeys.has(baseKey)) {
+    return baseKey;
+  }
+  let suffix = 2;
+  while (takenKeys.has(`${baseKey}_${suffix}`)) {
+    suffix += 1;
+  }
+  return `${baseKey}_${suffix}`;
+}
+
 async function autoRegisterUnrecognizedHeaders(
   db: Database,
   unrecognizedHeaders: string[],
-  seedFilePath: string
+  seedFilePath: string,
+  dbDefs: Awaited<ReturnType<typeof listActiveCustomFieldDefs>>
 ): Promise<CustomFieldDef[]> {
   const content = fs.existsSync(seedFilePath)
     ? JSON.parse(fs.readFileSync(seedFilePath, "utf8"))
@@ -91,10 +289,21 @@ async function autoRegisterUnrecognizedHeaders(
 
   const maxSort = existing.reduce((max, f) => Math.max(max, f.sortOrder), 0);
   const newDefs: CustomFieldDef[] = [];
+  const batchFieldKeys = new Set<string>();
 
   let index = 0;
   for (const header of unrecognizedHeaders) {
-    const fieldKey = slugify(header);
+    const baseKey = slugify(header);
+    if (baseKey === "") {
+      throw new Error(
+        `Cannot auto-register column ${JSON.stringify(header)}: slugified field key is empty`
+      );
+    }
+
+    const takenKeys = collectTakenFieldKeys(existing, dbDefs, batchFieldKeys);
+    const fieldKey = resolveUniqueFieldKey(baseKey, takenKeys);
+    batchFieldKeys.add(fieldKey);
+
     const newField = {
       fieldKey,
       label: header,
@@ -157,7 +366,8 @@ export async function validateImportHeaders(
     const newDefs = await autoRegisterUnrecognizedHeaders(
       db,
       unrecognizedHeaders,
-      seedFilePath
+      seedFilePath,
+      defs
     );
     const allDefs: CustomFieldDef[] = [
       ...defs.map((d) => ({
@@ -262,4 +472,58 @@ export async function importEmployeeRows(
   }
 
   return { created, skippedExisting, failed, rows };
+}
+
+/**
+ * Authenticated import path: EMPLOYMENT CREATE for every resolved company,
+ * then create-only import with autoRegister forced off.
+ */
+export async function importEmployeeRowsForActor(
+  db: Database,
+  actorUserId: string,
+  rawRows: readonly Record<string, string | undefined>[]
+): Promise<ImportReport> {
+  const codes = new Set<string>();
+  for (const row of rawRows) {
+    const code = (row["Payroll Company Code"] ?? "").trim();
+    if (code !== "") {
+      codes.add(code);
+    }
+  }
+
+  const resolvedCompanyIds = new Set<string>();
+  for (const code of codes) {
+    const companyId = await findCompanyIdByCode(db, code);
+    if (companyId !== null) {
+      resolvedCompanyIds.add(companyId);
+    }
+  }
+
+  if (resolvedCompanyIds.size === 0) {
+    // Empty file or only unknown company codes — GLOBAL / SYSTEM_ADMIN only.
+    await requirePermission(db, actorUserId, "EMPLOYMENT", "CREATE", null);
+  } else {
+    for (const companyId of resolvedCompanyIds) {
+      await requirePermission(
+        db,
+        actorUserId,
+        "EMPLOYMENT",
+        "CREATE",
+        companyId
+      );
+    }
+  }
+
+  try {
+    return await importEmployeeRows(db, rawRows, { autoRegister: false });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.startsWith("Unrecognized columns:")) {
+      // biome-ignore lint/style/useErrorCause: ErrorOptions is the 4th constructor arg
+      throw new EmployeeImportError("VALIDATION_ERROR", message, 400, {
+        cause: error,
+      });
+    }
+    throw error;
+  }
 }

@@ -1,0 +1,5 @@
+import { Hono } from "hono";
+
+export const healthRoutes = new Hono().get("/health", (c) =>
+  c.json({ ok: true as const })
+);

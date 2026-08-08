@@ -5,31 +5,24 @@
  */
 
 import fs from "node:fs";
-import type { Database } from "../src/db/client";
 import {
   createDatabase,
   createPool,
+  type Database,
   requireDatabaseUrl,
 } from "../src/db/client";
 import { FIXED_HEADERS } from "../src/domain/import/employee-row";
 import { listActiveCustomFieldDefs } from "../src/repo/employee-profile";
-
-export function csvEscape(value: string): string {
-  return /[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
-}
+import { buildEmployeeImportTemplateCsv } from "../src/service/employee-import";
 
 export async function writeEmployeeImportTemplate(
   db: Database,
   outPath: string
 ): Promise<number> {
   const defs = await listActiveCustomFieldDefs(db);
-  const headers = [
-    ...FIXED_HEADERS.map((h) => h.header),
-    ...defs.map((d) => d.label),
-  ];
-  const line = headers.map(csvEscape).join(",");
-  fs.writeFileSync(outPath, `${line}\n`);
-  return headers.length;
+  const csv = await buildEmployeeImportTemplateCsv(db);
+  fs.writeFileSync(outPath, csv);
+  return FIXED_HEADERS.length + defs.length;
 }
 
 async function main(): Promise<void> {

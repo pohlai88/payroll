@@ -57,6 +57,7 @@ const ruleSettingsSchema = z.object({
   epfPartFEePct: percentage,
   epfPartFErPct: percentage,
   socsoCeilingSen: senAmount,
+  epfSocsoRetirementAge: z.number().int().positive(),
   skbbkPhaseFrom: isoDate,
   skbbkPhaseTo: isoDate,
   eisCeilingSen: senAmount,

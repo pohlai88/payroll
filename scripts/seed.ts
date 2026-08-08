@@ -282,6 +282,36 @@ export async function seed(db: Database): Promise<string> {
       )
       .onConflictDoNothing();
 
+    // S06 treatments + PCB class for any newly inserted catalog rows.
+    await tx.execute(sql`
+      INSERT INTO pay_item_treatments (pay_item_id, scheme, subject, source, effective_from, actor)
+      SELECT p.id, s.scheme, s.subject, 'STATUTORY_DEFAULT', '2000-01-01', 'seed'
+      FROM pay_items p
+      CROSS JOIN LATERAL (VALUES
+        ('EPF'::treatment_scheme, p.epf_wages),
+        ('SOCSO'::treatment_scheme, p.socso_wages),
+        ('EIS'::treatment_scheme, p.eis_wages),
+        ('HRD'::treatment_scheme, p.epf_wages)
+      ) AS s(scheme, subject)
+      WHERE NOT EXISTS (
+        SELECT 1 FROM pay_item_treatments t
+        WHERE t.pay_item_id = p.id AND t.scheme = s.scheme AND t.effective_to IS NULL
+      )`);
+    await tx.execute(sql`
+      INSERT INTO pay_item_pcb_classes (pay_item_id, class, source, effective_from, actor)
+      SELECT p.id,
+        CASE
+          WHEN p.kind = 'DEDUCTION' THEN 'EXCLUDED'::pcb_remuneration_class
+          WHEN p.code = 'BONUS' THEN 'ADDITIONAL'::pcb_remuneration_class
+          ELSE 'NORMAL'::pcb_remuneration_class
+        END,
+        'STATUTORY_DEFAULT', '2000-01-01', 'seed'
+      FROM pay_items p
+      WHERE NOT EXISTS (
+        SELECT 1 FROM pay_item_pcb_classes c
+        WHERE c.pay_item_id = p.id AND c.effective_to IS NULL
+      )`);
+
     /**
      * The content is loaded; someone now takes responsibility for it. These are
      * the carried band tables the golden master is pinned against, verified

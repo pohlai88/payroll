@@ -1,4 +1,4 @@
-import { mulDivSen, roundHalfUpSen } from "../money";
+import { mulDivSen, quantityAmountSen } from "../money";
 import type { PayBasis, TraceStep } from "./types";
 
 export interface RegularPayResult {
@@ -37,7 +37,7 @@ export function regularPay(
   }
   if (basis === "DAILY") {
     const pd = paidDays ?? 0;
-    const amount = roundHalfUpSen(baseRateSen * pd);
+    const amount = quantityAmountSen(pd, baseRateSen);
     return {
       amountSen: amount,
       trace: {
@@ -48,7 +48,7 @@ export function regularPay(
     };
   }
   const hrs = hoursWorked ?? 0;
-  const amount = roundHalfUpSen(baseRateSen * hrs);
+  const amount = quantityAmountSen(hrs, baseRateSen);
   return {
     amountSen: amount,
     trace: {
@@ -57,15 +57,4 @@ export function regularPay(
       amountSen: amount,
     },
   };
-}
-
-/**
- * A quantity times a rate, rounded half away from zero to the sen.
- *
- * One function for every quantity-based item — days, hours or units. Overtime
- * and meal allowance each had their own copy of this line, which is why adding
- * a per-day allowance used to mean editing the engine.
- */
-export function quantityAmount(qty: number, rateSen: number): number {
-  return roundHalfUpSen(qty * rateSen);
 }

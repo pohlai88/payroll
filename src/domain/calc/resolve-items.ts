@@ -1,4 +1,4 @@
-import { quantityAmount } from "./proration";
+import { quantityAmountSen } from "../money";
 import {
   isQuantityItem,
   type LineItemInput,
@@ -57,7 +57,7 @@ export function resolveItem(
       basis: item.basis,
       qty: item.qty,
       rateSen: item.rateSen,
-      amountSen: quantityAmount(item.qty, item.rateSen),
+      amountSen: quantityAmountSen(item.qty, item.rateSen),
       computed: false,
     };
   }

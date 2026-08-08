@@ -146,6 +146,72 @@ export const groupServiceContinuity = pgEnum("group_service_continuity", [
   "RESET",
 ]);
 
+/** Owning entity for an evidence/generated artifact row. */
+export const artifactEntityType = pgEnum("artifact_entity_type", [
+  "TRANSFER",
+  "EMPLOYMENT_PRIOR_YTD",
+  "PAY_RUN",
+  "OTHER",
+]);
+
+/** Artifact kind — this slice stores EVIDENCE only; others reserved for Phase 7. */
+export const artifactType = pgEnum("artifact_type", [
+  "EVIDENCE",
+  "PAYMENT_REGISTER",
+  "BANK_FILE",
+  "CASH_SHEET",
+  "PAYSLIP_PDF",
+  "MANIFEST",
+  "EXCEPTION_REPORT",
+]);
+
+/** How the bytes arrived. */
+export const artifactSource = pgEnum("artifact_source", [
+  "ATTACHED",
+  "GENERATED",
+]);
+
+/** Finding severity (pay-run workspace §4). */
+export const findingSeverity = pgEnum("finding_severity", [
+  "INFO",
+  "REVIEW",
+  "WARNING",
+  "BLOCKING",
+]);
+
+export const findingStatus = pgEnum("finding_status", [
+  "OPEN",
+  "ACKNOWLEDGED",
+  "RESOLVED",
+]);
+
+export const findingEventKind = pgEnum("finding_event_kind", [
+  "DETECTED",
+  "REOPENED",
+  "ACKNOWLEDGED",
+  "RESOLVED",
+]);
+
+/** EPF / SOCSO / EIS / HRD wage-base treatment (MY-STAT-S06). */
+export const treatmentScheme = pgEnum("treatment_scheme", [
+  "EPF",
+  "SOCSO",
+  "EIS",
+  "HRD",
+]);
+
+export const treatmentSource = pgEnum("treatment_source", [
+  "STATUTORY_DEFAULT",
+  "APPROVED_DEPARTURE",
+]);
+
+/** LHDN Normal vs Additional vs excluded from Y1/Yt split. */
+export const pcbRemunerationClass = pgEnum("pcb_remuneration_class", [
+  "NORMAL",
+  "ADDITIONAL",
+  "EXCLUDED",
+]);
+
 /** Whether a login account may authenticate. */
 export const userStatus = pgEnum("user_status", ["ACTIVE", "DISABLED"]);
 
@@ -185,3 +251,62 @@ export const employeeCustomFieldDataType = pgEnum(
   "employee_custom_field_data_type",
   ["TEXT", "NUMBER", "DATE", "BOOLEAN"]
 );
+
+/** Line payment projection state — Spec §1.3. */
+export const linePaymentState = pgEnum("line_payment_state", [
+  "READY",
+  "HOLD",
+  "RELEASED",
+  "PAID",
+  "FAILED_RETURNED",
+  "RECONCILED",
+  "WITHDRAWN",
+]);
+
+/** Why a line was removed from this run's settlement obligation. */
+export const withdrawalReason = pgEnum("withdrawal_reason", [
+  "MOVED_TO_OFFCYCLE",
+  "DUPLICATE_LINE",
+  "EMPLOYEE_NOT_PAYABLE",
+  "PAYMENT_CANCELLED_BY_AUTHORITY",
+  "OTHER_CONTROLLED_EXCEPTION",
+]);
+
+/** Release batch payment channel. */
+export const releaseMethod = pgEnum("release_method", ["BANK", "CASH"]);
+
+/**
+ * Batch rollup. SETTLED_WITH_FAILURES is terminal: a failed-then-retried
+ * payment must still allow run closure (Plan1 handoff §4.1).
+ */
+export const releaseBatchStatus = pgEnum("release_batch_status", [
+  "OPEN",
+  "SETTLED",
+  "PARTIALLY_SETTLED",
+  "SETTLED_WITH_FAILURES",
+  "CANCELLED",
+]);
+
+/** Immutable settlement attempt outcome. */
+export const paymentAttemptStatus = pgEnum("payment_attempt_status", [
+  "PENDING",
+  "PAID",
+  "FAILED",
+]);
+
+/** Honest distribution channel semantics — Spec §6. */
+export const distributionChannel = pgEnum("distribution_channel", [
+  "GENERATED",
+  "SENT",
+  "DELIVERED",
+  "HANDED",
+  "PRINTED",
+]);
+
+/** Which process gate a finding or prerequisite blocks. */
+export const gateKind = pgEnum("gate_kind", [
+  "REVIEW",
+  "APPROVAL",
+  "RELEASE",
+  "CLOSE",
+]);

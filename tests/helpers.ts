@@ -47,7 +47,14 @@ export function loadPayItems(): PayItemDef[] {
     epfWages: !!i.epfWages,
     socsoWages: !!i.socsoWages,
     eisWages: !!i.eisWages,
+    hrdWages: !!i.epfWages,
     prorates: !!i.prorates,
+    pcbRemunerationClass:
+      i.kind === "DEDUCTION"
+        ? ("EXCLUDED" as const)
+        : i.code === "BONUS"
+          ? ("ADDITIONAL" as const)
+          : ("NORMAL" as const),
   }));
 }
 
@@ -81,6 +88,7 @@ export function defaultSettings(): RuleSettings {
     epfPartFEePct: Number(s["epf.partF.ee_pct"]),
     epfPartFErPct: Number(s["epf.partF.er_pct"]),
     socsoCeilingSen: Number(s["socso.ceiling_sen"]),
+    epfSocsoRetirementAge: Number(s["epf_socso.retirement_age"]),
     skbbkPhaseFrom: required(s, "skbbk.phase_from"),
     skbbkPhaseTo: required(s, "skbbk.phase_to"),
     eisCeilingSen: Number(s["eis.ceiling_sen"]),

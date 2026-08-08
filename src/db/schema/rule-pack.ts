@@ -92,6 +92,11 @@ export const rulePacks = pgTable(
       sql`${t.contentHash} IS NULL OR ${t.contentHash} ~ '^[0-9a-f]{64}$'`
     ),
     index("rule_packs_layer_effective").on(t.layer, t.effectiveFrom),
+    // Overlap exclusion for approved-or-later packs with a non-null code is
+    // enforced in migration 0005_rule_pack_overlap_exclusion.sql
+    // (`rule_packs_no_overlapping_approved_ranges`). Drizzle has no first-class
+    // EXCLUDE helper; the constraint lives in SQL and is proved by
+    // tests/db/rule-pack-overlap.test.ts.
   ]
 );
 

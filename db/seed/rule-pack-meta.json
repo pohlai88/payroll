@@ -85,6 +85,7 @@
     "epf.partF.ee_pct": "2",
     "epf.partF.er_pct": "2",
     "socso.ceiling_sen": "600000",
+    "epf_socso.retirement_age": "60",
     "skbbk.phase_from": "2026-06-01",
     "skbbk.phase_to": "2028-05-31",
     "eis.ceiling_sen": "600000",
