@@ -4,15 +4,29 @@
  * re-import untouched (no-clobber).
  */
 
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { importEmployeeRows } from "@/service/employee-import";
 import { ALL_TABLES, connectTestDatabase, type TestDatabase } from "./harness/database";
 
+const REPO_CUSTOM_FIELDS_SEED = path.join(
+  process.cwd(),
+  "db",
+  "seed",
+  "employee-custom-fields.json"
+);
+const PRISTINE_SEED_CONTENT = fs.readFileSync(REPO_CUSTOM_FIELDS_SEED, "utf8");
+
 const database: TestDatabase = connectTestDatabase();
 const { db } = database;
 
 afterAll(async () => {
+  expect(fs.readFileSync(REPO_CUSTOM_FIELDS_SEED, "utf8")).toBe(
+    PRISTINE_SEED_CONTENT
+  );
   await database.close();
 });
 
@@ -156,19 +170,45 @@ describe("importEmployeeRows", () => {
   });
 
   it("auto-registers unrecognized column as TEXT custom field with --auto-register", async () => {
-    const report = await importEmployeeRows(
-      db,
-      [sampleRow({ "Bonus Amount": "5000.00" })],
-      { autoRegister: true }
+    const tempSeedPath = path.join(
+      os.tmpdir(),
+      `employee-custom-fields-${process.pid}-${Date.now()}.json`
     );
-    expect(report.created).toBe(1);
-    expect(report.failed).toBe(0);
+    fs.writeFileSync(
+      tempSeedPath,
+      `${JSON.stringify({ fields: [] }, null, 2)}\n`,
+      "utf8"
+    );
 
-    const customFields = await db.execute<{ field_key: string; label: string; data_type: string }>(sql`
+    try {
+      const report = await importEmployeeRows(
+        db,
+        [sampleRow({ "Bonus Amount": "5000.00" })],
+        { autoRegister: true, customFieldsSeedPath: tempSeedPath }
+      );
+      expect(report.created).toBe(1);
+      expect(report.failed).toBe(0);
+
+      const customFields = await db.execute<{
+        field_key: string;
+        label: string;
+        data_type: string;
+      }>(sql`
       SELECT field_key, label, data_type FROM employee_custom_field_defs
       WHERE label = 'Bonus Amount'`);
-    expect(customFields.rows.length).toBe(1);
-    expect(customFields.rows[0]?.field_key).toBe("bonus_amount");
-    expect(customFields.rows[0]?.data_type).toBe("TEXT");
+      expect(customFields.rows.length).toBe(1);
+      expect(customFields.rows[0]?.field_key).toBe("bonus_amount");
+      expect(customFields.rows[0]?.data_type).toBe("TEXT");
+
+      const seedContent = JSON.parse(fs.readFileSync(tempSeedPath, "utf8")) as {
+        fields: Array<{ fieldKey: string; label: string; dataType: string }>;
+      };
+      expect(seedContent.fields).toHaveLength(1);
+      expect(seedContent.fields[0]?.fieldKey).toBe("bonus_amount");
+      expect(seedContent.fields[0]?.label).toBe("Bonus Amount");
+      expect(seedContent.fields[0]?.dataType).toBe("TEXT");
+    } finally {
+      fs.unlinkSync(tempSeedPath);
+    }
   });
 });

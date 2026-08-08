@@ -20,6 +20,19 @@ import {
   insertCustomFieldDef,
 } from "@/repo/employee-profile";
 
+export const DEFAULT_CUSTOM_FIELDS_SEED_PATH = path.join(
+  process.cwd(),
+  "db",
+  "seed",
+  "employee-custom-fields.json"
+);
+
+export interface ImportOptions {
+  autoRegister?: boolean;
+  /** Seed file auto-register appends to; defaults to repo seed in prod/CLI. */
+  customFieldsSeedPath?: string;
+}
+
 export type RowOutcome =
   | {
       status: "CREATED";
@@ -60,14 +73,9 @@ function slugify(label: string): string {
 
 async function autoRegisterUnrecognizedHeaders(
   db: Database,
-  unrecognizedHeaders: string[]
+  unrecognizedHeaders: string[],
+  seedFilePath: string
 ): Promise<CustomFieldDef[]> {
-  const seedFilePath = path.join(
-    process.cwd(),
-    "db",
-    "seed",
-    "employee-custom-fields.json"
-  );
   const content = fs.existsSync(seedFilePath)
     ? JSON.parse(fs.readFileSync(seedFilePath, "utf8"))
     : { fields: [] };
@@ -121,7 +129,7 @@ async function autoRegisterUnrecognizedHeaders(
 export async function validateImportHeaders(
   db: Database,
   rawRows: readonly Record<string, string | undefined>[],
-  options: { autoRegister?: boolean } = {}
+  options: ImportOptions = {}
 ): Promise<{ valid: true; customFieldDefs: CustomFieldDef[] } | { valid: false; unrecognizedHeaders: string[] }> {
   const headers = extractHeaders(rawRows);
   const defs = await listActiveCustomFieldDefs(db);
@@ -137,7 +145,13 @@ export async function validateImportHeaders(
       return { valid: false, unrecognizedHeaders };
     }
     
-    const newDefs = await autoRegisterUnrecognizedHeaders(db, unrecognizedHeaders);
+    const seedFilePath =
+      options.customFieldsSeedPath ?? DEFAULT_CUSTOM_FIELDS_SEED_PATH;
+    const newDefs = await autoRegisterUnrecognizedHeaders(
+      db,
+      unrecognizedHeaders,
+      seedFilePath
+    );
     const allDefs: CustomFieldDef[] = [
       ...defs.map((d) => ({
         fieldKey: d.fieldKey,
@@ -164,7 +178,7 @@ export async function validateImportHeaders(
 export async function importEmployeeRows(
   db: Database,
   rawRows: readonly Record<string, string | undefined>[],
-  options: { autoRegister?: boolean } = {}
+  options: ImportOptions = {}
 ): Promise<ImportReport> {
   const validation = await validateImportHeaders(db, rawRows, options);
   if (!validation.valid) {
