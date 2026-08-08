@@ -1,6 +1,6 @@
 # Phase 5B — Clarity Payroll Product UI Shell + Pay-Run Workspace
 
-**Date:** 2026-08-08 · **Status:** Design — revision required (7 critical corrections applied) · **Scope:** Application shell (sidebar + scope bar + ⌘K), pay-run workspace (server-owned read model + totals strip + column-grouped grid + employee slide-over with payslip preview), domain presenters — built with Studio-inspired shadcn blocks on the Straits token system.
+**Date:** 2026-08-08 · **Status:** Approved for planning — preflight complete (see evidence/2026-08-08-phase5b-preflight-readiness.md) · **Scope:** Application shell (sidebar + scope bar + ⌘K), pay-run workspace (server-owned read model + totals strip + column-grouped grid + employee slide-over with payslip preview), domain presenters — built with Studio-inspired shadcn blocks on the Straits token system.
 
 Companions:
 - [presentation-facade.md](../../architecture/presentation-facade.md) — facade rules the UI must obey

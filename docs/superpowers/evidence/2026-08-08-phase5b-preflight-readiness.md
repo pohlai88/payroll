@@ -23,11 +23,11 @@ These are **complete hex colour values**, not HSL channel tuples. Use `var(--sec
 
 All routes below are mounted under `/v1` by `src/server/app.ts` (`v1.route("/", payRunRoutes(...))`, `v1.route("/", payRunControlRoutes(...))`, `v1.route("/", meRoutes(...))`). No `app.get(...)` calls exist outside `pay-run.ts`, `pay-run-control.ts`, `me.ts`, `admin-users.ts`, and `employee-import.ts` (checked via a repo-wide search).
 
-- [x] GET /v1/pay-runs — **MISSING** (no list route; `pay-run.ts` only has `POST /pay-runs`)
-- [x] GET /v1/pay-runs/:runId — **MISSING** (no single-run fetch route; only sub-resources exist: `/findings`, `/gates/:gate`)
-- [x] GET /v1/pay-runs/:runId/workspace — **MISSING** (no workspace aggregate route)
-- [x] GET /v1/employees — **MISSING** (no employee list/search route anywhere in `src/server/routes/`)
-- [x] Company list from /v1/me or similar — **MISSING** (`GET /v1/me` returns only `{id, email, name, status}`; `GET /v1/me/permissions?companyId=` requires a `companyId` as *input*, it does not enumerate companies)
+- [x] GET /v1/pay-runs — **PRESENT** (implemented in Task 1)
+- [x] GET /v1/pay-runs/:runId/workspace — **PRESENT** (implemented in Task 2)
+- [x] Prior-run variance + per-employee findings — **PRESENT** (implemented in Task 3)
+- [x] GET /v1/employees — **PRESENT** (implemented in Task 4)
+- [x] Company list from /v1/me — **PRESENT** (implemented in Task 5)
 
 Full inventory of `app.get(...)` routes found in the server:
 
