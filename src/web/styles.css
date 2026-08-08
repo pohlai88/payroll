@@ -28,14 +28,14 @@
   --border: #d7dee5;
   --input: #d7dee5;
   --ring: #2e7d7a;
-  
+
   /* Chart series */
   --chart-1: #00736f;
   --chart-2: #bc671f;
   --chart-3: #36397b;
   --chart-4: #676f2d;
   --chart-5: #7d8ea1;
-  
+
   /* Status tokens */
   --status-ok-ink: #27603e;
   --status-ok-fill: #d8e5db;
@@ -47,7 +47,7 @@
   --status-bad-fill: #f2dcdd;
   --status-neutral-ink: #66737e;
   --status-neutral-fill: #eff2f6;
-  
+
   /* Section tokens */
   --section-earning-fill: #eaf1f7;
   --section-earning-ink: #114a65;
@@ -57,7 +57,7 @@
   --section-employer-ink: #1f5a58;
   --section-summary-fill: #e6ebf0;
   --section-summary-ink: #14324a;
-  
+
   /* Document tokens (print values, light only) */
   --doc-ink: #26333d;
   --doc-ink-secondary: #66737e;
@@ -79,9 +79,9 @@
   --doc-section-employer-ink: #1f5a58;
   --doc-section-summary-fill: #d3dbe3;
   --doc-section-summary-ink: #14324a;
-  
+
   /* RESERVED (no canonical value): --doc-fill-grand-total — JSON fills.grand_total_row.hex is null */
-  
+
   /* Legacy tokens for compatibility */
   --radius: 0.625rem;
   --sidebar: #fbfcfd;
@@ -189,8 +189,8 @@ code {
 
 @theme inline {
   --font-heading: var(--font-sans);
-  --font-sans: 'Geist Variable', sans-serif;
-  
+  --font-sans: "Geist Variable", sans-serif;
+
   /* App semantic colors */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -211,14 +211,14 @@ code {
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  
+
   /* Chart colors */
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  
+
   /* Status colors */
   --color-status-ok-ink: var(--status-ok-ink);
   --color-status-ok-fill: var(--status-ok-fill);
@@ -230,7 +230,7 @@ code {
   --color-status-bad-fill: var(--status-bad-fill);
   --color-status-neutral-ink: var(--status-neutral-ink);
   --color-status-neutral-fill: var(--status-neutral-fill);
-  
+
   /* Section colors */
   --color-section-earning-fill: var(--section-earning-fill);
   --color-section-earning-ink: var(--section-earning-ink);
@@ -240,7 +240,7 @@ code {
   --color-section-employer-ink: var(--section-employer-ink);
   --color-section-summary-fill: var(--section-summary-fill);
   --color-section-summary-ink: var(--section-summary-ink);
-  
+
   /* Sidebar colors */
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -250,7 +250,7 @@ code {
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  
+
   /* Border radius */
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -282,7 +282,7 @@ code {
   --border: #2a3844;
   --input: #2a3844;
   --ring: #4aa8a4;
-  
+
   /* Status fills/inks - lighten fills slightly; keep ink distinguishable on #10181f */
   --status-ok-ink: #4a8765;
   --status-ok-fill: #2a4a38;
@@ -294,7 +294,7 @@ code {
   --status-bad-fill: #6b2a2a;
   --status-neutral-ink: #a8b3bd;
   --status-neutral-fill: #2a3340;
-  
+
   /* Section tokens for dark mode */
   --section-earning-fill: #2a4556;
   --section-earning-ink: #7bb3d9;
@@ -304,7 +304,7 @@ code {
   --section-employer-ink: #7bd9c1;
   --section-summary-fill: #2a3d56;
   --section-summary-ink: #8eb4c9;
-  
+
   /* Sidebar */
   --sidebar: #16212b;
   --sidebar-foreground: #fbfcfd;
