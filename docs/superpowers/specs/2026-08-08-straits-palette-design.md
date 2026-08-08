@@ -8,6 +8,9 @@ Date: 2026-08-08. Status: approved in conversation (scope "everywhere", dark var
 > the payslip `print.css` styling. The screen retheme, dark derivation, status
 > glyph badges and `src/lib/palette.ts` were rolled back. The sections below
 > describe the original full-scope design and are kept for reference.
+>
+> **The living contract is now `docs/palette/README.md` (colour) and
+> `docs/palette/printing.md` (documents and print).** This file is history.
 
 ## Goal
 

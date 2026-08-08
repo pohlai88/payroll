@@ -31,6 +31,37 @@
       "guidance": "No fill. Use a 1pt rule above and a 3pt double rule below, with bold weight. A filled grand total reads as a highlight, not a conclusion."
     }
   },
+  "section_tints": {
+    "_note": "CATEGORICAL, NOT VALENCED. These identify column groups and panels in the pay-run grid (earning / deduction / employer cost / summary). A deduction tint is a section label, not a warning — amounts inside always render amounts.neutral. Grays are near-identical by design intent (all four print between 1.35 and 1.40 contrast vs white), so in mono the group label and rule carry the encoding, never the fill. Ink is the group header text; verified AA on both screen and print fill.",
+    "earning": {
+      "screen": "#eaf1f7",
+      "print": "#d3dfe9",
+      "gray": "#dddddd",
+      "ink": "#114a65",
+      "ink_on_fill": 7.07
+    },
+    "deduction": {
+      "screen": "#f7e7c6",
+      "print": "#f0dcb0",
+      "gray": "#dedede",
+      "ink": "#7c4e01",
+      "ink_on_fill": 5.28
+    },
+    "employer": {
+      "screen": "#e4efee",
+      "print": "#cfe0de",
+      "gray": "#dcdcdc",
+      "ink": "#1f5a58",
+      "ink_on_fill": 5.77
+    },
+    "summary": {
+      "screen": "#e6ebf0",
+      "print": "#d3dbe3",
+      "gray": "#dadada",
+      "ink": "#14324a",
+      "ink_on_fill": 9.47
+    }
+  },
   "callouts": {
     "info": { "fill": "#d2e4ee", "ink": "#114a65", "rule": "#a1c7db" },
     "success": { "fill": "#d8e5db", "ink": "#27603e", "rule": "#a8d4b6" },
@@ -48,7 +79,12 @@
     "posted": { "glyph": "✓", "ink": "#27603e", "fill": "#d8e5db" },
     "rejected": { "glyph": "✕", "ink": "#8b3334", "fill": "#f2dcdd" },
     "overdue": { "glyph": "✕", "ink": "#8b3334", "fill": "#f2dcdd" },
-    "cancelled": { "glyph": "⊘", "ink": "#66737e", "fill": "#eff2f6", "decoration": "line-through" }
+    "cancelled": {
+      "glyph": "⊘",
+      "ink": "#66737e",
+      "fill": "#eff2f6",
+      "decoration": "line-through"
+    }
   },
   "amounts": {
     "_note": "PAYROLL: earnings and deductions both use `neutral`. A deduction is arithmetic, not a warning.",
