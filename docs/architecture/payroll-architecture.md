@@ -3,6 +3,8 @@
 A description of what exists in `src/` and `db/` today, and where the boundaries
 are. Companion to [presentation-facade.md](./presentation-facade.md), which covers
 the layers above and what the UI may rely on; this document covers what is beneath.
+For Malaysia wage-statement legality vs the production payslip field list, see
+[payslip-legal-requirements.md](./payslip-legal-requirements.md).
 
 Anything not yet built is marked. Nothing here is aspirational.
 
@@ -27,8 +29,13 @@ rule pack that produced it.
 
 ## 2. Schema
 
-18 tables, 9 enums, 5 trigger functions across 8 triggers. Two migrations:
-`0000_phase2_core.sql` (generated) and `0001_phase2_triggers.sql` (hand-written).
+Phase 2 persistence plus later in-phase amendments (statutory authority,
+RBAC, PCB tax/YTD profile, internal group transfer, employment profiles).
+Migrations live in `src/db/migrations/` (`0000`–`0014` at time of writing):
+generated Drizzle SQL plus hand-written trigger/governance files
+(`0001_phase2_triggers.sql`, `0004_authority_governance.sql`, and others).
+The five core calculation-lifecycle triggers from the persistence design
+remain in `0001_phase2_triggers.sql`; authority/RBAC/transfer add their own.
 
 ### 2.1 Enums
 
@@ -47,6 +54,8 @@ for. `tests/db/enums.test.ts` asserts membership equality in both directions.
 | `run_type` | REGULAR · OFFCYCLE |
 | `offcycle_reason` | CORRECTION · ARREARS · BONUS · MISSED_PAYMENT · FINAL_PAYMENT |
 | `override_field` | the 10 statutory figures an approved override may replace |
+| `termination_reason` | RESIGNATION · DISMISSAL · CONTRACT_END · INTERNAL_GROUP_TRANSFER · RETIREMENT · OTHER |
+| `group_service_continuity` | CONTINUOUS · RESET |
 
 `run_status` has no PAID member on purpose: payment is a line-level rollup, not a
 run state.
@@ -73,6 +82,24 @@ history at 57 produces a `REVIEW_REQUIRED` flag rather than a silent assumption.
 because run membership is an overlap query — `joinDate ≤ periodEnd AND
 (terminationDate IS NULL OR terminationDate ≥ periodStart)` — not an ACTIVE flag.
 An employment ended mid-month must still appear in its own final run.
+
+### 2.2a Internal group transfer — `transfers` · `employment_prior_ytd`
+
+MVP of the cross-company transfer capability
+([design](../superpowers/specs/2026-08-08-internal-group-transfer-design.md)),
+narrower than §8 of the
+[pay-run workspace spec](../superpowers/specs/2026-08-08-payrun-workspace-design.md):
+no findings/gates and no artifacts-backed evidence, because neither
+subsystem exists yet. `src/service/transfer.ts`'s `commitTransfer` ends
+Employment A, creates Employment B, and links them via `transfers` in one
+transaction; `recordPriorEmploymentYtd` writes `employment_prior_ytd`
+(TP3-style prior-employer figures for PCB continuity) independently. Three
+business rules — no concurrent open employment without an explicit
+`allowedOverlap` + reason, no retroactive close into an already
+APPROVED/CLOSED regular run, and service dates staying ordered — are
+enforced in the service, not as triggers, because each either has a
+legitimate override or would need this codebase's trigger convention to
+bend it (§2.7 reserves triggers for exception-less invariants).
 
 ### 2.3 Catalog — `pay_items` · `employment_pay_items`
 
@@ -288,13 +315,21 @@ Four design decisions worth knowing before touching this layer:
 - **Persistence with self-enforcing invariants** — 18 tables, immutability past
   approval, forward-only lifecycle, append-only audit.
 - **`explain` CLI** — `scripts/explain.ts` walks a line's derivation as a tree.
+- **Internal group transfer (MVP)** — `commitTransfer`/`recordPriorEmploymentYtd`
+  in `src/service/transfer.ts` (§2.2a). No findings/gates rules and no
+  evidence artifacts yet — see "Specified, not built."
 
 ### Specified, not built
 
 Run lifecycle gates and `calcRevision` certification; the findings/abnormality
 engine (15 rules in the v1 catalog); payment, release, distribution and
-reconciliation; the closure manifest; cross-company transfers; the teaching
-payslip; the API; the UI. All in the
+reconciliation; the closure manifest; the teaching payslip; the API; the UI.
+For internal group transfer specifically: the §8.6 findings rules
+(`TRANSFER_OVERLAP_DATES` etc.), artifacts-backed evidence for transfer
+letters, the wizard UI, and a persisted DRAFT transfer state — see the
+[transfer design](../superpowers/specs/2026-08-08-internal-group-transfer-design.md)
+for what narrowed the MVP. Same-company department/designation change
+(§8.2) remains unbuilt and unscoped. Everything above is specified in the
 [pay-run workspace spec](../superpowers/specs/2026-08-08-payrun-workspace-design.md).
 
 The schema anticipates several of these — `calcRevision`, `reviewedRevision`,
@@ -315,9 +350,12 @@ are all present and currently null or unused.
 The `db` project **fails loudly when the database is absent rather than skipping**,
 because a silently skipped constraint test is indistinguishable from a passing one.
 
-**Current status:** domain green (468/468). `tests/db/constraints.test.ts` does not
-typecheck — the L3 invariants are enforced by triggers but not yet asserted by
-tests. Uncommitted for that reason.
+**Current status:** Phase 2 persistence is on the `phase2-persistence` branch.
+Gate commands: `npm run typecheck`, `npx vitest run --project domain`,
+`npx vitest run --project db` (Docker Postgres required for `db`). The
+`db` suite includes trigger provocations (`constraints.test.ts`), enum
+parity, content-addressed seed integrity, and July 2026 golden parity
+through the repository/service layers. Local rebuild: `npm run db:reset`.
 
 ---
 
