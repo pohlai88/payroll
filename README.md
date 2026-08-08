@@ -7,25 +7,49 @@ entered it and when) or a cited source. Nothing is hidden.
 
 ## Status
 
-Rebuilt from scratch. See `docs/architecture/` for the schema, function surface and
-feature inventory (`payroll-architecture.md`) and what the UI may rely on
-(`presentation-facade.md`), `docs/superpowers/plans/` for the design history, and
-`docs/palette/` for the colour contract (`README.md`), the pay-run grid pattern
-(`workspace-grid.md`) and document/print rules (`printing.md`) that Phases 4, 5
-and 8 must satisfy.
+Rebuilt from scratch. Documentation roles:
+
+| Kind | Where | Role |
+|---|---|---|
+| Authoritative doctrine / current architecture | `docs/architecture/` (`payroll-architecture.md`, `presentation-facade.md`, payslip docs) | What exists in `src/` / `db/` and what the UI may rely on |
+| Living implementation / status | this README; approved specs under `docs/superpowers/specs/` for shipped slices | Phase table, how to run, feature contracts |
+| Active plans | recent `docs/superpowers/plans/` for unfinished work (e.g. employee master import) | Implementation task lists still in flight |
+| Historical / archive | Plan1 control-foundation plans & handoff; `c:\JackProject\_payroll-v1-backup` | Prior SQLite/Next rebuild — not current authority |
+| Design system (Phase 4+) | `docs/palette/` | Colour, grid, print contracts — not runtime truth for Phase 3 |
 
 | Phase | State |
 |---|---|
-| 0 · Scaffold + carried engine, golden master green | in progress |
-| 1 · Derivation graph engine | pending |
-| 2 · Neon Postgres schema, plpgsql triggers, seed, Docker | pending |
-| 3 · Hono API + Neon Auth | pending |
+| 0 · Scaffold + carried engine, golden master green | done |
+| 1 · Derivation graph engine | done |
+| 2 · Neon Postgres schema, plpgsql triggers, seed, Docker | done |
+| 3 · Hono API + Neon Auth (auth platform) | done |
 | 4 · Vite SPA shell (shadcn-studio + Straits palette) | pending |
 | 5 · Payroll UI + derivation drawer | pending |
 | 6 · Findings, gates, approval | pending |
 | 7 · Release, payments, closure, R2 artifacts | pending |
 | 8 · Import, reports, bilingual payslip, run diff | pending |
 | 9 · Vercel deploy | pending |
+
+Phase 2 closed: Docker/Neon Postgres via one `pg` driver, Drizzle schema and
+plpgsql triggers, content-hashed seed, repository/service layers, golden
+parity, statutory authority governance, RBAC, internal group transfer, and
+create-only employee master import. See
+`docs/superpowers/specs/2026-08-08-phase2-persistence-design.md` and
+`docs/superpowers/plans/2026-08-08-phase2-persistence.md`.
+
+Phase 3 auth platform is built: Hono verifies Neon Auth Bearer JWTs, invite-only
+links `users.auth_subject`, exposes `/health`, `/v1/me*`, and SYSTEM_ADMIN
+`/v1/admin/users*`. Payroll business HTTP routes are not part of this slice.
+Design: `docs/superpowers/specs/2026-08-08-hono-neon-auth-design.md`.
+`dev:api` and `invite-user` load `.env.local` when present (see `.env.example`).
+
+```bash
+# API (DATABASE_URL + NEON_AUTH_* from .env.local or the environment)
+npm run dev:api
+
+# Bootstrap first System Admin (no JWT)
+npx tsx scripts/invite-user.ts --email you@example.com --name "You" --system-admin
+```
 
 ## The golden master
 
