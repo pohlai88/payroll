@@ -20,8 +20,8 @@ import { payItems } from "../src/db/schema/catalog";
 import {
   eisBands,
   epfBands,
-  ruleSettings,
   rulePacks,
+  ruleSettings,
   ruleSources,
   seedFiles,
   socsoBands,
@@ -66,7 +66,11 @@ interface RulePackMeta {
   settings: Record<string, string>;
 }
 
-interface PayItemSeed extends Omit<PayItemDef, "epfWages" | "socsoWages" | "eisWages" | "prorates"> {
+interface PayItemSeed
+  extends Omit<
+    PayItemDef,
+    "epfWages" | "socsoWages" | "eisWages" | "prorates"
+  > {
   nameEn: string;
   nameBm: string;
   epfWages: number;
@@ -161,7 +165,10 @@ export async function seed(db: Database): Promise<string> {
 
     await tx
       .insert(ruleSettings)
-      .values({ rulePackId: packId, settings: buildSettings(meta.data.settings) })
+      .values({
+        rulePackId: packId,
+        settings: buildSettings(meta.data.settings),
+      })
       .onConflictDoNothing();
 
     for (const [part, bands] of [

@@ -79,7 +79,9 @@ export function parseRuleSettings(
     const problems = parsed.error.issues
       .map((i) => `${i.path.join(".") || "(root)"}: ${i.message}`)
       .join("; ");
-    throw new Error(`rule pack ${rulePackId} has invalid settings — ${problems}`);
+    throw new Error(
+      `rule pack ${rulePackId} has invalid settings — ${problems}`
+    );
   }
   return parsed.data;
 }

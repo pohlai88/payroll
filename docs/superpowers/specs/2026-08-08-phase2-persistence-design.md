@@ -128,6 +128,16 @@ member without a migration fails.
   multipliers, and the EA First Schedule wage ceiling. Remembered values are not
   acceptable. Coverage comes free: the block is inside the content-hashed seed file
   and inside the Zod parse test.
+
+  **Status: the block is defined but not seeded.** The Zod schema carries it as
+  optional and `seed-integrity.test.ts` asserts its absence, because the gazetted
+  instruments — Act 265, the 1980 Overtime Regulations, P.U. (A) 376/2024 — are
+  published only as PDFs whose text could not be extracted in this environment
+  (AGC's files use subset fonts with custom encodings; no PDF text tooling is
+  installed). Secondary summaries were available and were **not** used: an HR
+  blog is not a gazetted source. The figures go in when someone can read them off
+  the instruments. A pack carrying no limits is honest; one carrying remembered
+  numbers is not, and nothing reads the block in this phase either way.
 - `epf_bands` — `(rule_pack_id, part, from_sen, to_sen, er_sen, ee_sen)`, part ∈ A/C/E.
 - `socso_bands` — `(rule_pack_id, from_sen, to_sen, cat1_er_sen, cat1_ee_core_sen,
   cat1_ee_skbbk_sen, cat2_er_sen, cat2_ee_skbbk_sen)`.

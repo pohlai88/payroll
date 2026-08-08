@@ -130,7 +130,9 @@ describe("employment_pay_items compatibility", () => {
 describe("pay item identity", () => {
   it("refuses to change a code", async () => {
     await expectRejected(
-      db.execute(sql`UPDATE pay_items SET code = 'BASIC2' WHERE code = 'BASIC'`),
+      db.execute(
+        sql`UPDATE pay_items SET code = 'BASIC2' WHERE code = 'BASIC'`
+      ),
       /pay item code is immutable \(BASIC -> BASIC2\)/
     );
   });

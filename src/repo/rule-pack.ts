@@ -9,7 +9,12 @@
 import { asc, eq } from "drizzle-orm";
 import type { Database } from "@/db/client";
 import { payItems } from "@/db/schema/catalog";
-import { eisBands, epfBands, ruleSettings, socsoBands } from "@/db/schema/rule-pack";
+import {
+  eisBands,
+  epfBands,
+  ruleSettings,
+  socsoBands,
+} from "@/db/schema/rule-pack";
 import type {
   Band5,
   PayItemDef,
@@ -18,8 +23,8 @@ import type {
   StatutoryTables,
 } from "@/domain/calc/types";
 import {
-  parseRuleSettings,
   type PersistedRuleSettings,
+  parseRuleSettings,
   toEngineSettings,
 } from "./rule-pack-schema";
 
@@ -142,7 +147,9 @@ export async function loadPayItems(db: Database): Promise<PayItemDef[]> {
     .orderBy(asc(payItems.sort), asc(payItems.code));
 
   if (rows.length === 0) {
-    throw new Error("no pay items are defined: the catalog has not been seeded");
+    throw new Error(
+      "no pay items are defined: the catalog has not been seeded"
+    );
   }
   return rows;
 }

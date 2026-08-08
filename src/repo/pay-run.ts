@@ -216,10 +216,7 @@ async function loadOverrides(
  * A missing row means PCB was never entered, which is not the same as zero: the
  * engine renders net pay as unknown rather than inventing a figure.
  */
-async function loadPcb(
-  db: Database,
-  lineId: string
-): Promise<PcbInput | null> {
+async function loadPcb(db: Database, lineId: string): Promise<PcbInput | null> {
   const [row] = await db
     .select({
       pcbAmountSen: pcbEntries.pcbAmountSen,

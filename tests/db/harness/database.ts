@@ -37,8 +37,10 @@ export function resolveTestDatabaseUrl(): string {
   let host: string;
   try {
     host = new URL(url).hostname;
-  } catch {
-    throw new Error(`DATABASE_URL is not a valid URL: ${JSON.stringify(url)}`);
+  } catch (cause) {
+    throw new Error(`DATABASE_URL is not a valid URL: ${JSON.stringify(url)}`, {
+      cause,
+    });
   }
 
   if (!LOCAL_HOSTS.has(host)) {
@@ -55,8 +57,8 @@ export interface TestDatabase {
   readonly db: Database;
   readonly pool: Pool;
   /** Empties the named tables and everything referencing them. */
-  truncate(...tables: string[]): Promise<void>;
-  close(): Promise<void>;
+  readonly truncate: (...tables: string[]) => Promise<void>;
+  readonly close: () => Promise<void>;
 }
 
 export function connectTestDatabase(): TestDatabase {
@@ -79,7 +81,9 @@ export function connectTestDatabase(): TestDatabase {
        * `RESTART IDENTITY` resets audit_events' identity column so id ordering
        * is meaningful within each test.
        */
-      const list = tables.map((t) => `"${assertPlainIdentifier(t)}"`).join(", ");
+      const list = tables
+        .map((t) => `"${assertPlainIdentifier(t)}"`)
+        .join(", ");
       await db.execute(
         sql.raw(`TRUNCATE TABLE ${list} RESTART IDENTITY CASCADE`)
       );
@@ -132,7 +136,7 @@ export async function expectRejected(
   const chain = collectMessages(raised);
   if (!pattern.test(chain)) {
     throw new Error(
-      `the database rejected the operation, but not for the expected reason.\n` +
+      "the database rejected the operation, but not for the expected reason.\n" +
         `  expected to match: ${pattern}\n  actual: ${chain}`
     );
   }

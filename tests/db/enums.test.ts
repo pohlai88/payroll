@@ -66,7 +66,10 @@ describe("Postgres enums match the domain unions", () => {
   for (const [enumName, expected] of Object.entries(EXPECTED)) {
     it(`${enumName} has exactly its declared members`, async () => {
       const actual = await membersOf(enumName);
-      expect(actual.length, `${enumName} exists in the database`).toBeGreaterThan(0);
+      expect(
+        actual.length,
+        `${enumName} exists in the database`
+      ).toBeGreaterThan(0);
       expect([...actual].sort()).toEqual([...expected].sort());
     });
   }
@@ -78,9 +81,9 @@ describe("Postgres enums match the domain unions", () => {
       JOIN pg_namespace n ON n.oid = t.typnamespace
       WHERE n.nspname = 'public' AND t.typtype = 'e'
       ORDER BY t.typname`);
-    expect(result.rows.map((r) => r.typname).sort()).toEqual(
-      Object.keys(EXPECTED).sort()
-    );
+    expect(
+      result.rows.map((r) => r.typname).sort((a, b) => a.localeCompare(b))
+    ).toEqual(Object.keys(EXPECTED).sort());
   });
 
   /**
@@ -94,9 +97,12 @@ describe("Postgres enums match the domain unions", () => {
     const nonQuantity = all.filter(
       (b) => !(QUANTITY_BASES as readonly string[]).includes(b)
     );
-    expect([...QUANTITY_BASES].sort()).toEqual(
-      ["PER_DAY", "PER_HOUR", "PER_UNIT"].sort()
-    );
-    expect(nonQuantity.sort()).toEqual(["AMOUNT", "FIXED_MONTHLY"]);
+    const alphabetical = (a: string, b: string): number => a.localeCompare(b);
+    expect([...QUANTITY_BASES].sort(alphabetical)).toEqual([
+      "PER_DAY",
+      "PER_HOUR",
+      "PER_UNIT",
+    ]);
+    expect(nonQuantity.sort(alphabetical)).toEqual(["AMOUNT", "FIXED_MONTHLY"]);
   });
 });

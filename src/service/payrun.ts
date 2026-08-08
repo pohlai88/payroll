@@ -10,17 +10,16 @@ import { and, asc, eq, isNull, or, sql } from "drizzle-orm";
 import type { Database } from "@/db/client";
 import { employmentPayItems, payItems } from "@/db/schema/catalog";
 import { employments, persons } from "@/db/schema/parties";
-import {
-  auditEvents,
-  payLineItems,
-  payLines,
-  payRuns,
-} from "@/db/schema/run";
+import { auditEvents, payLineItems, payLines, payRuns } from "@/db/schema/run";
 import { computeLineChecked } from "@/domain/calc/compose";
 import type { EmployeeSnapshot, LineResult } from "@/domain/calc/types";
 import type { ValidationIssue } from "@/domain/calc/validate";
 import { loadRunForCompute } from "@/repo/pay-run";
-import { loadPayItems, loadRuleSettings, loadStatutoryTables } from "@/repo/rule-pack";
+import {
+  loadPayItems,
+  loadRuleSettings,
+  loadStatutoryTables,
+} from "@/repo/rule-pack";
 
 export interface CreateRunInput {
   readonly runId: string;
@@ -150,39 +149,11 @@ export async function createRun(
         if (item.code === "BASIC") {
           continue;
         }
-
-        const isQuantity =
-          item.rateBasis === "PER_DAY" ||
-          item.rateBasis === "PER_HOUR" ||
-          item.rateBasis === "PER_UNIT";
-
-        // A per-day default is a rate; the quantity is the run's paid days until
-        // an operator says otherwise.
-        const quantity =
-          isQuantity && item.rateBasis === "PER_DAY"
-            ? (input.paidDays ?? input.workingDays)
-            : 0;
-
-        await tx.insert(payLineItems).values({
-          lineId: line.id,
-          payItemId: item.id,
-          itemCodeSnap: item.code,
-          kindSnap: item.kind,
-          basisSnap: item.rateBasis,
-          nameEnSnap: item.nameEn,
-          nameMsSnap: item.nameMs,
-          epfWagesSnap: item.epfWages,
-          socsoWagesSnap: item.socsoWages,
-          eisWagesSnap: item.eisWages,
-          proratesSnap: item.prorates,
-          sortSnap: item.sort,
-          quantity: isQuantity ? String(quantity) : null,
-          rateSen: isQuantity ? entry.rateSen : null,
-          amountSen: isQuantity ? null : entry.amountSen,
-          resolvedAmountSen: isQuantity
-            ? Math.round(quantity * (entry.rateSen ?? 0))
-            : (entry.amountSen ?? 0),
-        });
+        await tx
+          .insert(payLineItems)
+          .values(
+            snapshotLineItem(line.id, item, entry, defaultQuantity(item, input))
+          );
       }
     }
 
@@ -197,6 +168,66 @@ export async function createRun(
 
     return { runId: input.runId, lineCount: selected.length };
   });
+}
+
+type CatalogItem = typeof payItems.$inferSelect;
+type ItemDefault = typeof employmentPayItems.$inferSelect;
+
+function isQuantityBasis(basis: CatalogItem["rateBasis"]): boolean {
+  return basis === "PER_DAY" || basis === "PER_HOUR" || basis === "PER_UNIT";
+}
+
+/**
+ * How many units a newly created line starts with.
+ *
+ * A per-day item defaults to the run's paid days — the common case is an
+ * allowance earned on every day worked. Per-hour and per-unit items have no
+ * sensible default, so they start at zero and wait for a real figure rather than
+ * inventing one.
+ */
+function defaultQuantity(
+  item: CatalogItem,
+  input: Pick<CreateRunInput, "paidDays" | "workingDays">
+): number {
+  if (item.rateBasis === "PER_DAY") {
+    return input.paidDays ?? input.workingDays;
+  }
+  return 0;
+}
+
+/**
+ * Freezes the catalog definition onto the line item.
+ *
+ * Everything read back later comes from these `_snap` columns, so editing the
+ * catalog tomorrow cannot change what this run was calculated from.
+ */
+function snapshotLineItem(
+  lineId: string,
+  item: CatalogItem,
+  entry: ItemDefault,
+  quantity: number
+): typeof payLineItems.$inferInsert {
+  const quantityBased = isQuantityBasis(item.rateBasis);
+  return {
+    lineId,
+    payItemId: item.id,
+    itemCodeSnap: item.code,
+    kindSnap: item.kind,
+    basisSnap: item.rateBasis,
+    nameEnSnap: item.nameEn,
+    nameMsSnap: item.nameMs,
+    epfWagesSnap: item.epfWages,
+    socsoWagesSnap: item.socsoWages,
+    eisWagesSnap: item.eisWages,
+    proratesSnap: item.prorates,
+    sortSnap: item.sort,
+    quantity: quantityBased ? String(quantity) : null,
+    rateSen: quantityBased ? entry.rateSen : null,
+    amountSen: quantityBased ? null : entry.amountSen,
+    resolvedAmountSen: quantityBased
+      ? Math.round(quantity * (entry.rateSen ?? 0))
+      : (entry.amountSen ?? 0),
+  };
 }
 
 function toEmployeeSnapshot(
@@ -276,7 +307,7 @@ export async function recomputeRun(
         .update(payLines)
         .set(toLineColumns(outcome.result))
         .where(eq(payLines.id, line.lineId));
-      computed++;
+      computed += 1;
     }
 
     await tx.insert(auditEvents).values({

@@ -75,6 +75,26 @@
   },
   "overrides": [
     {
+      // Database write loops. Inside a transaction every statement shares one
+      // connection, so awaiting in sequence is what actually happens no matter
+      // how it is written — and `Promise.all` over a single transaction handle
+      // interleaves statements on that connection, which is a bug, not a
+      // speed-up. Reads that genuinely can run together already use Promise.all.
+      "includes": [
+        "**/src/repo/**",
+        "**/src/service/**",
+        "**/scripts/**",
+        "**/tests/db/**"
+      ],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noAwaitInLoops": "off"
+          }
+        }
+      }
+    },
+    {
       "includes": ["**/tests/**", "**/scripts/**"],
       "linter": {
         "rules": {
