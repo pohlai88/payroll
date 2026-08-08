@@ -128,6 +128,10 @@ function show(value: (typeof graph.nodes)[string]["value"]): string {
       return `${value.pctX100 / 100}%`;
     case "DATE":
       return value.iso;
+    default: {
+      const unhandled: never = value;
+      throw new Error(`unhandled node value: ${JSON.stringify(unhandled)}`);
+    }
   }
 }
 
@@ -140,7 +144,8 @@ function drill(
 ): void {
   const n = nodeAt(g, id);
   const root = prefix === null;
-  const branch = root ? "" : last ? "└─ " : "├─ ";
+  const lastBranch = last ? "└─ " : "├─ ";
+  const branch = root ? "" : lastBranch;
   const pad = prefix ?? "";
   const repeat = seen.has(id);
   console.log(

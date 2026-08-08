@@ -18,6 +18,7 @@ import { socso } from "../calc/socso";
 import type {
   Band5,
   EmployeeSnapshot,
+  EpfPart,
   LineInputs,
   OverrideInput,
   PayItemDef,
@@ -88,6 +89,21 @@ const label = (key: MessageKey, params?: LabelRef["params"]): Label => ({
   params,
 });
 
+/**
+ * Which Third Schedule table a banded contribution was read from. Only A, C and
+ * E have schedules; anything else never reaches a band lookup, and E is the
+ * long-standing fallback rather than a new choice made here.
+ */
+function epfScheduleId(part: EpfPart) {
+  if (part === "A") {
+    return "EPF_3RD_SCH_A" as const;
+  }
+  if (part === "C") {
+    return "EPF_3RD_SCH_C" as const;
+  }
+  return "EPF_3RD_SCH_E" as const;
+}
+
 export function deriveLine(opts: DeriveOptions): DerivationGraph {
   const { employee, inputs, settings, tables, rulePackId } = opts;
   const g = new GraphBuilder(rulePackId);
@@ -133,7 +149,7 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     "PERIOD"
   );
 
-  const dob = employee.dob;
+  const { dob } = employee;
   const dobId =
     dob === null
       ? null
@@ -193,6 +209,23 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
 
   const ageRefs: Ref[] = ageId === null ? [] : [{ nodeId: ageId, role: "AGE" }];
 
+  // Each classification detail answers the same four questions in the same
+  // order — overridden, not applicable, age unknown, or the real reason. Read
+  // as a ternary chain the order was invisible; as early returns it is the rule.
+  const epfPartDetail = (): Label => {
+    const part = p.enum("EPF_PART", cls.epfPart);
+    if (employee.epfPartOverride !== null) {
+      return label("class.epfPart.override", { part });
+    }
+    if (!employee.epfApplicable) {
+      return label("class.epfPart.notApplicable");
+    }
+    if (age === null) {
+      return label("class.epfPart.noAge", { part });
+    }
+    return label("class.epfPart.detail", { part, age: p.int(age) });
+  };
+
   const epfPartId = g.add({
     kind: "CLASSIFICATION",
     id: "line.class.epfPart",
@@ -200,25 +233,25 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     label: label("class.epfPart"),
     value: enumValue("EPF_PART", cls.epfPart),
     manual: employee.epfPartOverride !== null,
-    detail:
-      employee.epfPartOverride === null
-        ? employee.epfApplicable
-          ? age === null
-            ? label("class.epfPart.noAge", {
-                part: p.enum("EPF_PART", cls.epfPart),
-              })
-            : label("class.epfPart.detail", {
-                part: p.enum("EPF_PART", cls.epfPart),
-                age: p.int(age),
-              })
-          : label("class.epfPart.notApplicable")
-        : label("class.epfPart.override", {
-            part: p.enum("EPF_PART", cls.epfPart),
-          }),
+    detail: epfPartDetail(),
     inputs:
       ageRefs.length > 0 ? ageRefs : [{ nodeId: periodEndId, role: "AS_AT" }],
     citations: [cite("S1", "MY.EPF.CLASSIFY.PART")],
   });
+
+  const socsoCategoryDetail = (): Label => {
+    const category = p.enum("SOCSO_CATEGORY", cls.socsoCategory);
+    if (employee.socsoCategoryOverride !== null) {
+      return label("class.socsoCategory.override", { category });
+    }
+    if (!employee.socsoApplicable) {
+      return label("class.socsoCategory.notApplicable");
+    }
+    if (age === null) {
+      return label("class.socsoCategory.noAge", { category });
+    }
+    return label("class.socsoCategory.detail", { category, age: p.int(age) });
+  };
 
   const socsoCategoryId = g.add({
     kind: "CLASSIFICATION",
@@ -227,25 +260,36 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     label: label("class.socsoCategory"),
     value: enumValue("SOCSO_CATEGORY", cls.socsoCategory),
     manual: employee.socsoCategoryOverride !== null,
-    detail:
-      employee.socsoCategoryOverride === null
-        ? employee.socsoApplicable
-          ? age === null
-            ? label("class.socsoCategory.noAge", {
-                category: p.enum("SOCSO_CATEGORY", cls.socsoCategory),
-              })
-            : label("class.socsoCategory.detail", {
-                category: p.enum("SOCSO_CATEGORY", cls.socsoCategory),
-                age: p.int(age),
-              })
-          : label("class.socsoCategory.notApplicable")
-        : label("class.socsoCategory.override", {
-            category: p.enum("SOCSO_CATEGORY", cls.socsoCategory),
-          }),
+    detail: socsoCategoryDetail(),
     inputs:
       ageRefs.length > 0 ? ageRefs : [{ nodeId: periodEndId, role: "AS_AT" }],
     citations: [cite("S2", "MY.SOCSO.CLASSIFY.CATEGORY")],
   });
+
+  // The 57 review comes first: it is the one case where an eligible-looking age
+  // still needs a human to confirm contribution history.
+  const eisEligibleDetail = (): Label => {
+    const min = p.int(settings.eisMinAge);
+    const max = p.int(settings.eisMaxAgeExclusive);
+    if (cls.eisAge57Review && age !== null) {
+      return label("class.eisEligible.age57Review", { age: p.int(age) });
+    }
+    if (!employee.eisApplicable) {
+      return label("class.eisEligible.notApplicable");
+    }
+    if (age === null) {
+      return label("class.eisEligible.noAge", { min, max });
+    }
+    return label("class.eisEligible.detail", {
+      eligibility: p.enum(
+        "EIS_ELIGIBILITY",
+        cls.eisEligible ? "ELIGIBLE" : "NOT_ELIGIBLE"
+      ),
+      age: p.int(age),
+      min,
+      max,
+    });
+  };
 
   const eisEligibleId = g.add({
     kind: "CLASSIFICATION",
@@ -253,25 +297,7 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     subject: "EIS_ELIGIBILITY",
     label: label("class.eisEligible"),
     value: bool(cls.eisEligible),
-    detail:
-      cls.eisAge57Review && age !== null
-        ? label("class.eisEligible.age57Review", { age: p.int(age) })
-        : employee.eisApplicable
-          ? age === null
-            ? label("class.eisEligible.noAge", {
-                min: p.int(settings.eisMinAge),
-                max: p.int(settings.eisMaxAgeExclusive),
-              })
-            : label("class.eisEligible.detail", {
-                eligibility: p.enum(
-                  "EIS_ELIGIBILITY",
-                  cls.eisEligible ? "ELIGIBLE" : "NOT_ELIGIBLE"
-                ),
-                age: p.int(age),
-                min: p.int(settings.eisMinAge),
-                max: p.int(settings.eisMaxAgeExclusive),
-              })
-          : label("class.eisEligible.notApplicable"),
+    detail: eisEligibleDetail(),
     inputs:
       ageRefs.length > 0 ? ageRefs : [{ nodeId: periodEndId, role: "AS_AT" }],
     citations: [
@@ -315,7 +341,7 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
           `derive: proration of ${employee.baseRateSen} sen over ${paid}/${inputs.workingDays} gives ${r.sen}, but regularPay produced ${reg.amountSen}`
         );
       }
-      const exact = r.exact;
+      const { exact } = r;
       const prorationId = g.add({
         kind: "PRORATION",
         id: "line.earn.BASIC.proration",
@@ -434,6 +460,22 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     mode: "HALF_UP_SEN" | "CEIL_RINGGIT"
   ): NodeId {
     const delta = settled - exact.num / exact.den;
+    const roundingDetail = (): Label => {
+      const rounded = {
+        exact: p.sen(Math.round(exact.num / exact.den)),
+        result: p.sen(settled),
+      };
+      if (delta === 0) {
+        return label("round.noChange");
+      }
+      if (mode === "CEIL_RINGGIT") {
+        return label("round.ceilRinggit.detail", {
+          ...rounded,
+          delta: p.sen(Math.round(delta)),
+        });
+      }
+      return label("round.halfUp.detail", rounded);
+    };
     return g.add({
       kind: "ROUNDING",
       id,
@@ -441,19 +483,7 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
       label: lbl,
       value: { t: "SEN", sen: settled },
       deltaSen: delta,
-      detail:
-        delta === 0
-          ? label("round.noChange")
-          : mode === "CEIL_RINGGIT"
-            ? label("round.ceilRinggit.detail", {
-                exact: p.sen(Math.round(exact.num / exact.den)),
-                result: p.sen(settled),
-                delta: p.sen(Math.round(delta)),
-              })
-            : label("round.halfUp.detail", {
-                exact: p.sen(Math.round(exact.num / exact.den)),
-                result: p.sen(settled),
-              }),
+      detail: roundingDetail(),
       inputs: [{ nodeId: sourceId, role: "UNROUNDED" }],
       citations:
         mode === "CEIL_RINGGIT"
@@ -816,12 +846,7 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
         );
       }
 
-      const tableId =
-        cls.epfPart === "A"
-          ? ("EPF_3RD_SCH_A" as const)
-          : cls.epfPart === "C"
-            ? ("EPF_3RD_SCH_C" as const)
-            : ("EPF_3RD_SCH_E" as const);
+      const tableId = epfScheduleId(cls.epfPart);
 
       const prev = index > 0 ? table[index - 1] : undefined;
       const next = index + 1 < table.length ? table[index + 1] : undefined;
@@ -883,48 +908,66 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     // Above the schedule ceiling: statutory percentages, rounded up to the ringgit.
     // Each rate is paired with the rule-pack key it came from, so the drill can
     // answer "where does this percentage come from?" with the setting itself.
-    const eeRate: { pct: number; settingKey: string; label: Label } =
-      cls.epfPart === "C"
-        ? {
-            pct: settings.epfPartCAboveEePct,
-            settingKey: "epf.partC.above.ee_pct",
-            label: label("setting.epf.aboveEePct"),
-          }
-        : cls.epfPart === "E"
-          ? {
-              pct: settings.epfPartEAboveEePct,
-              settingKey: "epf.partE.above.ee_pct",
-              label: label("setting.epf.aboveEePct"),
-            }
-          : {
-              pct: settings.epfAboveEePct,
-              settingKey: "epf.above.ee_pct",
-              label: label("setting.epf.aboveEePct"),
-            };
-    const erRate: { pct: number; settingKey: string; label: Label } =
-      cls.epfPart === "C"
-        ? {
-            pct: settings.epfPartCAboveErPct,
-            settingKey: "epf.partC.above.er_pct",
-            label: label("setting.epf.aboveErPct"),
-          }
-        : cls.epfPart === "E"
-          ? {
-              pct: settings.epfPartEAboveErPct,
-              settingKey: "epf.partE.above.er_pct",
-              label: label("setting.epf.aboveErPct"),
-            }
-          : epfWages.amountSen <= settings.epfErThresholdSen
-            ? {
-                pct: settings.epfAboveErPctLeThreshold,
-                settingKey: "epf.above.er_pct_le_threshold",
-                label: label("setting.epf.aboveErPct"),
-              }
-            : {
-                pct: settings.epfAboveErPctGtThreshold,
-                settingKey: "epf.above.er_pct_gt_threshold",
-                label: label("setting.epf.aboveErPct"),
-              };
+    interface AboveCeilingRate {
+      pct: number;
+      settingKey: string;
+      label: Label;
+    }
+
+    const eeRate = ((): AboveCeilingRate => {
+      const lbl = label("setting.epf.aboveEePct");
+      if (cls.epfPart === "C") {
+        return {
+          pct: settings.epfPartCAboveEePct,
+          settingKey: "epf.partC.above.ee_pct",
+          label: lbl,
+        };
+      }
+      if (cls.epfPart === "E") {
+        return {
+          pct: settings.epfPartEAboveEePct,
+          settingKey: "epf.partE.above.ee_pct",
+          label: lbl,
+        };
+      }
+      return {
+        pct: settings.epfAboveEePct,
+        settingKey: "epf.above.ee_pct",
+        label: lbl,
+      };
+    })();
+
+    // Employer side has one branch the employee side does not: outside Parts C
+    // and E the rate steps down once wages pass the employer threshold.
+    const erRate = ((): AboveCeilingRate => {
+      const lbl = label("setting.epf.aboveErPct");
+      if (cls.epfPart === "C") {
+        return {
+          pct: settings.epfPartCAboveErPct,
+          settingKey: "epf.partC.above.er_pct",
+          label: lbl,
+        };
+      }
+      if (cls.epfPart === "E") {
+        return {
+          pct: settings.epfPartEAboveErPct,
+          settingKey: "epf.partE.above.er_pct",
+          label: lbl,
+        };
+      }
+      if (epfWages.amountSen <= settings.epfErThresholdSen) {
+        return {
+          pct: settings.epfAboveErPctLeThreshold,
+          settingKey: "epf.above.er_pct_le_threshold",
+          label: lbl,
+        };
+      }
+      return {
+        pct: settings.epfAboveErPctGtThreshold,
+        settingKey: "epf.above.er_pct_gt_threshold",
+        label: lbl,
+      };
+    })();
     const eePct = eeRate.pct;
     const erPct = erRate.pct;
 
@@ -999,7 +1042,7 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     detail: Label,
     ruleId: RuleId
   ): NodeId {
-    const pct = rate.pct;
+    const { pct } = rate;
     const r = explainPctCeilRinggit(base.amountSen, pct);
     // The graph must round to the same figure the calculator produced, or the
     // explanation would describe arithmetic that did not happen.
@@ -1408,12 +1451,14 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
   }
 
   function emitPcbApplicable(): NodeId {
-    const pcbStatus: "VERIFIED" | "UNVERIFIED" | "NOT_ENTERED" =
-      opts.pcb?.pcbAmountSen == null
-        ? "NOT_ENTERED"
-        : pcbRes.verified
-          ? "VERIFIED"
-          : "UNVERIFIED";
+    const pcbStatus = ((): "VERIFIED" | "UNVERIFIED" | "NOT_ENTERED" => {
+      // `== null` on purpose: absent block and entered-as-unknown are the same
+      // answer here — nobody has told us the figure.
+      if (opts.pcb?.pcbAmountSen == null) {
+        return "NOT_ENTERED";
+      }
+      return pcbRes.verified ? "VERIFIED" : "UNVERIFIED";
+    })();
 
     const declaredId = g.add({
       kind: "EXTERNAL_VERIFIED",
@@ -1437,12 +1482,7 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
         : { evidenceRef: opts.pcbEvidenceRef }),
       inputs: [],
       citations: [cite("S4", "MY.PCB.EXTERNAL_ONLY")],
-      flags:
-        pcbStatus === "NOT_ENTERED"
-          ? ["NOT_ENTERED"]
-          : pcbStatus === "UNVERIFIED"
-            ? ["UNVERIFIED"]
-            : [],
+      flags: pcbStatus === "VERIFIED" ? [] : [pcbStatus],
     });
 
     return g.add({

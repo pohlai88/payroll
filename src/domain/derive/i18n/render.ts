@@ -58,10 +58,12 @@ function formatDate(iso: string, lang: Lang): string {
   return `${d} ${month} ${y}`;
 }
 
+const TRAILING_ZEROS = /0+$/;
+
 /** 1100 -> "11%", 550 -> "5.5%". Trailing zeros are dropped, so 11.00% never appears. */
 export function formatPct(pctX100: number): string {
   const whole = pctX100 / 100;
-  return `${Number.isInteger(whole) ? whole.toString() : whole.toFixed(2).replace(/0+$/, "")}%`;
+  return `${Number.isInteger(whole) ? whole.toString() : whole.toFixed(2).replace(TRAILING_ZEROS, "")}%`;
 }
 
 function formatParam(param: LabelParam, lang: Lang): string {
@@ -82,6 +84,12 @@ function formatParam(param: LabelParam, lang: Lang): string {
     }
     case "text":
       return param.text;
+    default: {
+      // Typed as `never` so a new LabelParam variant fails the build here rather
+      // than rendering as undefined on a payslip.
+      const unhandled: never = param;
+      throw new Error(`unhandled label param: ${JSON.stringify(unhandled)}`);
+    }
   }
 }
 
@@ -95,7 +103,7 @@ export function renderLabel(label: LabelRef, lang: Lang = "en"): string {
   if (template === undefined) {
     return label.key;
   }
-  const params = label.params;
+  const { params } = label;
   if (!params) {
     return template;
   }

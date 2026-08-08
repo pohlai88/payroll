@@ -20,7 +20,7 @@ export function wageBases(
   let eisWagesSen = 0;
   for (const item of earnings) {
     const def = matrix.get(item.payItemCode);
-    if (!def || def.kind !== "EARNING") {
+    if (def?.kind !== "EARNING") {
       continue;
     }
     if (def.epfWages) {
