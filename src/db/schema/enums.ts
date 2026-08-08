@@ -54,6 +54,51 @@ export const offcycleReason = pgEnum("offcycle_reason", [
   "FINAL_PAYMENT",
 ]);
 
+/**
+ * Which authority a rule pack speaks for.
+ *
+ * Three different kinds of fact with three different governance regimes: a
+ * contribution schedule, a gazetted working-hours maximum and a company
+ * allowance rate are not interchangeable, and must not share a container.
+ */
+export const rulePackLayer = pgEnum("rule_pack_layer", [
+  "STATUTORY_CALCULATION",
+  "EMPLOYMENT_LAW",
+  "COMPANY_POLICY",
+]);
+
+/**
+ * A rule pack's life. Only APPROVED and EFFECTIVE may reach a payroll run.
+ *
+ * SOURCE_CAPTURED means the instrument and its evidence are recorded; VERIFIED
+ * means a human has read the provision and confirmed the values against it;
+ * APPROVED means someone has taken responsibility for it. SUPERSEDED packs stay
+ * exactly as they were — a run calculated under one must remain reproducible.
+ */
+export const rulePackStatus = pgEnum("rule_pack_status", [
+  "DRAFT",
+  "SOURCE_CAPTURED",
+  "VERIFIED",
+  "APPROVED",
+  "EFFECTIVE",
+  "SUPERSEDED",
+]);
+
+/**
+ * How a figure was established.
+ *
+ * Human review of an official PDF is a first-class method: the gazette is the
+ * authority, and a reviewer reading it is evidence. Machine extraction is a
+ * convenience for the reviewer, never a substitute for one, and so is not a
+ * method here.
+ */
+export const verificationMethod = pgEnum("verification_method", [
+  "HUMAN_REVIEW_OF_OFFICIAL_PDF",
+  "OFFICIAL_HTML_PAGE",
+  "OFFICIAL_API",
+  "ISSUER_CORRESPONDENCE",
+]);
+
 /** `OverrideInput["field"]` — the statutory figures an approved override may replace. */
 export const overrideField = pgEnum("override_field", [
   "EPF_EE",

@@ -10,10 +10,12 @@ import { and, asc, eq, isNull, or, sql } from "drizzle-orm";
 import type { Database } from "@/db/client";
 import { employmentPayItems, payItems } from "@/db/schema/catalog";
 import { employments, persons } from "@/db/schema/parties";
+import { rulePacks } from "@/db/schema/rule-pack";
 import { auditEvents, payLineItems, payLines, payRuns } from "@/db/schema/run";
 import { computeLineChecked } from "@/domain/calc/compose";
 import type { EmployeeSnapshot, LineResult } from "@/domain/calc/types";
 import type { ValidationIssue } from "@/domain/calc/validate";
+import { CALC_ENGINE_VERSION } from "@/domain/calc/version";
 import { loadRunForCompute } from "@/repo/pay-run";
 import {
   loadPayItems,
@@ -56,6 +58,24 @@ export async function createRun(
   input: CreateRunInput
 ): Promise<{ runId: string; lineCount: number }> {
   return await db.transaction(async (tx) => {
+    /**
+     * The run records the executable representation it used, not just its name.
+     * A pack id resolves to different content once the law changes; the hash and
+     * the engine version are what make "reproduce July 2026" specific.
+     *
+     * The database independently refuses a pack that is not approved — this read
+     * is to capture the hash, not to authorise anything.
+     */
+    const [pack] = await tx
+      .select({ contentHash: rulePacks.contentHash })
+      .from(rulePacks)
+      .where(eq(rulePacks.id, input.rulePackId))
+      .limit(1);
+
+    if (pack === undefined) {
+      throw new Error(`no such rule pack: ${input.rulePackId}`);
+    }
+
     await tx.insert(payRuns).values({
       id: input.runId,
       companyId: input.companyId,
@@ -67,6 +87,8 @@ export async function createRun(
       periodEnd: input.periodEnd,
       workingDays: input.workingDays,
       rulePackId: input.rulePackId,
+      rulePackHash: pack.contentHash,
+      calcEngineVersion: CALC_ENGINE_VERSION,
       createdBy: input.actor,
     });
 
@@ -309,6 +331,11 @@ export async function recomputeRun(
         .where(eq(payLines.id, line.lineId));
       computed += 1;
     }
+
+    await tx
+      .update(payRuns)
+      .set({ calculatedAt: new Date(), calcEngineVersion: CALC_ENGINE_VERSION })
+      .where(eq(payRuns.id, runId));
 
     await tx.insert(auditEvents).values({
       actor,

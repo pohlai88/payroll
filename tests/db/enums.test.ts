@@ -39,6 +39,25 @@ const EXPECTED: Record<string, readonly string[]> = {
   pay_basis: ["MONTHLY", "DAILY", "HOURLY"],
   epf_part: ["A", "C", "E", "F", "NONE"],
   socso_category: ["FIRST", "SECOND", "NONE"],
+  rule_pack_layer: [
+    "STATUTORY_CALCULATION",
+    "EMPLOYMENT_LAW",
+    "COMPANY_POLICY",
+  ],
+  rule_pack_status: [
+    "DRAFT",
+    "SOURCE_CAPTURED",
+    "VERIFIED",
+    "APPROVED",
+    "EFFECTIVE",
+    "SUPERSEDED",
+  ],
+  verification_method: [
+    "HUMAN_REVIEW_OF_OFFICIAL_PDF",
+    "OFFICIAL_HTML_PAGE",
+    "OFFICIAL_API",
+    "ISSUER_CORRESPONDENCE",
+  ],
   run_status: ["DRAFT", "REVIEWED", "APPROVED", "CLOSED"],
   run_type: ["REGULAR", "OFFCYCLE"],
   offcycle_reason: [

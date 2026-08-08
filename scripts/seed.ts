@@ -9,7 +9,7 @@
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { Database } from "../src/db/client";
 import {
   createDatabase,
@@ -144,14 +144,63 @@ export async function seed(db: Database): Promise<string> {
 
   const packId = meta.data.rulePack.id;
 
+  /**
+   * The pack's content hash: the hashes of the files that constitute it, in a
+   * fixed order, hashed together. A run stamps this, so "reproduce that payroll"
+   * resolves to specific bytes rather than to a name whose meaning may since
+   * have changed.
+   */
+  const contentHash = createHash("sha256")
+    .update(files.map((f) => `${f.name}:${f.sha256}`).join("\n"))
+    .digest("hex");
+
+  /**
+   * An already-approved pack is frozen, content and all, so re-seeding is a
+   * no-op — unless the files have changed, in which case this is not the same
+   * pack any more and saying so is the whole point. A changed statutory table
+   * requires a new version, not a quiet overwrite of one that has already
+   * produced payslips.
+   */
+  const [existing] = await db
+    .select({ status: rulePacks.status, contentHash: rulePacks.contentHash })
+    .from(rulePacks)
+    .where(eq(rulePacks.id, packId))
+    .limit(1);
+
+  if (
+    existing !== undefined &&
+    ["APPROVED", "EFFECTIVE", "SUPERSEDED"].includes(existing.status)
+  ) {
+    if (existing.contentHash !== contentHash) {
+      throw new Error(
+        `rule pack ${packId} is already approved with content hash ${existing.contentHash}, ` +
+          `but db/seed now hashes to ${contentHash}. An approved pack is immutable: ` +
+          "issue a new pack version and supersede this one."
+      );
+    }
+    await recordSeedFiles(db, files);
+    return packId;
+  }
+
   await db.transaction(async (tx) => {
+    /**
+     * Created DRAFT, then promoted once its content is loaded — the same path
+     * any pack takes. The database refuses content changes to an approved pack,
+     * so even the seed cannot assemble one out of order.
+     */
     await tx
       .insert(rulePacks)
       .values({
         id: packId,
         name: meta.data.rulePack.name,
+        layer: "STATUTORY_CALCULATION",
+        jurisdiction: "MY",
+        authority: "KWSP/PERKESO",
+        code: "MY-STATUTORY",
+        version: packId,
         effectiveFrom: meta.data.rulePack.effectiveFrom,
         effectiveTo: meta.data.rulePack.effectiveTo,
+        status: "DRAFT",
         notes: meta.data.rulePack.notes,
       })
       .onConflictDoNothing();
@@ -211,26 +260,48 @@ export async function seed(db: Database): Promise<string> {
       )
       .onConflictDoNothing();
 
-    for (const file of files) {
-      await tx
-        .insert(seedFiles)
-        .values({
-          fileName: file.name,
-          sha256: file.sha256,
-          byteSize: file.byteSize,
-        })
-        .onConflictDoUpdate({
-          target: seedFiles.fileName,
-          set: {
-            sha256: file.sha256,
-            byteSize: file.byteSize,
-            loadedAt: sql`now()`,
-          },
-        });
-    }
+    /**
+     * The content is loaded; someone now takes responsibility for it. These are
+     * the carried band tables the golden master is pinned against, verified
+     * before they ever reached this repository.
+     */
+    await tx
+      .update(rulePacks)
+      .set({
+        status: "APPROVED",
+        contentHash,
+        approvedBy: "carried-verified-seed",
+        approvedAt: new Date(),
+      })
+      .where(eq(rulePacks.id, packId));
   });
 
+  await recordSeedFiles(db, files);
   return packId;
+}
+
+/** Outside the pack transaction: these hashes describe files, not pack content. */
+async function recordSeedFiles(
+  db: Database,
+  files: readonly SeedFile<unknown>[]
+): Promise<void> {
+  for (const file of files) {
+    await db
+      .insert(seedFiles)
+      .values({
+        fileName: file.name,
+        sha256: file.sha256,
+        byteSize: file.byteSize,
+      })
+      .onConflictDoUpdate({
+        target: seedFiles.fileName,
+        set: {
+          sha256: file.sha256,
+          byteSize: file.byteSize,
+          loadedAt: sql`now()`,
+        },
+      });
+  }
 }
 
 async function main(): Promise<void> {

@@ -65,6 +65,16 @@ export const payRuns = pgTable(
     rulePackId: text("rule_pack_id")
       .notNull()
       .references(() => rulePacks.id),
+    /**
+     * What this run was actually calculated by, stamped permanently.
+     *
+     * The pack id alone is not enough: "reproduce July 2026" has to resolve to a
+     * specific content hash and a specific version of the calculation code, not
+     * to whatever those names refer to today.
+     */
+    rulePackHash: text("rule_pack_hash"),
+    calcEngineVersion: text("calc_engine_version"),
+    calculatedAt: timestamp("calculated_at", { withTimezone: true }),
     status: runStatus().notNull().default("DRAFT"),
 
     /**

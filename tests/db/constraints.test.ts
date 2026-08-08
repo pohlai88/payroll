@@ -35,9 +35,12 @@ afterAll(async () => {
 beforeEach(async () => {
   await database.truncate(...ALL_TABLES);
 
+  // Approved, because a payroll may only be produced under an approved pack —
+  // that rule has its own tests in authority.test.ts.
   await db.execute(sql`
-    INSERT INTO rule_packs (id, name, effective_from)
-    VALUES (${RULE_PACK}, 'test pack', '2026-06-01')`);
+    INSERT INTO rule_packs (id, name, effective_from, content_hash, status, approved_by, approved_at)
+    VALUES (${RULE_PACK}, 'test pack', '2026-06-01', ${"c".repeat(64)},
+            'APPROVED', 'test-fixture', now())`);
   await db.execute(sql`
     INSERT INTO companies (id, code, name)
     VALUES (${COMPANY}, 'TESTCO', 'Test Sdn Bhd')`);
