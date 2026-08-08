@@ -1,6 +1,6 @@
 # Phase 4C — Vite Straits / shadcn design-system foundation
 
-**Date:** 2026-08-08 · **Status:** Design · **Scope:** Tailwind v4 + Studio-selected shadcn primitives + Straits token projection on the existing Vite SPA
+**Date:** 2026-08-08 · **Status:** ACCEPTED / FROZEN · **Scope:** Tailwind v4 + Studio-selected shadcn primitives + Straits token projection on the existing Vite SPA
 
 Wires the Straits colour contract and shadcn primitives into the Phase 4A/4B
 shell without product chrome, new workflows, or auth/import behaviour changes.
@@ -33,8 +33,10 @@ Companions: [palette README](../../palette/README.md) (doctrine),
   before write; compare actual diff to the inspected proposal
 - Full Straits app-token contract projected into CSS (`:root` / `.dark`), plus
   status / section / chart families required by doctrine
-- `--doc-*` namespace present: real projection from canonical print values where
-  defined; no invented document colours
+- The `--doc-*` contract/namespace is established in 4C. Tokens with canonical
+  print values MUST be emitted into CSS. Tokens whose doctrine has no canonical
+  value yet MUST be documented as reserved/unimplemented and MUST NOT be emitted
+  with invented placeholder values
 - Restyle **only currently shipped 4A/4B surfaces** with installed primitives
 - README phase line records Phase 4C design-system foundation complete (without
   implying chrome, dashboard, or Phase 5 payroll presentation)
@@ -214,11 +216,20 @@ what those surfaces require (attributable integration).
 
 ### Document layer (`--doc-*`)
 
+```text
+canonical document value exists
+    → emit --doc-* CSS variable
+
+canonical value does not exist
+    → reserve/document token name
+    → no fabricated CSS value
+```
+
 - Where doctrine defines a document token and a canonical print value exists,
-  project that value.
-- Where the namespace requires a token whose value is not yet defined by doctrine,
-  reserve/document the token without inventing a visual value. No placeholder hex
-  may masquerade as canonical doctrine.
+  emit that value into CSS.
+- Where doctrine has no canonical value yet, document the token as
+  reserved/unimplemented; do not emit invented placeholder values. No
+  placeholder hex may masquerade as canonical doctrine.
 - If CSS technically requires a variable immediately, the implementation plan
   must state an explicit documented fallback — not a silent “plausible” colour.
 - `--doc-*` MUST NOT be implicitly remapped by `.dark` application-theme
@@ -251,7 +262,8 @@ minimum, not a full a11y certification exercise.
 3. `@theme inline` contains semantic aliases, not copied colour literals.
 4. Status/section/chart families required by doctrine are present.
 5. Status meaning is not carried by colour alone.
-6. `--doc-*` uses canonical print values where defined.
+6. `--doc-*` CSS variables are emitted only for tokens with canonical print
+   values; reserved/unimplemented names are documented, not fabricated.
 7. `.dark` does not mutate `--doc-*`.
 8. No invented document values masquerade as canonical.
 9. No raw hex/raw Tailwind palette styling exists in consumers or repo-owned
@@ -270,7 +282,8 @@ minimum, not a full a11y certification exercise.
 Restyle existing shipped consumers only:
 
 - `src/web/app.tsx` — sign-in, signed-in summary (me / permissions), conditional
-  admin users table, shared chrome of the boring shell
+  admin users table, and existing shell container/layout only; no navigation or
+  product-chrome architecture
 - `src/web/employee-import-panel.tsx` — template download / upload path UI
 - Related web markup/styles entry as needed for the tokenized CSS
 
