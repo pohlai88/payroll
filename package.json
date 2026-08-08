@@ -11,6 +11,7 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:reset": "tsx scripts/reset.ts",
     "db:seed": "tsx scripts/seed.ts",
+    "employee:import": "tsx scripts/employee-import.ts",
     "employee:template": "tsx scripts/employee-template.ts",
     "dev": "vite",
     "dev:api": "tsx watch src/server/dev-server.ts",
@@ -24,6 +25,7 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.1.0",
+    "csv-parse": "^7.0.2",
     "drizzle-orm": "^0.45.2",
     "hono": "^4.13.1",
     "jose": "^6.2.8",
