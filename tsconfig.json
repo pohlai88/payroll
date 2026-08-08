@@ -19,7 +19,18 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo"
   },
-  "include": ["src", "tests", "scripts", "api", "*.config.ts"]
+  "include": ["src", "tests", "scripts", "api", "*.config.ts"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "coverage",
+    "tmp",
+    ".docker-data",
+    ".vercel",
+    "**/*.tsbuildinfo"
+  ]
 }

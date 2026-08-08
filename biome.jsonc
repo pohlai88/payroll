@@ -13,6 +13,9 @@
     "defaultBranch": "main"
   },
   "files": {
+    // Ultracite's core preset already starts with "**". Do not repeat it here —
+    // Biome's noBiomeFirstException forbids a second leading "**" after extends.
+    // Only add force-excludes (!!); Ultracite merges those (ultracite#679).
     "includes": [
       // Local SQLite scratch DBs and raw spreadsheet exports are inputs, not source.
       "!!**/data",
@@ -21,15 +24,23 @@
       "!!**/tests/golden/*.json",
       // drizzle-kit owns these and rewrites them on every generate; formatting
       // them here would produce a diff on each run for no benefit.
-      "!!**/src/db/migrations/meta"
+      "!!**/src/db/migrations/meta",
+      // Ad-hoc vitest/JSON dumps and local scratch — not source of truth.
+      "!!**/tmp-*.json",
+      "!!**/tmp",
+      "!!**/.docker-data",
+      "!!**/biome-check-out.json"
     ]
   },
   "assist": {
     "actions": {
       "source": {
+        // Keep Ultracite's import assist on while overriding key-sort (deep merge
+        // usually preserves it; set explicitly so editor/CI never lose it).
+        "organizeImports": "on",
         // Alphabetical sorting is wrong for this codebase: payslip line items,
         // derivation traces (label -> detail -> amount) and statutory rule packs
-        // carry meaning in their declaration order. Import sorting stays on.
+        // carry meaning in their declaration order.
         "useSortedKeys": "off",
         "useSortedProperties": "off",
         "useSortedInterfaceMembers": "off",
@@ -38,6 +49,13 @@
     }
   },
   "linter": {
+    // Domains complement Ultracite presets. No `next` (Vite app). No `project`
+    // — Ultracite's type-aware preset already covers multi-file import rules.
+    "domains": {
+      "react": "recommended",
+      "test": "recommended",
+      "drizzle": "recommended"
+    },
     "rules": {
       "complexity": {
         // Warn, not error: seven functions are over the threshold and every one

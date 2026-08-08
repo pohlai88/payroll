@@ -65,6 +65,59 @@ describe("seed files are content-addressed", () => {
   });
 });
 
+/**
+ * The rule pack's content hash must be a pure function of the seed files: the
+ * same bytes on disk always fold to the same hash, and running the seed again
+ * against a database that already carries that pack must be a no-op, not a
+ * second attempt to insert it. `seed()`'s own idempotency check — compare the
+ * freshly computed hash against the one already stored — is what MY-STAT-S01
+ * calls "seed remains idempotent" and "rule-pack hash is deterministic";
+ * this proves both from the outside, against the real seed files, rather than
+ * against a hand-built fixture.
+ */
+describe("the rule pack is idempotent and its hash is deterministic", () => {
+  it("re-seeding an already-approved pack is a no-op with the same content hash", async () => {
+    const before = await db.execute<{ content_hash: string; status: string }>(
+      sql`SELECT content_hash, status FROM rule_packs WHERE id = ${rulePackId}`
+    );
+    expect(before.rows[0]?.status).toBe("APPROVED");
+
+    const again = await seed(db);
+    expect(again).toBe(rulePackId);
+
+    const after = await db.execute<{ content_hash: string }>(
+      sql`SELECT content_hash FROM rule_packs WHERE id = ${rulePackId}`
+    );
+    expect(after.rows[0]?.content_hash).toBe(before.rows[0]?.content_hash);
+
+    const rowCount = await db.execute<{ count: string }>(
+      sql`SELECT count(*)::text AS count FROM rule_packs WHERE id = ${rulePackId}`
+    );
+    expect(Number(rowCount.rows[0]?.count)).toBe(1);
+  });
+
+  it("does not duplicate seed_files rows or band tables on re-seed", async () => {
+    await seed(db);
+    await seed(db);
+
+    const seedFileRows = await db.execute<{ count: string }>(
+      sql`SELECT count(*)::text AS count FROM seed_files`
+    );
+    const onDiskCount = fs
+      .readdirSync(SEED_DIR)
+      .filter((f) => f.endsWith(".json")).length;
+    expect(Number(seedFileRows.rows[0]?.count)).toBe(onDiskCount);
+
+    const epfRowCount = await db.execute<{ count: string }>(
+      sql`SELECT count(*)::text AS count FROM epf_bands WHERE rule_pack_id = ${rulePackId}`
+    );
+    const before = await loadStatutoryTables(db, rulePackId);
+    expect(Number(epfRowCount.rows[0]?.count)).toBe(
+      before.epf.A.length + before.epf.C.length + before.epf.E.length
+    );
+  });
+});
+
 describe("band tables are well formed", () => {
   it("is contiguous and non-overlapping in every table", async () => {
     const tables = await loadStatutoryTables(db, rulePackId);

@@ -13,6 +13,9 @@ dist/
 
 # Test scratch
 coverage/
+tmp/
+tmp-*.json
+biome-check-out.json
 
 # Legacy SQLite files from the v1 app (archived in _payroll-v1-backup)
 data/

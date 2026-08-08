@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc -b && vite build",
     "check": "ultracite check",
+    "ci:lint": "biome ci .",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:reset": "tsx scripts/reset.ts",
@@ -13,6 +14,7 @@
     "dev": "vite",
     "dev:api": "tsx watch src/server/dev-server.ts",
     "fix": "ultracite fix",
+    "format": "ultracite fix",
     "lint": "ultracite check",
     "preview": "vite preview",
     "test": "vitest run",

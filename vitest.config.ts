@@ -27,6 +27,17 @@ export default defineConfig({
           environment: "node",
           globals: true,
           include: ["tests/domain/**/*.test.ts", "tests/golden/**/*.test.ts"],
+          /**
+           * Pure modules with no shared mutable process state. Isolating each
+           * file into a fresh fork re-paid Vite transform/import on every file
+           * and dominated wall time (cold ~19s → warm ~3s with cache; most of
+           * that was worker startup, not assertions).
+           */
+          isolate: false,
+          // Must match the `db` project's worker count: Vitest 4 refuses to run
+          // two projects with different `maxWorkers` under the same (default)
+          // `sequence.groupOrder`.
+          maxWorkers: 1,
         },
       },
       {
@@ -38,19 +49,24 @@ export default defineConfig({
           include: ["tests/db/**/*.test.ts"],
           globalSetup: ["tests/db/harness/global-setup.ts"],
           /**
-           * Strictly one file at a time, in one worker.
+           * One worker, one file at a time.
            *
-           * Every db test file truncates the tables it uses, so two running at
-           * once delete each other's fixtures — and the failure surfaces as a
-           * duplicate key or a missing row somewhere unrelated, which is the
-           * worst kind of flake to chase. `fileParallelism` alone did not hold
-           * inside a project, so the worker count is pinned as well.
+           * Every db file truncates shared tables. Parallel files deadlock on
+           * TRUNCATE vs INSERT; Vitest 4 also dropped `poolOptions`, so
+           * serialization is expressed with `maxWorkers` / `fileParallelism`
+           * only. `isolate` is deliberately left at its default (`true`):
+           * batching files into one un-isolated worker was tried and made
+           * things worse, not better — each file's `connectTestDatabase()`
+           * pool and its `beforeAll`/`afterAll` lifecycle stopped being
+           * reliably sequenced relative to the next file's, so one file's rows
+           * were still present (or its pool still open) when the next file's
+           * `beforeEach` truncated and re-seeded, producing exactly the
+           * duplicate-key and deadlock races this config exists to prevent.
+           * A real process boundary per file is what actually serializes them.
            */
           fileParallelism: false,
           maxWorkers: 1,
-          minWorkers: 1,
           sequence: { concurrent: false },
-          poolOptions: { threads: { singleThread: true } },
         },
       },
     ],

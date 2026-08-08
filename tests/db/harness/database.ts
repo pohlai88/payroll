@@ -61,11 +61,28 @@ export interface TestDatabase {
   readonly close: () => Promise<void>;
 }
 
+/**
+ * Process-wide pool for the db project.
+ *
+ * With `isolate: false`, every test file loads in one worker. A pool per file
+ * meant several Postgres backends at once; one file's `TRUNCATE` then deadlocked
+ * against another's `INSERT`. A single `max: 1` pool queues those operations on
+ * one backend instead. `close()` is refcounted so the first file's `afterAll`
+ * does not end the pool under files that still have to run.
+ */
+let shared: TestDatabase | undefined;
+let sharedRefs = 0;
+
 export function connectTestDatabase(): TestDatabase {
-  const pool = createPool(resolveTestDatabaseUrl(), { max: 4 });
+  sharedRefs += 1;
+  if (shared !== undefined) {
+    return shared;
+  }
+
+  const pool = createPool(resolveTestDatabaseUrl(), { max: 1 });
   const db = createDatabase(pool);
 
-  return {
+  shared = {
     db,
     pool,
     async truncate(...tables: string[]): Promise<void> {
@@ -89,9 +106,17 @@ export function connectTestDatabase(): TestDatabase {
       );
     },
     async close(): Promise<void> {
-      await pool.end();
+      sharedRefs -= 1;
+      if (sharedRefs > 0 || shared === undefined) {
+        return;
+      }
+      const ending = shared;
+      shared = undefined;
+      sharedRefs = 0;
+      await ending.pool.end();
     },
   };
+  return shared;
 }
 
 /**
@@ -173,6 +198,7 @@ export const ALL_TABLES = [
   "epf_bands",
   "socso_bands",
   "eis_bands",
+  "employment_law_rules",
   "rule_settings",
   "rule_sources",
   "rule_packs",
