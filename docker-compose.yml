@@ -1,0 +1,35 @@
+# Development and test database.
+#
+# The data directory is a tmpfs and fsync is off: this database is disposable by
+# design, recreated from migrations whenever it is wanted. That buys a test suite
+# that runs against a *real* Postgres — real plpgsql triggers, real constraints,
+# real transaction semantics — at close to in-memory speed.
+#
+# Never point this compose file at anything you intend to keep.
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: clarity-payroll-db
+    environment:
+      POSTGRES_USER: payroll
+      POSTGRES_PASSWORD: payroll
+      POSTGRES_DB: payroll
+      # Skip the fsync/checksum work that only matters for data meant to survive.
+      PGDATA: /var/lib/postgresql/data
+    command:
+      - postgres
+      - -c
+      - fsync=off
+      - -c
+      - synchronous_commit=off
+      - -c
+      - full_page_writes=off
+    ports:
+      - "54329:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U payroll -d payroll"]
+      interval: 2s
+      timeout: 3s
+      retries: 30

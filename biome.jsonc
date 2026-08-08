@@ -1,0 +1,99 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": [
+    "ultracite/biome/core",
+    "ultracite/biome/react",
+    "ultracite/biome/vitest",
+    "ultracite/biome/type-aware"
+  ],
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true,
+    "defaultBranch": "main"
+  },
+  "files": {
+    "includes": [
+      // Local SQLite scratch DBs and raw spreadsheet exports are inputs, not source.
+      "!!**/data",
+      "!!**/import-sources",
+      // The golden master is a fixture: never let a formatter touch it.
+      "!!**/tests/golden/*.json",
+      // drizzle-kit owns these and rewrites them on every generate; formatting
+      // them here would produce a diff on each run for no benefit.
+      "!!**/src/db/migrations/meta"
+    ]
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        // Alphabetical sorting is wrong for this codebase: payslip line items,
+        // derivation traces (label -> detail -> amount) and statutory rule packs
+        // carry meaning in their declaration order. Import sorting stays on.
+        "useSortedKeys": "off",
+        "useSortedProperties": "off",
+        "useSortedInterfaceMembers": "off",
+        "useSortedTypeFields": "off"
+      }
+    }
+  },
+  "linter": {
+    "rules": {
+      "complexity": {
+        // Warn, not error: seven functions are over the threshold and every one
+        // is a genuine decomposition job, not a lint nit — classify (40),
+        // compose (34), emit's deriveLine (32) / EPF band branch (33) / PCB
+        // branch (26), diff (21), invariants (21). Kept visible on every run so
+        // the number has to come down, but not blocking the gate today.
+        "noExcessiveCognitiveComplexity": "warn"
+      },
+      "correctness": {
+        // Biome's resolver does not follow the tsconfig "@/*" path alias, and
+        // `npm run typecheck` already proves every import resolves.
+        "noUnresolvedImports": "off",
+        // moduleResolution is "bundler" (vite + tsx): extensionless is correct.
+        "useImportExtensions": "off"
+      },
+      "style": {
+        // Statutory constants are transcribed from LHDN/EPF/SOCSO tables; the
+        // digits must stay diff-able against the published source.
+        "useNumericSeparators": "off"
+      },
+      "suspicious": {
+        // `x == null` is the deliberate "null OR undefined" check that carries
+        // the PCB invariant: pcb may be absent (undefined) or entered-as-unknown
+        // (null), and both must block net pay. Rewriting to `=== null` would
+        // report "entered" for an absent PCB block — a silent payroll defect.
+        "noEqualsToNull": "off",
+        // Biome's inference is not a type checker and reported guards on
+        // `opts.pcb?.x ?? 0` (where `pcb?: PcbInput | null`) as unnecessary.
+        // Taking its advice would delete live null guards. `tsc --noEmit`
+        // covers this ground correctly.
+        "noUnnecessaryConditions": "off"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["**/tests/**", "**/scripts/**"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noExcessiveCognitiveComplexity": "off"
+          },
+          "performance": {
+            // Hot-path regex hoisting is irrelevant in a test assertion.
+            "useTopLevelRegex": "off"
+          },
+          "style": {
+            // Fixture lookups are asserted by the test itself.
+            "noNonNullAssertion": "off"
+          },
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    }
+  ]
+}

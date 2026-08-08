@@ -3,29 +3,39 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": {
-    "node": ">=22"
-  },
   "scripts": {
+    "build": "tsc -b && vite build",
+    "check": "ultracite check",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:reset": "tsx scripts/reset.ts",
+    "db:seed": "tsx scripts/seed.ts",
     "dev": "vite",
     "dev:api": "tsx watch src/server/dev-server.ts",
-    "build": "tsc -b && vite build",
+    "fix": "ultracite fix",
+    "lint": "ultracite check",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint .",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx scripts/migrate.ts",
-    "db:seed": "tsx scripts/seed.ts",
-    "db:reset": "tsx scripts/reset.ts"
+    "typecheck": "tsc --noEmit"
   },
-  "dependencies": {},
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "pg": "^8.22.0",
+    "zod": "^4.4.3"
+  },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.6",
     "@types/node": "^22.10.2",
+    "@types/pg": "^8.21.0",
+    "drizzle-kit": "^0.31.10",
     "tsx": "^4.23.11",
     "typescript": "^5.7.2",
+    "ultracite": "^7.10.1",
     "vite": "^6.0.7",
     "vitest": "^4.1.10"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }
