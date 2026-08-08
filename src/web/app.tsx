@@ -84,7 +84,7 @@ function ThemeToggle() {
 
   return (
     <Button onClick={toggleTheme} type="button" variant="outline">
-      {dark ? "Dark" : "Light"}
+      {dark ? "Use light" : "Use dark"}
     </Button>
   );
 }

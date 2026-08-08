@@ -84,14 +84,6 @@
 
   /* Legacy tokens for compatibility */
   --radius: 0.625rem;
-  --sidebar: #fbfcfd;
-  --sidebar-foreground: #26333d;
-  --sidebar-primary: #14324a;
-  --sidebar-primary-foreground: #fbfcfd;
-  --sidebar-accent: #f3f5f7;
-  --sidebar-accent-foreground: #26333d;
-  --sidebar-border: #d7dee5;
-  --sidebar-ring: #2e7d7a;
 }
 
 body {
@@ -241,16 +233,6 @@ code {
   --color-section-summary-fill: var(--section-summary-fill);
   --color-section-summary-ink: var(--section-summary-ink);
 
-  /* Sidebar colors */
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-
   /* Border radius */
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -304,16 +286,6 @@ code {
   --section-employer-ink: #7bd9c1;
   --section-summary-fill: #2a3d56;
   --section-summary-ink: #8eb4c9;
-
-  /* Sidebar */
-  --sidebar: #16212b;
-  --sidebar-foreground: #fbfcfd;
-  --sidebar-primary: #8eb4c9;
-  --sidebar-primary-foreground: #10181f;
-  --sidebar-accent: #1a2430;
-  --sidebar-accent-foreground: #fbfcfd;
-  --sidebar-border: #2a3844;
-  --sidebar-ring: #4aa8a4;
 }
 
 @layer base {
