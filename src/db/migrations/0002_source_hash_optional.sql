@@ -1,0 +1,1 @@
+ALTER TABLE "rule_sources" ALTER COLUMN "sha256" DROP NOT NULL;

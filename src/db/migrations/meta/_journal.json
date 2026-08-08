@@ -15,6 +15,13 @@
       "when": 1786178079550,
       "tag": "0001_phase2_triggers",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786179284780,
+      "tag": "0002_source_hash_optional",
+      "breakpoints": true
     }
   ]
 }

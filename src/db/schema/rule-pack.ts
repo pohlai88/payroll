@@ -52,7 +52,15 @@ export const ruleSources = pgTable(
     title: text().notNull(),
     url: text().notNull(),
     retrievedAt: date("retrieved_at").notNull(),
-    sha256: text().notNull(),
+    /**
+     * The hash of the document as retrieved, where there is a document.
+     *
+     * Nullable because two of the pack's sources are living portal pages rather
+     * than gazetted files — LHDN's PCB methods page and HRD Corp's levy
+     * guidance. Recording a hash of whatever HTML happened to be served that day
+     * would look like evidence without being any.
+     */
+    sha256: text(),
     createdAt,
   },
   (t) => [

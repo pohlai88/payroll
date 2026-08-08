@@ -1,0 +1,102 @@
+/**
+ * Postgres enum members must equal the TypeScript unions, in both directions.
+ *
+ * The schema writes its enum members out literally rather than deriving them,
+ * so that adding a union member cannot silently change the database's idea of
+ * what is legal. This is the test that makes that choice safe: it fails the
+ * moment the two drift, naming the members that differ.
+ */
+
+import { sql } from "drizzle-orm";
+import { afterAll, describe, expect, it } from "vitest";
+import { QUANTITY_BASES } from "@/domain/calc/types";
+import { connectTestDatabase, type TestDatabase } from "./harness/database";
+
+const database: TestDatabase = connectTestDatabase();
+
+afterAll(async () => {
+  await database.close();
+});
+
+async function membersOf(enumName: string): Promise<string[]> {
+  const result = await database.db.execute<{ label: string }>(sql`
+    SELECT e.enumlabel AS label
+    FROM pg_enum e
+    JOIN pg_type t ON t.oid = e.enumtypid
+    WHERE t.typname = ${enumName}
+    ORDER BY e.enumsortorder`);
+  return result.rows.map((r) => r.label);
+}
+
+/**
+ * The TypeScript side, written out literally for the same reason the schema is:
+ * a union cannot be enumerated at runtime, so something has to state it, and a
+ * mismatch between these three places is exactly what the test is looking for.
+ */
+const EXPECTED: Record<string, readonly string[]> = {
+  pay_item_kind: ["EARNING", "DEDUCTION"],
+  rate_basis: ["FIXED_MONTHLY", "PER_DAY", "PER_HOUR", "PER_UNIT", "AMOUNT"],
+  pay_basis: ["MONTHLY", "DAILY", "HOURLY"],
+  epf_part: ["A", "C", "E", "F", "NONE"],
+  socso_category: ["FIRST", "SECOND", "NONE"],
+  run_status: ["DRAFT", "REVIEWED", "APPROVED", "CLOSED"],
+  run_type: ["REGULAR", "OFFCYCLE"],
+  offcycle_reason: [
+    "CORRECTION",
+    "ARREARS",
+    "BONUS",
+    "MISSED_PAYMENT",
+    "FINAL_PAYMENT",
+  ],
+  override_field: [
+    "EPF_EE",
+    "EPF_ER",
+    "SOCSO_EE_CORE",
+    "SOCSO_EE_SKBBK",
+    "SOCSO_ER",
+    "EIS_EE",
+    "EIS_ER",
+    "EPF_WAGES",
+    "SOCSO_WAGES",
+    "EIS_WAGES",
+  ],
+};
+
+describe("Postgres enums match the domain unions", () => {
+  for (const [enumName, expected] of Object.entries(EXPECTED)) {
+    it(`${enumName} has exactly its declared members`, async () => {
+      const actual = await membersOf(enumName);
+      expect(actual.length, `${enumName} exists in the database`).toBeGreaterThan(0);
+      expect([...actual].sort()).toEqual([...expected].sort());
+    });
+  }
+
+  it("covers every enum the database defines", async () => {
+    const result = await database.db.execute<{ typname: string }>(sql`
+      SELECT t.typname
+      FROM pg_type t
+      JOIN pg_namespace n ON n.oid = t.typnamespace
+      WHERE n.nspname = 'public' AND t.typtype = 'e'
+      ORDER BY t.typname`);
+    expect(result.rows.map((r) => r.typname).sort()).toEqual(
+      Object.keys(EXPECTED).sort()
+    );
+  });
+
+  /**
+   * `rate_basis` carries a second obligation: the quantity bases the engine
+   * discriminates on are the ones the database's shape checks treat as
+   * quantity-bearing. If a basis were added to one side only, an item could be
+   * stored in a shape the engine cannot resolve.
+   */
+  it("agrees with the engine about which bases carry a quantity", async () => {
+    const all = await membersOf("rate_basis");
+    const nonQuantity = all.filter(
+      (b) => !(QUANTITY_BASES as readonly string[]).includes(b)
+    );
+    expect([...QUANTITY_BASES].sort()).toEqual(
+      ["PER_DAY", "PER_HOUR", "PER_UNIT"].sort()
+    );
+    expect(nonQuantity.sort()).toEqual(["AMOUNT", "FIXED_MONTHLY"]);
+  });
+});
