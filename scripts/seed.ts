@@ -17,6 +17,8 @@ import {
   requireDatabaseUrl,
 } from "../src/db/client";
 import { payItems } from "../src/db/schema/catalog";
+import { employeeCustomFieldDefs } from "../src/db/schema/employee-profile";
+import { roles } from "../src/db/schema/rbac";
 import {
   eisBands,
   epfBands,
@@ -45,6 +47,20 @@ function read<T>(name: string): SeedFile<T> {
     sha256: createHash("sha256").update(raw).digest("hex"),
     byteSize: raw.byteLength,
   };
+}
+
+/**
+ * `pay-item-matrix.json`'s boolean-as-0/1 columns have no runtime schema
+ * validation, so a typo (e.g. `2`) would otherwise coerce to `false` via
+ * `=== 1` rather than fail loudly.
+ */
+function readFlag(value: number, field: string, code: string): boolean {
+  if (value !== 0 && value !== 1) {
+    throw new Error(
+      `pay item ${code}: expected ${field} to be 0 or 1, got ${value}`
+    );
+  }
+  return value === 1;
 }
 
 interface RulePackMeta {
@@ -122,6 +138,7 @@ function buildSettings(raw: Record<string, string>): Record<string, unknown> {
     epfPartFEePct: number("epf.partF.ee_pct"),
     epfPartFErPct: number("epf.partF.er_pct"),
     socsoCeilingSen: number("socso.ceiling_sen"),
+    epfSocsoRetirementAge: number("epf_socso.retirement_age"),
     skbbkPhaseFrom: text("skbbk.phase_from"),
     skbbkPhaseTo: text("skbbk.phase_to"),
     eisCeilingSen: number("eis.ceiling_sen"),
@@ -181,6 +198,9 @@ export async function seed(db: Database): Promise<string> {
     await recordSeedFiles(db, files);
     await seedSourceCapturePack(db, "employment-law-sources.json");
     await seedSourceCapturePack(db, "pcb-sources.json");
+    await recordSeedFiles(db, [read("pcb-table1-2026.json")]);
+    await seedRbac(db);
+    await seedEmployeeCustomFields(db);
     return packId;
   }
 
@@ -252,11 +272,11 @@ export async function seed(db: Database): Promise<string> {
           nameMs: i.nameBm,
           kind: i.kind,
           rateBasis: i.rateBasis,
-          epfWages: i.epfWages === 1,
-          socsoWages: i.socsoWages === 1,
-          eisWages: i.eisWages === 1,
-          prorates: i.prorates === 1,
-          isSystem: i.isSystem === 1,
+          epfWages: readFlag(i.epfWages, "epfWages", i.code),
+          socsoWages: readFlag(i.socsoWages, "socsoWages", i.code),
+          eisWages: readFlag(i.eisWages, "eisWages", i.code),
+          prorates: readFlag(i.prorates, "prorates", i.code),
+          isSystem: readFlag(i.isSystem, "isSystem", i.code),
           sort: i.sort,
         }))
       )
@@ -281,7 +301,92 @@ export async function seed(db: Database): Promise<string> {
   await recordSeedFiles(db, files);
   await seedSourceCapturePack(db, "employment-law-sources.json");
   await seedSourceCapturePack(db, "pcb-sources.json");
+  await recordSeedFiles(db, [read("pcb-table1-2026.json")]);
+  await seedRbac(db);
+  await seedEmployeeCustomFields(db);
   return packId;
+}
+
+interface RbacSeed {
+  roles: Array<{
+    code: string;
+    name: string;
+    description: string;
+    scope: "GLOBAL" | "COMPANY";
+    isSystem: boolean;
+  }>;
+}
+
+/**
+ * The single system role. Idempotent: re-seeding refreshes name/description
+ * but never demotes `is_system` or invents matrix rows for it.
+ */
+async function seedRbac(db: Database): Promise<void> {
+  const file = read<RbacSeed>("rbac.json");
+  for (const role of file.data.roles) {
+    await db
+      .insert(roles)
+      .values({
+        code: role.code,
+        name: role.name,
+        description: role.description,
+        scope: role.scope,
+        isSystem: role.isSystem,
+      })
+      .onConflictDoUpdate({
+        target: roles.code,
+        set: {
+          name: role.name,
+          description: role.description,
+          scope: role.scope,
+          isSystem: role.isSystem,
+        },
+      });
+  }
+  await recordSeedFiles(db, [file]);
+}
+
+interface EmployeeCustomFieldSeed {
+  fields: Array<{
+    fieldKey: string;
+    label: string;
+    dataType: "TEXT" | "NUMBER" | "DATE" | "BOOLEAN";
+    required: boolean;
+    sortOrder: number;
+    active: boolean;
+  }>;
+}
+
+/**
+ * Custom employee-profile fields. Idempotent and always refreshed on
+ * re-seed — unlike an approved rule pack, these are admin config, not a
+ * statutory figure someone has signed off on.
+ */
+async function seedEmployeeCustomFields(db: Database): Promise<void> {
+  const file = read<EmployeeCustomFieldSeed>("employee-custom-fields.json");
+  for (const field of file.data.fields) {
+    await db
+      .insert(employeeCustomFieldDefs)
+      .values({
+        fieldKey: field.fieldKey,
+        label: field.label,
+        dataType: field.dataType,
+        required: field.required,
+        sortOrder: field.sortOrder,
+        active: field.active,
+      })
+      .onConflictDoUpdate({
+        target: employeeCustomFieldDefs.fieldKey,
+        set: {
+          label: field.label,
+          dataType: field.dataType,
+          required: field.required,
+          sortOrder: field.sortOrder,
+          active: field.active,
+        },
+      });
+  }
+  await recordSeedFiles(db, [file]);
 }
 
 interface SourceCaptureSeed {
@@ -328,6 +433,13 @@ async function seedSourceCapturePack(
   const pack = file.data.rulePack;
 
   await db.transaction(async (tx) => {
+    /**
+     * `setWhere` keeps this an update, not just an insert-or-skip: a fixed
+     * title, URL, or note in the source JSON should reach the register on the
+     * next seed run. It stops short of `status`, so a pack a reviewer has
+     * already moved past SOURCE_CAPTURED cannot be quietly reset by re-running
+     * this script.
+     */
     await tx
       .insert(rulePacks)
       .values({
@@ -343,9 +455,28 @@ async function seedSourceCapturePack(
         status: "SOURCE_CAPTURED",
         notes: pack.notes,
       })
-      .onConflictDoNothing();
+      .onConflictDoUpdate({
+        target: rulePacks.id,
+        set: {
+          name: pack.name,
+          authority: pack.authority,
+          code: pack.code,
+          version: pack.version,
+          effectiveFrom: pack.effectiveFrom,
+          effectiveTo: pack.effectiveTo,
+          notes: pack.notes,
+        },
+        setWhere: sql`${rulePacks.status} = 'SOURCE_CAPTURED'`,
+      });
 
     for (const source of file.data.sources) {
+      /**
+       * Same reasoning per source: a corrected title or URL should propagate,
+       * but a source a reviewer has already verified is evidence someone
+       * attested to — the file changing underneath it must not silently
+       * rewrite what they signed off on. `setWhere` makes that case a no-op
+       * instead of a silent overwrite.
+       */
       await tx
         .insert(ruleSources)
         .values({
@@ -362,7 +493,22 @@ async function seedSourceCapturePack(
           effectiveDate: source.effectiveDate,
           sha256: source.sha256,
         })
-        .onConflictDoNothing();
+        .onConflictDoUpdate({
+          target: [ruleSources.rulePackId, ruleSources.ref],
+          set: {
+            issuer: source.issuer,
+            title: source.title,
+            url: source.url,
+            retrievedAt: source.retrievedAt,
+            instrumentNumber: source.instrumentNumber,
+            provisionReference: source.provisionReference,
+            pageReference: source.pageReference,
+            publishedDate: source.publishedDate,
+            effectiveDate: source.effectiveDate,
+            sha256: source.sha256,
+          },
+          setWhere: sql`${ruleSources.verifiedBy} IS NULL`,
+        });
     }
   });
 

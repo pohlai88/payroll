@@ -1,0 +1,12 @@
+{
+  "fields": [
+    {
+      "fieldKey": "uniform_size",
+      "label": "Uniform Size",
+      "dataType": "TEXT",
+      "required": false,
+      "sortOrder": 1,
+      "active": true
+    }
+  ]
+}
