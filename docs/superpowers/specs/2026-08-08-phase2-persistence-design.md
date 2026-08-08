@@ -323,9 +323,18 @@ Checked against `tests/golden/july-2026.json` before writing this:
   When the OT-multiplier domain change lands, it supersedes nothing that this test
   covers, and the golden master cannot detect a regression in it.
 
+Both paths are therefore proved only by `constraints.test.ts` provocations built for
+them. **The first real overtime line and the first daily-rated employment are the
+first true exercise of either** — worth knowing before trusting them in production.
+
 ---
 
 ## 8. Order of work
+
+**The gate at every step is `npx tsc --noEmit && npx vitest run`, both clean** — not
+the golden master alone. Vitest strips types without checking them, so a green
+golden master can sit on top of a broken typecheck; that is exactly the state Step 0
+was created to clear.
 
 1. Dependencies, `docker-compose.yml`, `drizzle.config.ts`, `src/db/client.ts`
 2. Schema modules + generated migrations
