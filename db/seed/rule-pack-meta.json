@@ -1,0 +1,96 @@
+{
+  "rulePack": {
+    "id": "MY-STATUTORY-2026-06",
+    "name": "Malaysia statutory rules (EPF Oct 2025, SOCSO+SKBBK Jun 2026, EIS Oct 2024)",
+    "effectiveFrom": "2026-06-01",
+    "effectiveTo": null,
+    "notes": "Band tables extracted from AFENDA PAYROLL COMMAND CENTRE workbook (rule pack MY-PAYROLL-2026.08-R2, source snapshot SRC-MY-2026-08-06-R2). Always verify against current official schedules before each payroll year."
+  },
+  "sources": [
+    {
+      "ref": "S1",
+      "issuer": "KWSP / EPF",
+      "title": "EPF Act 1991 Third Schedule Parts A/C/E, effective October 2025 wages",
+      "url": "https://www.kwsp.gov.my/en/employer/responsibilities/mandatory-contribution",
+      "retrievedAt": "2026-08-06",
+      "sha256": "c4904e44f0cb15a251a59e4f34c11a1ededa0868b962b2ebd9b81270285358b1"
+    },
+    {
+      "ref": "S2",
+      "issuer": "PERKESO",
+      "title": "Act 4 contribution table including SKBBK, effective 1 June 2026",
+      "url": "https://www.perkeso.gov.my/uncategorised/800-contribution-rate.html",
+      "retrievedAt": "2026-08-06",
+      "sha256": "e76b2a03740f6da4a305919c677d4935a05e9166502e5f06afe1030b7407caa1"
+    },
+    {
+      "ref": "S2A",
+      "issuer": "PERKESO",
+      "title": "LINDUNG 24 JAM / SKBBK FAQ - Phase 1: 1 June 2026 to 31 May 2028 (SKBBK employee-borne)",
+      "url": "https://www.perkeso.gov.my",
+      "retrievedAt": "2026-08-06",
+      "sha256": "c5dd1782039962bac227def762bddbd2bcbbc65f020742106ef2652ca0c243c0"
+    },
+    {
+      "ref": "S3",
+      "issuer": "PERKESO",
+      "title": "EIS Act 800 contribution table, RM6,000 wage ceiling (from 1 Oct 2024)",
+      "url": "https://www.perkeso.gov.my",
+      "retrievedAt": "2026-08-06",
+      "sha256": "fa6a0d20ab0b579f215aa6fa0e5ca3d41b16a0790bc9a15ed2e3bed56c3b4036"
+    },
+    {
+      "ref": "S4",
+      "issuer": "HASiL / LHDN",
+      "title": "PCB (MTD) and CP38 - approved methods (e-PCB, e-Jadual, e-CP39); remit by 15th of following month",
+      "url": "https://www.hasil.gov.my/en/employers/responsibility-of-employer/",
+      "retrievedAt": "2026-08-06",
+      "sha256": null
+    },
+    {
+      "ref": "S5",
+      "issuer": "HRD Corp",
+      "title": "HRD Corp levy: 10+ Malaysian employees compulsory 1%; 5-9 optional 0.5%",
+      "url": "https://hrdcorp.gov.my",
+      "retrievedAt": "2026-08-06",
+      "sha256": null
+    },
+    {
+      "ref": "L1",
+      "issuer": "JTKSM / MOHR",
+      "title": "Employment Act 1955 s.18A incomplete-month proration; s.19 pay-date rule",
+      "url": "https://jtksm.mohr.gov.my/ms/soalan-lazim/akta-kerja-1955-pindaan-2022",
+      "retrievedAt": "2026-08-06",
+      "sha256": "c4d9d149dc0f1c41c8e28a1fd1cb75f560a808c4b10736aba15a0a6c906d1926"
+    },
+    {
+      "ref": "L2",
+      "issuer": "JTKSM / MOHR",
+      "title": "Employment Regulations 1957 regulation 9 - wage statement particulars",
+      "url": "https://jtksm.mohr.gov.my/en/services/complaints",
+      "retrievedAt": "2026-08-06",
+      "sha256": "92613f15ace6513e3bb4e6c787425efbf474d8c7d7d1541709cedb2b15549e20"
+    }
+  ],
+  "settings": {
+    "epf.table_ceiling_sen": "2000000",
+    "epf.above.ee_pct": "11",
+    "epf.above.er_pct_le_threshold": "13",
+    "epf.above.er_pct_gt_threshold": "12",
+    "epf.er_threshold_sen": "500000",
+    "epf.partC.above.ee_pct": "5.5",
+    "epf.partC.above.er_pct": "6",
+    "epf.partE.above.ee_pct": "0",
+    "epf.partE.above.er_pct": "4",
+    "epf.partF.ee_pct": "2",
+    "epf.partF.er_pct": "2",
+    "socso.ceiling_sen": "600000",
+    "skbbk.phase_from": "2026-06-01",
+    "skbbk.phase_to": "2028-05-31",
+    "eis.ceiling_sen": "600000",
+    "eis.min_age": "18",
+    "eis.max_age_exclusive": "60",
+    "eis.first_time_review_age": "57",
+    "hrdf.levy_pct": "1"
+  }
+}

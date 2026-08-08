@@ -1,0 +1,66 @@
+import { ageAt } from "../ic";
+import type { Classification, EmployeeSnapshot, RuleSettings } from "./types";
+
+/**
+ * Age-driven statutory classification, evaluated at the payroll period end.
+ * EPF part: A (<60 citizen/PR), E (Malaysian 60+, employee share 0),
+ * C (PR 60+ or pre-Aug-1998 non-citizen member 60+), F (post-1998 non-Malaysian).
+ * SOCSO: FIRST (<60), SECOND (60+). EIS: 18 to <60; first-time 57+ needs review.
+ */
+export function classify(
+  emp: EmployeeSnapshot,
+  periodEnd: string,
+  settings: RuleSettings
+): Classification {
+  const age = emp.dob ? ageAt(emp.dob, periodEnd) : null;
+
+  let epfPart: Classification["epfPart"] = "NONE";
+  if (emp.epfApplicable) {
+    if (emp.epfPartOverride) {
+      epfPart = emp.epfPartOverride;
+    } else if (emp.isMalaysian) {
+      epfPart = age !== null && age >= 60 ? "E" : "A";
+    } else if (emp.isPermanentResident) {
+      epfPart = age !== null && age >= 60 ? "C" : "A";
+    } else {
+      // non-Malaysian, non-PR
+      if (emp.epfMemberBeforeAug1998) {
+        epfPart = age !== null && age >= 60 ? "C" : "A";
+      } else {
+        epfPart = "F";
+      }
+    }
+  }
+
+  let socsoCategory: Classification["socsoCategory"] = "NONE";
+  if (emp.socsoApplicable) {
+    if (emp.socsoCategoryOverride) {
+      socsoCategory = emp.socsoCategoryOverride;
+    } else {
+      socsoCategory = age !== null && age >= 60 ? "SECOND" : "FIRST";
+    }
+  }
+
+  let eisEligible = false;
+  let eisAge57Review = false;
+  if (emp.eisApplicable && age !== null) {
+    eisEligible = age >= settings.eisMinAge && age < settings.eisMaxAgeExclusive;
+    if (
+      eisEligible &&
+      age >= settings.eisFirstTimeReviewAge &&
+      emp.eisPriorContribution === false
+    ) {
+      // Age 57+ with confirmed NO prior contribution history: exempt.
+      eisEligible = false;
+    } else if (
+      eisEligible &&
+      age >= settings.eisFirstTimeReviewAge &&
+      emp.eisPriorContribution === null
+    ) {
+      // Unknown history at 57+: keep contributing but flag for review.
+      eisAge57Review = true;
+    }
+  }
+
+  return { ageAtPeriodEnd: age, epfPart, socsoCategory, eisEligible, eisAge57Review };
+}

@@ -1,0 +1,18 @@
+node_modules/
+dist/
+.vercel/
+*.tsbuildinfo
+
+# Local env
+.env
+.env.*
+!.env.example
+
+# Local dev volumes (Postgres + MinIO via docker compose)
+.docker-data/
+
+# Test scratch
+coverage/
+
+# Legacy SQLite files from the v1 app (archived in _payroll-v1-backup)
+data/

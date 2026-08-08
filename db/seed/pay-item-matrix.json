@@ -1,0 +1,17 @@
+[
+  { "code": "BASIC",      "nameEn": "Basic Salary / Regular Pay", "nameBm": "Gaji Pokok",                "kind": "EARNING",   "epfWages": 1, "socsoWages": 1, "eisWages": 1, "prorates": 1, "isSystem": 1, "sort": 10 },
+  { "code": "ATTEND",     "nameEn": "Attendance Allowance",       "nameBm": "Elaun Kehadiran",           "kind": "EARNING",   "epfWages": 1, "socsoWages": 1, "eisWages": 1, "prorates": 0, "isSystem": 0, "sort": 20 },
+  { "code": "PERF",       "nameEn": "Performance Allowance",      "nameBm": "Elaun Prestasi",            "kind": "EARNING",   "epfWages": 1, "socsoWages": 1, "eisWages": 1, "prorates": 0, "isSystem": 0, "sort": 30 },
+  { "code": "MEAL",       "nameEn": "Meal Allowance",             "nameBm": "Elaun Makan",               "kind": "EARNING",   "epfWages": 1, "socsoWages": 1, "eisWages": 1, "prorates": 0, "isSystem": 0, "sort": 40 },
+  { "code": "ADDL_DUTY",  "nameEn": "Additional Duty Allowance",  "nameBm": "Elaun Tugas Tambahan",      "kind": "EARNING",   "epfWages": 1, "socsoWages": 1, "eisWages": 1, "prorates": 0, "isSystem": 0, "sort": 50 },
+  { "code": "PETROL",     "nameEn": "Petrol Allowance",           "nameBm": "Elaun Petrol",              "kind": "EARNING",   "epfWages": 1, "socsoWages": 1, "eisWages": 1, "prorates": 0, "isSystem": 0, "sort": 60 },
+  { "code": "PARKING",    "nameEn": "Parking Allowance",          "nameBm": "Elaun Letak Kereta",        "kind": "EARNING",   "epfWages": 1, "socsoWages": 1, "eisWages": 1, "prorates": 0, "isSystem": 0, "sort": 70 },
+  { "code": "INCENTIVE",  "nameEn": "Incentive",                  "nameBm": "Insentif",                  "kind": "EARNING",   "epfWages": 1, "socsoWages": 1, "eisWages": 1, "prorates": 0, "isSystem": 0, "sort": 80 },
+  { "code": "COMPETENCE", "nameEn": "Competence Allowance",       "nameBm": "Elaun Kompetensi",          "kind": "EARNING",   "epfWages": 1, "socsoWages": 1, "eisWages": 1, "prorates": 0, "isSystem": 0, "sort": 90 },
+  { "code": "DROP_POINT", "nameEn": "Daily Drop Point Allowance", "nameBm": "Elaun Titik Hantaran",      "kind": "EARNING",   "epfWages": 1, "socsoWages": 1, "eisWages": 1, "prorates": 0, "isSystem": 0, "sort": 100 },
+  { "code": "OT",         "nameEn": "Overtime",                   "nameBm": "Kerja Lebih Masa",          "kind": "EARNING",   "epfWages": 0, "socsoWages": 1, "eisWages": 1, "prorates": 0, "isSystem": 1, "sort": 110 },
+  { "code": "BONUS",      "nameEn": "Bonus",                      "nameBm": "Bonus",                     "kind": "EARNING",   "epfWages": 1, "socsoWages": 0, "eisWages": 0, "prorates": 0, "isSystem": 0, "sort": 120 },
+  { "code": "OTHER_EARN", "nameEn": "Other Earnings",             "nameBm": "Pendapatan Lain",           "kind": "EARNING",   "epfWages": 1, "socsoWages": 1, "eisWages": 1, "prorates": 0, "isSystem": 0, "sort": 130 },
+  { "code": "OTHER_DED",  "nameEn": "Other Deduction",            "nameBm": "Potongan Lain",             "kind": "DEDUCTION", "epfWages": 0, "socsoWages": 0, "eisWages": 0, "prorates": 0, "isSystem": 0, "sort": 200 },
+  { "code": "ZAKAT",      "nameEn": "Zakat",                      "nameBm": "Zakat",                     "kind": "DEDUCTION", "epfWages": 0, "socsoWages": 0, "eisWages": 0, "prorates": 0, "isSystem": 0, "sort": 210 }
+]

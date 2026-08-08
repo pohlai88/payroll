@@ -1,0 +1,88 @@
+{
+  "$schema": "straits-document-palette/1",
+  "name": "Straits ERP — document palette (light only)",
+  "purpose": "Payslips, EA forms, statements, invoices, POs, remittance advice. Light mode only: documents are printed or read on white.",
+  "colour_space": "sRGB. Convert to CMYK with your press ICC profile — do NOT use a naive RGB→CMYK formula, the teal and amber shift badly.",
+  "rules": [
+    "A negative figure is not bad news. Deductions, contra entries and credit notes take NEUTRAL ink, never red. Reserve amounts.unfavorable for a stated business judgement.",
+    "Colour is never the only encoding. Status marks carry a glyph; chart series carry a dash or pattern.",
+    "Statutory forms are frequently printed mono. Every colour below has a grayscale equivalent that preserves its relative weight."
+  ],
+  "ink": {
+    "body": { "hex": "#26333d", "gray": "#313131", "on_white": 12.94 },
+    "secondary": { "hex": "#66737e", "gray": "#717171", "on_white": 4.86 },
+    "heading": { "hex": "#14324a", "gray": "#303030", "on_white": 13.25 },
+    "brand": { "hex": "#2e7d7a", "gray": "#717171", "on_white": 4.85 },
+    "disabled": { "hex": "#8b959e", "gray": "#949494", "on_white": 3.05 }
+  },
+  "rules_and_borders": {
+    "hairline": { "hex": "#d7dee5", "gray": "#dddddd" },
+    "standard": { "hex": "#c3ccd5", "gray": "#cbcbcb" },
+    "emphasis": { "hex": "#b8c1ca", "gray": "#c0c0c0" },
+    "total": { "hex": "#14324a", "gray": "#303030" }
+  },
+  "fills": {
+    "_note": "Screen tints are too light for paper. These are darkened to stay visible through a 600dpi laser. Screen equivalents are listed under screen_reference.",
+    "table_header": { "hex": "#d1dae1", "gray": "#d9d9d9" },
+    "zebra_row": { "hex": "#eff2f6", "gray": "#f2f2f2" },
+    "subtotal_row": { "hex": "#e0e6eb", "gray": "#e5e5e5" },
+    "grand_total_row": {
+      "hex": null,
+      "guidance": "No fill. Use a 1pt rule above and a 3pt double rule below, with bold weight. A filled grand total reads as a highlight, not a conclusion."
+    }
+  },
+  "callouts": {
+    "info": { "fill": "#d2e4ee", "ink": "#114a65", "rule": "#a1c7db" },
+    "success": { "fill": "#d8e5db", "ink": "#27603e", "rule": "#a8d4b6" },
+    "warning": { "fill": "#f2e0b9", "ink": "#7c4e01", "rule": "#e7c38a" },
+    "danger": { "fill": "#f2dcdd", "ink": "#8b3334", "rule": "#f2b6b2" }
+  },
+  "status": {
+    "_note": "Glyph is mandatory. It is what survives mono printing and red/green colour deficiency.",
+    "draft": { "glyph": "◦", "ink": "#66737e", "fill": "#eff2f6" },
+    "submitted": { "glyph": "→", "ink": "#114a65", "fill": "#d2e4ee" },
+    "pending": { "glyph": "◔", "ink": "#7c4e01", "fill": "#f2e0b9" },
+    "partial": { "glyph": "◐", "ink": "#7c4e01", "fill": "#f2e0b9" },
+    "approved": { "glyph": "✓", "ink": "#27603e", "fill": "#d8e5db" },
+    "paid": { "glyph": "✓", "ink": "#27603e", "fill": "#d8e5db" },
+    "posted": { "glyph": "✓", "ink": "#27603e", "fill": "#d8e5db" },
+    "rejected": { "glyph": "✕", "ink": "#8b3334", "fill": "#f2dcdd" },
+    "overdue": { "glyph": "✕", "ink": "#8b3334", "fill": "#f2dcdd" },
+    "cancelled": { "glyph": "⊘", "ink": "#66737e", "fill": "#eff2f6", "decoration": "line-through" }
+  },
+  "amounts": {
+    "_note": "PAYROLL: earnings and deductions both use `neutral`. A deduction is arithmetic, not a warning.",
+    "neutral": { "hex": "#26333d" },
+    "nil": { "hex": "#66737e", "render": "em dash —, not 0.00" },
+    "zero": { "hex": "#66737e" },
+    "favorable": { "hex": "#27603e" },
+    "unfavorable": { "hex": "#8b3334" }
+  },
+  "brand": {
+    "executive_navy": "#14324a",
+    "governance_teal": "#2e7d7a",
+    "registry_blue": "#1d5b79",
+    "ink_charcoal": "#26333d",
+    "cool_porcelain": "#fbfcfd",
+    "warning_amber": "#a66a00",
+    "destructive_clay": "#a34141"
+  },
+  "chart": {
+    "_note": "Five categorical series, no valence. Verified min ΔE 0.109 normal vision, 0.094 under deuteranopia. Beyond five, aggregate into Other. Pair each with a dash or fill pattern.",
+    "series": ["#00736f", "#bc671f", "#36397b", "#676f2d", "#7d8ea1"],
+    "positive": "#377951",
+    "negative": "#a34141",
+    "grid": "#e8ecf0",
+    "axis": "#66737e"
+  },
+  "screen_reference": {
+    "_note": "The original screen tints, for parity between the app and its documents.",
+    "table_header": "#eaf1f7",
+    "zebra_row": "#fbfcfd",
+    "subtotal_row": "#f3f5f7",
+    "callout_info": "#d8e7ef",
+    "callout_success": "#eaf4ec",
+    "callout_warning": "#f7e7c6",
+    "callout_danger": "#fbeaea"
+  }
+}
