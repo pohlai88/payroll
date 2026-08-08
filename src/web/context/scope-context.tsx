@@ -8,6 +8,7 @@
  * require exactly one company, others accept many).
  */
 
+import type { ReactNode } from "react";
 import {
   createContext,
   useCallback,
@@ -16,8 +17,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import type { ReactNode } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 
 /**
  * `{ mode: "all" }` and `{ mode: "selected", companyIds: [] }` are distinct:
@@ -46,7 +46,8 @@ function defaultReportingMonth(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function parseScopeParam(raw: string | null): CompanyScope {
+function parseScopeParam(search: string): CompanyScope {
+  const raw = new URLSearchParams(search).get(SCOPE_PARAM);
   if (raw === null || raw === "" || raw === SCOPE_ALL) {
     return { mode: "all" };
   }
@@ -56,56 +57,39 @@ function parseScopeParam(raw: string | null): CompanyScope {
     : { mode: "selected", companyIds };
 }
 
-function serializeScopeParam(scope: CompanyScope): string {
-  return scope.mode === "all" ? SCOPE_ALL : scope.companyIds.join(",");
-}
-
-function readScopeFromUrl(): CompanyScope {
-  if (typeof window === "undefined") {
-    return { mode: "all" };
+function withScopeParam(search: string, scope: CompanyScope): string {
+  const params = new URLSearchParams(search);
+  if (scope.mode === "all") {
+    params.delete(SCOPE_PARAM);
+  } else {
+    params.set(SCOPE_PARAM, scope.companyIds.join(","));
   }
-  const params = new URLSearchParams(window.location.search);
-  return parseScopeParam(params.get(SCOPE_PARAM));
+  return params.toString();
 }
 
 function ScopeProvider({ children }: { children: ReactNode }) {
-  const [location, navigate] = useLocation();
-  const [scope, setScopeState] = useState<CompanyScope>(readScopeFromUrl);
+  const [path, navigate] = useLocation();
+  const search = useSearch();
+  const [scope, setScopeState] = useState<CompanyScope>(() =>
+    parseScopeParam(search)
+  );
   const [reportingMonth, setReportingMonth] = useState(defaultReportingMonth);
 
-  // Sync scope into the URL query string whenever it changes, preserving the
-  // current path and any other query params.
+  // Browser back/forward (or a deep link) changes the URL directly — mirror
+  // that into state so `scope` stays the single source of truth for reads.
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    const params = new URLSearchParams(window.location.search);
-    const serialized = serializeScopeParam(scope);
-    if (scope.mode === "all") {
-      params.delete(SCOPE_PARAM);
-    } else {
-      params.set(SCOPE_PARAM, serialized);
-    }
-    const query = params.toString();
-    const nextUrl = query === "" ? location : `${location}?${query}`;
-    const currentUrl = `${window.location.pathname}${window.location.search}`;
-    if (nextUrl !== currentUrl) {
+    setScopeState(parseScopeParam(search));
+  }, [search]);
+
+  const setScope = useCallback(
+    (next: CompanyScope) => {
+      setScopeState(next);
+      const nextSearch = withScopeParam(search, next);
+      const nextUrl = nextSearch === "" ? path : `${path}?${nextSearch}`;
       navigate(nextUrl, { replace: true });
-    }
-    // `location` intentionally excluded — this effect reacts to `scope`
-    // changes only; navigation triggered by the browser (back/forward) is
-    // handled by the popstate-driven re-read below, not this effect.
-    // biome-ignore lint/correctness/useExhaustiveDependencies: see comment above
-  }, [scope]);
-
-  // Pick up scope changes from browser back/forward navigation.
-  useEffect(() => {
-    setScopeState(readScopeFromUrl());
-  }, [location]);
-
-  const setScope = useCallback((next: CompanyScope) => {
-    setScopeState(next);
-  }, []);
+    },
+    [navigate, path, search]
+  );
 
   const value = useMemo(
     () => ({ scope, reportingMonth, setScope, setReportingMonth }),
@@ -125,5 +109,5 @@ function useScopeContext(): ScopeContextValue {
   return ctx;
 }
 
-export { ScopeProvider, useScopeContext };
 export type { CompanyScope, ScopeContextValue };
+export { ScopeProvider, useScopeContext };
