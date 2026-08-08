@@ -11,6 +11,7 @@ import { type AuthVariables, authMiddleware } from "./auth/middleware";
 import { handleRouteError } from "./errors";
 import { adminUserRoutes } from "./routes/admin-users";
 import { employeeImportRoutes } from "./routes/employee-import";
+import { employeeRoutes } from "./routes/employees";
 import { healthRoutes } from "./routes/health";
 import { meRoutes } from "./routes/me";
 import { payRunRoutes } from "./routes/pay-run";
@@ -43,6 +44,7 @@ export function createApp(deps: AppDeps): Hono {
   v1.route("/", meRoutes(deps.db));
   v1.route("/", adminUserRoutes(deps.db));
   v1.route("/", employeeImportRoutes(deps.db));
+  v1.route("/", employeeRoutes(deps.db));
   v1.route("/", payRunRoutes(deps.db));
   v1.route(
     "/",
