@@ -7,7 +7,9 @@ entered it and when) or a cited source. Nothing is hidden.
 
 ## Status
 
-Rebuilt from scratch. See `docs/superpowers/plans/` for the design history, and
+Rebuilt from scratch. See `docs/architecture/` for the schema, function surface and
+feature inventory (`payroll-architecture.md`) and what the UI may rely on
+(`presentation-facade.md`), `docs/superpowers/plans/` for the design history, and
 `docs/palette/` for the colour contract (`README.md`), the pay-run grid pattern
 (`workspace-grid.md`) and document/print rules (`printing.md`) that Phases 4, 5
 and 8 must satisfy.
