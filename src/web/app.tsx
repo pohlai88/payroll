@@ -75,19 +75,15 @@ function ThemeToggle() {
   const [dark, setDark] = useState(() =>
     document.documentElement.classList.contains("dark")
   );
-  
+
   const toggleTheme = useCallback(() => {
     const next = !dark;
     document.documentElement.classList.toggle("dark", next);
     setDark(next);
   }, [dark]);
-  
+
   return (
-    <Button
-      onClick={toggleTheme}
-      type="button"
-      variant="outline"
-    >
+    <Button onClick={toggleTheme} type="button" variant="outline">
       {dark ? "Dark" : "Light"}
     </Button>
   );
