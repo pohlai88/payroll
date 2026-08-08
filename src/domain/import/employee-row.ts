@@ -280,6 +280,13 @@ export function parseEmployeeRow(
     return { errors };
   }
 
+  const isMalaysian = booleans["Is Malaysian"] ?? true;
+  const isPermanentResident = booleans["Is Permanent Resident"] ?? false;
+  const epfApplicable = booleans["EPF Applicable"] ?? true;
+  const socsoApplicable = booleans["SOCSO Applicable"] ?? true;
+  const eisApplicable = booleans["EIS Applicable"] ?? true;
+  const pcbApplicable = booleans["PCB Applicable"] ?? true;
+
   return {
     row: {
       employeeCode: (get("Employee Code") ?? "").trim(),
@@ -292,12 +299,12 @@ export function parseEmployeeRow(
       joinDate: joinDateRaw,
       payBasis,
       baseRateSen: baseRateSen as number,
-      isMalaysian: booleans["Is Malaysian"],
-      isPermanentResident: booleans["Is Permanent Resident"],
-      epfApplicable: booleans["EPF Applicable"],
-      socsoApplicable: booleans["SOCSO Applicable"],
-      eisApplicable: booleans["EIS Applicable"],
-      pcbApplicable: booleans["PCB Applicable"],
+      isMalaysian,
+      isPermanentResident,
+      epfApplicable,
+      socsoApplicable,
+      eisApplicable,
+      pcbApplicable,
       epfNo: blankToNull(get("EPF No")),
       socsoNo: blankToNull(get("SOCSO No")),
       tin: blankToNull(get("TIN")),
