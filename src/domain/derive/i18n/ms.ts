@@ -29,47 +29,56 @@ export const MS: Record<MessageKey, string> = {
   // ---- inputs ----
   "input.dob": "Tarikh lahir",
   "input.periodEnd": "Akhir tempoh gaji",
-  "input.payBasis": "Asas gaji",
   "input.baseRate": "Kadar gaji asas",
   "input.workingDays": "Hari bekerja dalam tempoh gaji",
   "input.paidDays": "Hari dibayar",
   "input.hoursWorked": "Jam bekerja",
   "input.otHours": "Jam kerja lebih masa",
   "input.otRate": "Kadar kerja lebih masa sejam",
-  "input.item": "{code}",
   "input.itemQty": "Kuantiti {code}",
   "input.itemRate": "Kadar {code}",
 
   // ---- rule pack settings ----
-  "setting.epf.tableCeiling": "Siling Jadual Ketiga KWSP",
   "setting.epf.aboveEePct": "Kadar pekerja KWSP melebihi siling jadual",
   "setting.epf.aboveErPct": "Kadar majikan KWSP melebihi siling jadual",
   "setting.epf.partFEePct": "Kadar pekerja KWSP Bahagian F",
   "setting.epf.partFErPct": "Kadar majikan KWSP Bahagian F",
-  "setting.skbbk.phaseFrom": "Mula fasa SKBBK",
-  "setting.skbbk.phaseTo": "Tamat fasa SKBBK",
   "setting.hrdf.levyPct": "Kadar levi HRD Corp",
 
   // ---- classification ----
   "class.age": "Umur pada akhir tempoh gaji",
   "class.age.detail": "Lahir {dob}, jadi {age} tahun genap pada {periodEnd}",
   "class.epfPart": "Bahagian Jadual Ketiga KWSP",
-  "class.epfPart.detail": "{part}, berdasarkan umur {age} dan taraf kewarganegaraan",
-  "class.epfPart.override": "{part}, ditetapkan secara manual dalam rekod pekerja",
+  "class.epfPart.detail":
+    "{part}, berdasarkan umur {age} dan taraf kewarganegaraan",
+  "class.epfPart.override":
+    "{part}, ditetapkan secara manual dalam rekod pekerja",
+  "class.epfPart.notApplicable": "KWSP tidak terpakai bagi pekerja ini",
+  "class.epfPart.noAge":
+    "{part}, tarikh lahir tiada dalam rekod — tiada jalur umur digunakan",
   "class.socsoCategory": "Kategori PERKESO",
   "class.socsoCategory.detail": "{category}, berdasarkan umur {age}",
-  "class.socsoCategory.override": "{category}, ditetapkan secara manual dalam rekod pekerja",
+  "class.socsoCategory.override":
+    "{category}, ditetapkan secara manual dalam rekod pekerja",
+  "class.socsoCategory.notApplicable":
+    "PERKESO tidak terpakai bagi pekerja ini",
+  "class.socsoCategory.noAge":
+    "{category}, tarikh lahir tiada dalam rekod — tiada jalur umur digunakan",
   "class.eisEligible": "Kelayakan SIP",
-  "class.eisEligible.detail": "{eligibility} — umur {age} berbanding julat {min}–{max}",
-  "class.eisEligible.age57Review": "Umur {age}: sejarah caruman kali pertama perlu disemak",
+  "class.eisEligible.detail":
+    "{eligibility} — umur {age} berbanding julat {min}–{max}",
+  "class.eisEligible.notApplicable": "SIP tidak terpakai bagi pekerja ini",
+  "class.eisEligible.noAge":
+    "Tidak layak — tarikh lahir tiada dalam rekod, jadi julat {min}–{max} tidak dapat digunakan",
+  "class.eisEligible.age57Review":
+    "Umur {age}: sejarah caruman kali pertama perlu disemak",
 
   // ---- earnings ----
   "earn.basic": "Gaji pokok",
   "earn.item": "{code}",
   "earn.overtime": "Kerja lebih masa",
   "earn.overtime.detail": "{hours} jam pada {rate} sejam",
-  "earn.meal": "Elaun makan",
-  "earn.meal.detail": "{days} hari pada {rate} sehari",
+  "earn.perUnit.detail": "{days} hari pada {rate} sehari",
   "earn.gross": "Gaji kasar",
   "earn.gross.detail": "Jumlah {count} pendapatan",
 
@@ -85,22 +94,23 @@ export const MS: Record<MessageKey, string> = {
   "wages.epf": "Upah tertakluk kepada KWSP",
   "wages.socso": "Upah tertakluk kepada PERKESO",
   "wages.eis": "Upah tertakluk kepada SIP",
-  "wages.included": "Termasuk",
-  "wages.excluded.byMatrix": "{code} tidak dikira sebagai upah bagi caruman ini",
+  "wages.excluded.byMatrix":
+    "{code} tidak dikira sebagai upah bagi caruman ini",
 
   // ---- EPF ----
   "epf.band": "Jadual Ketiga KWSP, {part}",
-  "epf.band.matched": "Upah {wages} berada dalam banjaran {from}–{to}, baris {row} daripada {rows}",
+  "epf.band.matched":
+    "Upah {wages} berada dalam banjaran {from}–{to}, baris {row} daripada {rows}",
   "epf.ee": "Caruman pekerja KWSP",
   "epf.er": "Caruman majikan KWSP",
   "epf.column": "Lajur pekerja bagi banjaran yang sepadan",
   "epf.columnEr": "Lajur majikan bagi banjaran yang sepadan",
   "epf.above.ee": "Caruman pekerja KWSP melebihi siling jadual",
   "epf.above.er": "Caruman majikan KWSP melebihi siling jadual",
-  "epf.above.detail": "Upah {wages} melebihi siling jadual {ceiling}, jadi {pct} dikenakan",
+  "epf.above.detail":
+    "Upah {wages} melebihi siling jadual {ceiling}, jadi {pct} dikenakan",
   "epf.partF.detail": "Kadar tetap Bahagian F sebanyak {pct}",
   "epf.na.part": "KWSP tidak berkenaan bagi pekerja ini",
-  "epf.na.partE.ee": "Pekerja berumur 60 tahun ke atas tidak mencarum (Jadual Ketiga Bahagian E)",
   "epf.na.noWages": "Tiada upah tertakluk kepada KWSP",
 
   // ---- SOCSO ----
@@ -112,14 +122,16 @@ export const MS: Record<MessageKey, string> = {
   "socso.eeSkbbk": "Caruman pekerja SKBBK",
   "socso.skbbk.window": "Fasa SKBBK berkuat kuasa",
   "socso.skbbk.inWindow": "{periodEnd} berada dalam fasa {from} hingga {to}",
-  "socso.skbbk.outsideWindow": "{periodEnd} berada di luar fasa {from} hingga {to}",
+  "socso.skbbk.outsideWindow":
+    "{periodEnd} berada di luar fasa {from} hingga {to}",
   "socso.column": "Lajur {category} bagi banjaran yang sepadan",
   "socso.na.category": "PERKESO tidak berkenaan bagi pekerja ini",
   "socso.na.noWages": "Tiada upah tertakluk kepada PERKESO",
 
   // ---- EIS ----
   "eis.band": "Jadual caruman SIP, Akta 800",
-  "eis.band.matched": "Upah {wages} berada dalam banjaran {from}–{to}, baris {row} daripada {rows}",
+  "eis.band.matched":
+    "Upah {wages} berada dalam banjaran {from}–{to}, baris {row} daripada {rows}",
   "eis.ee": "Caruman pekerja SIP",
   "eis.er": "Caruman majikan SIP",
   "eis.na.notEligible": "SIP tidak berkenaan bagi pekerja ini",
@@ -127,18 +139,18 @@ export const MS: Record<MessageKey, string> = {
 
   // ---- PCB ----
   "pcb.declared": "PCB / MTD seperti direkodkan",
-  "pcb.declared.notEntered": "Belum dimasukkan — gaji bersih tidak dapat ditentukan",
+  "pcb.declared.notEntered":
+    "Belum dimasukkan — gaji bersih tidak dapat ditentukan",
   "pcb.declared.entered": "Direkodkan daripada {source}, {status}",
   "pcb.zakat": "Tolakan zakat",
   "pcb.net": "PCB / MTD selepas zakat",
-  "pcb.net.detail": "Nilai yang lebih tinggi antara PCB tolak zakat {zakat}, dan sifar",
+  "pcb.net.detail":
+    "Nilai yang lebih tinggi antara PCB tolak zakat {zakat}, dan sifar",
   "pcb.cp38": "Ansuran CP38",
   "pcb.na": "PCB tidak berkenaan bagi pekerja ini",
 
   // ---- rounding ----
-  "round.halfUp": "Dibundarkan ke sen terdekat",
   "round.halfUp.detail": "{exact} dibundarkan kepada {result}",
-  "round.ceilRinggit": "Dibundarkan ke atas ke ringgit penuh",
   "round.ceilRinggit.detail":
     "{exact} dibundarkan ke atas kepada {result}, perbezaan sebanyak {delta}",
   "round.noChange": "Tiada pembundaran diperlukan",
@@ -146,14 +158,14 @@ export const MS: Record<MessageKey, string> = {
   // ---- overrides ----
   "override.applied": "Pindaan manual",
   "override.detail": "Dikira {computed}, dipinda kepada {override} — {reason}",
-  "override.approvedBy": "Diluluskan oleh {approver}, bukti {evidence}",
 
   // ---- totals ----
   "total.statutoryEe": "Potongan berkanun pekerja",
   "total.otherDeductions": "Potongan lain",
   "total.otherDeductions.none": "Tiada potongan lain direkodkan",
   "total.deductions": "Jumlah potongan",
-  "total.deductions.pendingPcb": "Tidak dapat ditentukan sehingga PCB dimasukkan",
+  "total.deductions.pendingPcb":
+    "Tidak dapat ditentukan sehingga PCB dimasukkan",
   "total.net": "Gaji bersih",
   "total.net.detail": "Gaji kasar {gross} tolak potongan {deductions}",
   "total.net.pendingPcb": "Tidak dapat ditentukan sehingga PCB dimasukkan",
@@ -165,8 +177,5 @@ export const MS: Record<MessageKey, string> = {
 
   // ---- generic operations ----
   "op.sum": "Jumlah",
-  "op.subtract": "Tolakan",
-  "op.multiply": "Pendaraban",
-  "op.max": "Nilai yang lebih tinggi antara kedua-duanya",
   "op.percent": "{pct} daripada {base}",
 };

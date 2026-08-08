@@ -4,6 +4,7 @@ import type {
   Band5,
   EmployeeSnapshot,
   PayItemDef,
+  RateBasis,
   RuleSettings,
   SocsoBand,
   StatutoryTables,
@@ -29,14 +30,24 @@ export function loadTables(): StatutoryTables {
 
 export function loadPayItems(): PayItemDef[] {
   const items = readJson<
-    Array<{ code: string; kind: "EARNING" | "DEDUCTION"; epfWages: number; socsoWages: number; eisWages: number }>
+    Array<{
+      code: string;
+      kind: "EARNING" | "DEDUCTION";
+      rateBasis: RateBasis;
+      epfWages: number;
+      socsoWages: number;
+      eisWages: number;
+      prorates: number;
+    }>
   >("pay-item-matrix.json");
   return items.map((i) => ({
     code: i.code,
     kind: i.kind,
+    rateBasis: i.rateBasis,
     epfWages: !!i.epfWages,
     socsoWages: !!i.socsoWages,
     eisWages: !!i.eisWages,
+    prorates: !!i.prorates,
   }));
 }
 
@@ -46,12 +57,16 @@ export function loadPayItems(): PayItemDef[] {
  */
 function required(settings: Record<string, string>, key: string): string {
   const v = settings[key];
-  if (v === undefined) throw new Error(`rule pack is missing setting: ${key}`);
+  if (v === undefined) {
+    throw new Error(`rule pack is missing setting: ${key}`);
+  }
   return v;
 }
 
 export function defaultSettings(): RuleSettings {
-  const meta = readJson<{ settings: Record<string, string> }>("rule-pack-meta.json");
+  const meta = readJson<{ settings: Record<string, string> }>(
+    "rule-pack-meta.json"
+  );
   const s = meta.settings;
   return {
     epfTableCeilingSen: Number(s["epf.table_ceiling_sen"]),
@@ -76,7 +91,9 @@ export function defaultSettings(): RuleSettings {
   };
 }
 
-export function makeEmployee(partial: Partial<EmployeeSnapshot> = {}): EmployeeSnapshot {
+export function makeEmployee(
+  partial: Partial<EmployeeSnapshot> = {}
+): EmployeeSnapshot {
   return {
     id: "TEST001",
     name: "TEST EMPLOYEE",

@@ -86,7 +86,16 @@ export type RuleId = (typeof ALL_RULE_IDS)[number];
  * invalid member but not a missing one, so a newly added source could be
  * silently skipped by every loop over it.
  */
-export const ALL_SOURCE_REFS = ["S1", "S2", "S2A", "S3", "S4", "S5", "L1", "L2"] as const;
+export const ALL_SOURCE_REFS = [
+  "S1",
+  "S2",
+  "S2A",
+  "S3",
+  "S4",
+  "S5",
+  "L1",
+  "L2",
+] as const;
 
 export type SourceRef = (typeof ALL_SOURCE_REFS)[number];
 
@@ -128,8 +137,15 @@ export const RULE_SOURCE: Record<RuleId, SourceRef> = {
 };
 
 export interface Clause {
-  /** e.g. "Third Schedule, Part A" — rendered, so it is a label key not prose. */
-  readonly label: LabelRef;
+  /**
+   * e.g. "Third Schedule, Part A" — rendered, so it is a label key not prose.
+   *
+   * Optional because a locator alone is often the whole answer: "row 236" needs
+   * no heading above it. An earlier version required this and call sites passed
+   * an arbitrary key to satisfy the type, which put the wrong words next to
+   * every citation — worse than no words.
+   */
+  readonly label?: LabelRef;
   /**
    * e.g. "row 236" | "s.18A(1)" | "reg. 9"
    *

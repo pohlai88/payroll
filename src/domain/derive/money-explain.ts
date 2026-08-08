@@ -27,9 +27,14 @@ function rounded(exact: Exact, sen: number): Rounded {
 }
 
 /** Proration: amount × num / den, half up to the sen. */
-export function explainMulDiv(amountSen: number, num: number, den: number): Rounded {
+export function explainMulDiv(
+  amountSen: number,
+  num: number,
+  den: number
+): Rounded {
   const sen = mulDivSen(amountSen, num, den);
-  const exact: Exact = den === 0 ? { num: 0, den: 1 } : { num: amountSen * num, den };
+  const exact: Exact =
+    den === 0 ? { num: 0, den: 1 } : { num: amountSen * num, den };
   return rounded(exact, sen);
 }
 
@@ -49,9 +54,4 @@ export function explainPctHalfUp(amountSen: number, pct: number): Rounded {
 export function explainMulHalfUp(amountSen: number, qty: number): Rounded {
   const raw = amountSen * qty;
   return rounded({ num: raw, den: 1 }, roundHalfUpSen(raw));
-}
-
-/** True when the exact value was already a whole number of sen. */
-export function isExactlyWhole(e: Exact): boolean {
-  return Number.isInteger(exactValue(e));
 }

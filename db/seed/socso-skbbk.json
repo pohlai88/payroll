@@ -1,587 +1,587 @@
 [
- {
-  "fromSen": 0,
-  "toSen": 3000,
-  "cat1ErSen": 40,
-  "cat1EeCoreSen": 10,
-  "cat1EeSkbbkSen": 20,
-  "cat2ErSen": 30,
-  "cat2EeSkbbkSen": 20
- },
- {
-  "fromSen": 3001,
-  "toSen": 5000,
-  "cat1ErSen": 70,
-  "cat1EeCoreSen": 20,
-  "cat1EeSkbbkSen": 30,
-  "cat2ErSen": 50,
-  "cat2EeSkbbkSen": 30
- },
- {
-  "fromSen": 5001,
-  "toSen": 7000,
-  "cat1ErSen": 110,
-  "cat1EeCoreSen": 30,
-  "cat1EeSkbbkSen": 50,
-  "cat2ErSen": 80,
-  "cat2EeSkbbkSen": 50
- },
- {
-  "fromSen": 7001,
-  "toSen": 10000,
-  "cat1ErSen": 150,
-  "cat1EeCoreSen": 40,
-  "cat1EeSkbbkSen": 65,
-  "cat2ErSen": 110,
-  "cat2EeSkbbkSen": 65
- },
- {
-  "fromSen": 10001,
-  "toSen": 14000,
-  "cat1ErSen": 210,
-  "cat1EeCoreSen": 60,
-  "cat1EeSkbbkSen": 90,
-  "cat2ErSen": 150,
-  "cat2EeSkbbkSen": 90
- },
- {
-  "fromSen": 14001,
-  "toSen": 20000,
-  "cat1ErSen": 295,
-  "cat1EeCoreSen": 85,
-  "cat1EeSkbbkSen": 125,
-  "cat2ErSen": 210,
-  "cat2EeSkbbkSen": 125
- },
- {
-  "fromSen": 20001,
-  "toSen": 30000,
-  "cat1ErSen": 435,
-  "cat1EeCoreSen": 125,
-  "cat1EeSkbbkSen": 185,
-  "cat2ErSen": 310,
-  "cat2EeSkbbkSen": 185
- },
- {
-  "fromSen": 30001,
-  "toSen": 40000,
-  "cat1ErSen": 615,
-  "cat1EeCoreSen": 175,
-  "cat1EeSkbbkSen": 265,
-  "cat2ErSen": 440,
-  "cat2EeSkbbkSen": 265
- },
- {
-  "fromSen": 40001,
-  "toSen": 50000,
-  "cat1ErSen": 785,
-  "cat1EeCoreSen": 225,
-  "cat1EeSkbbkSen": 335,
-  "cat2ErSen": 560,
-  "cat2EeSkbbkSen": 335
- },
- {
-  "fromSen": 50001,
-  "toSen": 60000,
-  "cat1ErSen": 965,
-  "cat1EeCoreSen": 275,
-  "cat1EeSkbbkSen": 415,
-  "cat2ErSen": 690,
-  "cat2EeSkbbkSen": 415
- },
- {
-  "fromSen": 60001,
-  "toSen": 70000,
-  "cat1ErSen": 1135,
-  "cat1EeCoreSen": 325,
-  "cat1EeSkbbkSen": 485,
-  "cat2ErSen": 810,
-  "cat2EeSkbbkSen": 485
- },
- {
-  "fromSen": 70001,
-  "toSen": 80000,
-  "cat1ErSen": 1315,
-  "cat1EeCoreSen": 375,
-  "cat1EeSkbbkSen": 565,
-  "cat2ErSen": 940,
-  "cat2EeSkbbkSen": 565
- },
- {
-  "fromSen": 80001,
-  "toSen": 90000,
-  "cat1ErSen": 1485,
-  "cat1EeCoreSen": 425,
-  "cat1EeSkbbkSen": 635,
-  "cat2ErSen": 1060,
-  "cat2EeSkbbkSen": 635
- },
- {
-  "fromSen": 90001,
-  "toSen": 100000,
-  "cat1ErSen": 1665,
-  "cat1EeCoreSen": 475,
-  "cat1EeSkbbkSen": 715,
-  "cat2ErSen": 1190,
-  "cat2EeSkbbkSen": 715
- },
- {
-  "fromSen": 100001,
-  "toSen": 110000,
-  "cat1ErSen": 1835,
-  "cat1EeCoreSen": 525,
-  "cat1EeSkbbkSen": 785,
-  "cat2ErSen": 1310,
-  "cat2EeSkbbkSen": 785
- },
- {
-  "fromSen": 110001,
-  "toSen": 120000,
-  "cat1ErSen": 2015,
-  "cat1EeCoreSen": 575,
-  "cat1EeSkbbkSen": 865,
-  "cat2ErSen": 1440,
-  "cat2EeSkbbkSen": 865
- },
- {
-  "fromSen": 120001,
-  "toSen": 130000,
-  "cat1ErSen": 2185,
-  "cat1EeCoreSen": 625,
-  "cat1EeSkbbkSen": 935,
-  "cat2ErSen": 1560,
-  "cat2EeSkbbkSen": 935
- },
- {
-  "fromSen": 130001,
-  "toSen": 140000,
-  "cat1ErSen": 2365,
-  "cat1EeCoreSen": 675,
-  "cat1EeSkbbkSen": 1015,
-  "cat2ErSen": 1690,
-  "cat2EeSkbbkSen": 1015
- },
- {
-  "fromSen": 140001,
-  "toSen": 150000,
-  "cat1ErSen": 2535,
-  "cat1EeCoreSen": 725,
-  "cat1EeSkbbkSen": 1085,
-  "cat2ErSen": 1810,
-  "cat2EeSkbbkSen": 1085
- },
- {
-  "fromSen": 150001,
-  "toSen": 160000,
-  "cat1ErSen": 2715,
-  "cat1EeCoreSen": 775,
-  "cat1EeSkbbkSen": 1165,
-  "cat2ErSen": 1940,
-  "cat2EeSkbbkSen": 1165
- },
- {
-  "fromSen": 160001,
-  "toSen": 170000,
-  "cat1ErSen": 2885,
-  "cat1EeCoreSen": 825,
-  "cat1EeSkbbkSen": 1235,
-  "cat2ErSen": 2060,
-  "cat2EeSkbbkSen": 1235
- },
- {
-  "fromSen": 170001,
-  "toSen": 180000,
-  "cat1ErSen": 3065,
-  "cat1EeCoreSen": 875,
-  "cat1EeSkbbkSen": 1315,
-  "cat2ErSen": 2190,
-  "cat2EeSkbbkSen": 1315
- },
- {
-  "fromSen": 180001,
-  "toSen": 190000,
-  "cat1ErSen": 3235,
-  "cat1EeCoreSen": 925,
-  "cat1EeSkbbkSen": 1385,
-  "cat2ErSen": 2310,
-  "cat2EeSkbbkSen": 1385
- },
- {
-  "fromSen": 190001,
-  "toSen": 200000,
-  "cat1ErSen": 3415,
-  "cat1EeCoreSen": 975,
-  "cat1EeSkbbkSen": 1465,
-  "cat2ErSen": 2440,
-  "cat2EeSkbbkSen": 1465
- },
- {
-  "fromSen": 200001,
-  "toSen": 210000,
-  "cat1ErSen": 3585,
-  "cat1EeCoreSen": 1025,
-  "cat1EeSkbbkSen": 1535,
-  "cat2ErSen": 2560,
-  "cat2EeSkbbkSen": 1535
- },
- {
-  "fromSen": 210001,
-  "toSen": 220000,
-  "cat1ErSen": 3765,
-  "cat1EeCoreSen": 1075,
-  "cat1EeSkbbkSen": 1615,
-  "cat2ErSen": 2690,
-  "cat2EeSkbbkSen": 1615
- },
- {
-  "fromSen": 220001,
-  "toSen": 230000,
-  "cat1ErSen": 3935,
-  "cat1EeCoreSen": 1125,
-  "cat1EeSkbbkSen": 1685,
-  "cat2ErSen": 2810,
-  "cat2EeSkbbkSen": 1685
- },
- {
-  "fromSen": 230001,
-  "toSen": 240000,
-  "cat1ErSen": 4115,
-  "cat1EeCoreSen": 1175,
-  "cat1EeSkbbkSen": 1765,
-  "cat2ErSen": 2940,
-  "cat2EeSkbbkSen": 1765
- },
- {
-  "fromSen": 240001,
-  "toSen": 250000,
-  "cat1ErSen": 4285,
-  "cat1EeCoreSen": 1225,
-  "cat1EeSkbbkSen": 1835,
-  "cat2ErSen": 3060,
-  "cat2EeSkbbkSen": 1835
- },
- {
-  "fromSen": 250001,
-  "toSen": 260000,
-  "cat1ErSen": 4465,
-  "cat1EeCoreSen": 1275,
-  "cat1EeSkbbkSen": 1915,
-  "cat2ErSen": 3190,
-  "cat2EeSkbbkSen": 1915
- },
- {
-  "fromSen": 260001,
-  "toSen": 270000,
-  "cat1ErSen": 4635,
-  "cat1EeCoreSen": 1325,
-  "cat1EeSkbbkSen": 1985,
-  "cat2ErSen": 3310,
-  "cat2EeSkbbkSen": 1985
- },
- {
-  "fromSen": 270001,
-  "toSen": 280000,
-  "cat1ErSen": 4815,
-  "cat1EeCoreSen": 1375,
-  "cat1EeSkbbkSen": 2065,
-  "cat2ErSen": 3440,
-  "cat2EeSkbbkSen": 2065
- },
- {
-  "fromSen": 280001,
-  "toSen": 290000,
-  "cat1ErSen": 4985,
-  "cat1EeCoreSen": 1425,
-  "cat1EeSkbbkSen": 2135,
-  "cat2ErSen": 3560,
-  "cat2EeSkbbkSen": 2135
- },
- {
-  "fromSen": 290001,
-  "toSen": 300000,
-  "cat1ErSen": 5165,
-  "cat1EeCoreSen": 1475,
-  "cat1EeSkbbkSen": 2215,
-  "cat2ErSen": 3690,
-  "cat2EeSkbbkSen": 2215
- },
- {
-  "fromSen": 300001,
-  "toSen": 310000,
-  "cat1ErSen": 5335,
-  "cat1EeCoreSen": 1525,
-  "cat1EeSkbbkSen": 2285,
-  "cat2ErSen": 3810,
-  "cat2EeSkbbkSen": 2285
- },
- {
-  "fromSen": 310001,
-  "toSen": 320000,
-  "cat1ErSen": 5515,
-  "cat1EeCoreSen": 1575,
-  "cat1EeSkbbkSen": 2365,
-  "cat2ErSen": 3940,
-  "cat2EeSkbbkSen": 2365
- },
- {
-  "fromSen": 320001,
-  "toSen": 330000,
-  "cat1ErSen": 5685,
-  "cat1EeCoreSen": 1625,
-  "cat1EeSkbbkSen": 2435,
-  "cat2ErSen": 4060,
-  "cat2EeSkbbkSen": 2435
- },
- {
-  "fromSen": 330001,
-  "toSen": 340000,
-  "cat1ErSen": 5865,
-  "cat1EeCoreSen": 1675,
-  "cat1EeSkbbkSen": 2515,
-  "cat2ErSen": 4190,
-  "cat2EeSkbbkSen": 2515
- },
- {
-  "fromSen": 340001,
-  "toSen": 350000,
-  "cat1ErSen": 6035,
-  "cat1EeCoreSen": 1725,
-  "cat1EeSkbbkSen": 2585,
-  "cat2ErSen": 4310,
-  "cat2EeSkbbkSen": 2585
- },
- {
-  "fromSen": 350001,
-  "toSen": 360000,
-  "cat1ErSen": 6215,
-  "cat1EeCoreSen": 1775,
-  "cat1EeSkbbkSen": 2665,
-  "cat2ErSen": 4440,
-  "cat2EeSkbbkSen": 2665
- },
- {
-  "fromSen": 360001,
-  "toSen": 370000,
-  "cat1ErSen": 6385,
-  "cat1EeCoreSen": 1825,
-  "cat1EeSkbbkSen": 2735,
-  "cat2ErSen": 4560,
-  "cat2EeSkbbkSen": 2735
- },
- {
-  "fromSen": 370001,
-  "toSen": 380000,
-  "cat1ErSen": 6565,
-  "cat1EeCoreSen": 1875,
-  "cat1EeSkbbkSen": 2815,
-  "cat2ErSen": 4690,
-  "cat2EeSkbbkSen": 2815
- },
- {
-  "fromSen": 380001,
-  "toSen": 390000,
-  "cat1ErSen": 6735,
-  "cat1EeCoreSen": 1925,
-  "cat1EeSkbbkSen": 2885,
-  "cat2ErSen": 4810,
-  "cat2EeSkbbkSen": 2885
- },
- {
-  "fromSen": 390001,
-  "toSen": 400000,
-  "cat1ErSen": 6915,
-  "cat1EeCoreSen": 1975,
-  "cat1EeSkbbkSen": 2965,
-  "cat2ErSen": 4940,
-  "cat2EeSkbbkSen": 2965
- },
- {
-  "fromSen": 400001,
-  "toSen": 410000,
-  "cat1ErSen": 7085,
-  "cat1EeCoreSen": 2025,
-  "cat1EeSkbbkSen": 3035,
-  "cat2ErSen": 5060,
-  "cat2EeSkbbkSen": 3035
- },
- {
-  "fromSen": 410001,
-  "toSen": 420000,
-  "cat1ErSen": 7265,
-  "cat1EeCoreSen": 2075,
-  "cat1EeSkbbkSen": 3115,
-  "cat2ErSen": 5190,
-  "cat2EeSkbbkSen": 3115
- },
- {
-  "fromSen": 420001,
-  "toSen": 430000,
-  "cat1ErSen": 7435,
-  "cat1EeCoreSen": 2125,
-  "cat1EeSkbbkSen": 3185,
-  "cat2ErSen": 5310,
-  "cat2EeSkbbkSen": 3185
- },
- {
-  "fromSen": 430001,
-  "toSen": 440000,
-  "cat1ErSen": 7615,
-  "cat1EeCoreSen": 2175,
-  "cat1EeSkbbkSen": 3265,
-  "cat2ErSen": 5440,
-  "cat2EeSkbbkSen": 3265
- },
- {
-  "fromSen": 440001,
-  "toSen": 450000,
-  "cat1ErSen": 7785,
-  "cat1EeCoreSen": 2225,
-  "cat1EeSkbbkSen": 3335,
-  "cat2ErSen": 5560,
-  "cat2EeSkbbkSen": 3335
- },
- {
-  "fromSen": 450001,
-  "toSen": 460000,
-  "cat1ErSen": 7965,
-  "cat1EeCoreSen": 2275,
-  "cat1EeSkbbkSen": 3415,
-  "cat2ErSen": 5690,
-  "cat2EeSkbbkSen": 3415
- },
- {
-  "fromSen": 460001,
-  "toSen": 470000,
-  "cat1ErSen": 8135,
-  "cat1EeCoreSen": 2325,
-  "cat1EeSkbbkSen": 3485,
-  "cat2ErSen": 5810,
-  "cat2EeSkbbkSen": 3485
- },
- {
-  "fromSen": 470001,
-  "toSen": 480000,
-  "cat1ErSen": 8315,
-  "cat1EeCoreSen": 2375,
-  "cat1EeSkbbkSen": 3565,
-  "cat2ErSen": 5940,
-  "cat2EeSkbbkSen": 3565
- },
- {
-  "fromSen": 480001,
-  "toSen": 490000,
-  "cat1ErSen": 8485,
-  "cat1EeCoreSen": 2425,
-  "cat1EeSkbbkSen": 3635,
-  "cat2ErSen": 6060,
-  "cat2EeSkbbkSen": 3635
- },
- {
-  "fromSen": 490001,
-  "toSen": 500000,
-  "cat1ErSen": 8665,
-  "cat1EeCoreSen": 2475,
-  "cat1EeSkbbkSen": 3715,
-  "cat2ErSen": 6190,
-  "cat2EeSkbbkSen": 3715
- },
- {
-  "fromSen": 500001,
-  "toSen": 510000,
-  "cat1ErSen": 8835,
-  "cat1EeCoreSen": 2525,
-  "cat1EeSkbbkSen": 3785,
-  "cat2ErSen": 6310,
-  "cat2EeSkbbkSen": 3785
- },
- {
-  "fromSen": 510001,
-  "toSen": 520000,
-  "cat1ErSen": 9015,
-  "cat1EeCoreSen": 2575,
-  "cat1EeSkbbkSen": 3865,
-  "cat2ErSen": 6440,
-  "cat2EeSkbbkSen": 3865
- },
- {
-  "fromSen": 520001,
-  "toSen": 530000,
-  "cat1ErSen": 9185,
-  "cat1EeCoreSen": 2625,
-  "cat1EeSkbbkSen": 3935,
-  "cat2ErSen": 6560,
-  "cat2EeSkbbkSen": 3935
- },
- {
-  "fromSen": 530001,
-  "toSen": 540000,
-  "cat1ErSen": 9365,
-  "cat1EeCoreSen": 2675,
-  "cat1EeSkbbkSen": 4015,
-  "cat2ErSen": 6690,
-  "cat2EeSkbbkSen": 4015
- },
- {
-  "fromSen": 540001,
-  "toSen": 550000,
-  "cat1ErSen": 9535,
-  "cat1EeCoreSen": 2725,
-  "cat1EeSkbbkSen": 4085,
-  "cat2ErSen": 6810,
-  "cat2EeSkbbkSen": 4085
- },
- {
-  "fromSen": 550001,
-  "toSen": 560000,
-  "cat1ErSen": 9715,
-  "cat1EeCoreSen": 2775,
-  "cat1EeSkbbkSen": 4165,
-  "cat2ErSen": 6940,
-  "cat2EeSkbbkSen": 4165
- },
- {
-  "fromSen": 560001,
-  "toSen": 570000,
-  "cat1ErSen": 9885,
-  "cat1EeCoreSen": 2825,
-  "cat1EeSkbbkSen": 4235,
-  "cat2ErSen": 7060,
-  "cat2EeSkbbkSen": 4235
- },
- {
-  "fromSen": 570001,
-  "toSen": 580000,
-  "cat1ErSen": 10065,
-  "cat1EeCoreSen": 2875,
-  "cat1EeSkbbkSen": 4315,
-  "cat2ErSen": 7190,
-  "cat2EeSkbbkSen": 4315
- },
- {
-  "fromSen": 580001,
-  "toSen": 590000,
-  "cat1ErSen": 10235,
-  "cat1EeCoreSen": 2925,
-  "cat1EeSkbbkSen": 4385,
-  "cat2ErSen": 7310,
-  "cat2EeSkbbkSen": 4385
- },
- {
-  "fromSen": 590001,
-  "toSen": 600000,
-  "cat1ErSen": 10415,
-  "cat1EeCoreSen": 2975,
-  "cat1EeSkbbkSen": 4465,
-  "cat2ErSen": 7440,
-  "cat2EeSkbbkSen": 4465
- },
- {
-  "fromSen": 600001,
-  "toSen": 100000000000,
-  "cat1ErSen": 10415,
-  "cat1EeCoreSen": 2975,
-  "cat1EeSkbbkSen": 4465,
-  "cat2ErSen": 7440,
-  "cat2EeSkbbkSen": 4465
- }
+  {
+    "fromSen": 0,
+    "toSen": 3000,
+    "cat1ErSen": 40,
+    "cat1EeCoreSen": 10,
+    "cat1EeSkbbkSen": 20,
+    "cat2ErSen": 30,
+    "cat2EeSkbbkSen": 20
+  },
+  {
+    "fromSen": 3001,
+    "toSen": 5000,
+    "cat1ErSen": 70,
+    "cat1EeCoreSen": 20,
+    "cat1EeSkbbkSen": 30,
+    "cat2ErSen": 50,
+    "cat2EeSkbbkSen": 30
+  },
+  {
+    "fromSen": 5001,
+    "toSen": 7000,
+    "cat1ErSen": 110,
+    "cat1EeCoreSen": 30,
+    "cat1EeSkbbkSen": 50,
+    "cat2ErSen": 80,
+    "cat2EeSkbbkSen": 50
+  },
+  {
+    "fromSen": 7001,
+    "toSen": 10000,
+    "cat1ErSen": 150,
+    "cat1EeCoreSen": 40,
+    "cat1EeSkbbkSen": 65,
+    "cat2ErSen": 110,
+    "cat2EeSkbbkSen": 65
+  },
+  {
+    "fromSen": 10001,
+    "toSen": 14000,
+    "cat1ErSen": 210,
+    "cat1EeCoreSen": 60,
+    "cat1EeSkbbkSen": 90,
+    "cat2ErSen": 150,
+    "cat2EeSkbbkSen": 90
+  },
+  {
+    "fromSen": 14001,
+    "toSen": 20000,
+    "cat1ErSen": 295,
+    "cat1EeCoreSen": 85,
+    "cat1EeSkbbkSen": 125,
+    "cat2ErSen": 210,
+    "cat2EeSkbbkSen": 125
+  },
+  {
+    "fromSen": 20001,
+    "toSen": 30000,
+    "cat1ErSen": 435,
+    "cat1EeCoreSen": 125,
+    "cat1EeSkbbkSen": 185,
+    "cat2ErSen": 310,
+    "cat2EeSkbbkSen": 185
+  },
+  {
+    "fromSen": 30001,
+    "toSen": 40000,
+    "cat1ErSen": 615,
+    "cat1EeCoreSen": 175,
+    "cat1EeSkbbkSen": 265,
+    "cat2ErSen": 440,
+    "cat2EeSkbbkSen": 265
+  },
+  {
+    "fromSen": 40001,
+    "toSen": 50000,
+    "cat1ErSen": 785,
+    "cat1EeCoreSen": 225,
+    "cat1EeSkbbkSen": 335,
+    "cat2ErSen": 560,
+    "cat2EeSkbbkSen": 335
+  },
+  {
+    "fromSen": 50001,
+    "toSen": 60000,
+    "cat1ErSen": 965,
+    "cat1EeCoreSen": 275,
+    "cat1EeSkbbkSen": 415,
+    "cat2ErSen": 690,
+    "cat2EeSkbbkSen": 415
+  },
+  {
+    "fromSen": 60001,
+    "toSen": 70000,
+    "cat1ErSen": 1135,
+    "cat1EeCoreSen": 325,
+    "cat1EeSkbbkSen": 485,
+    "cat2ErSen": 810,
+    "cat2EeSkbbkSen": 485
+  },
+  {
+    "fromSen": 70001,
+    "toSen": 80000,
+    "cat1ErSen": 1315,
+    "cat1EeCoreSen": 375,
+    "cat1EeSkbbkSen": 565,
+    "cat2ErSen": 940,
+    "cat2EeSkbbkSen": 565
+  },
+  {
+    "fromSen": 80001,
+    "toSen": 90000,
+    "cat1ErSen": 1485,
+    "cat1EeCoreSen": 425,
+    "cat1EeSkbbkSen": 635,
+    "cat2ErSen": 1060,
+    "cat2EeSkbbkSen": 635
+  },
+  {
+    "fromSen": 90001,
+    "toSen": 100000,
+    "cat1ErSen": 1665,
+    "cat1EeCoreSen": 475,
+    "cat1EeSkbbkSen": 715,
+    "cat2ErSen": 1190,
+    "cat2EeSkbbkSen": 715
+  },
+  {
+    "fromSen": 100001,
+    "toSen": 110000,
+    "cat1ErSen": 1835,
+    "cat1EeCoreSen": 525,
+    "cat1EeSkbbkSen": 785,
+    "cat2ErSen": 1310,
+    "cat2EeSkbbkSen": 785
+  },
+  {
+    "fromSen": 110001,
+    "toSen": 120000,
+    "cat1ErSen": 2015,
+    "cat1EeCoreSen": 575,
+    "cat1EeSkbbkSen": 865,
+    "cat2ErSen": 1440,
+    "cat2EeSkbbkSen": 865
+  },
+  {
+    "fromSen": 120001,
+    "toSen": 130000,
+    "cat1ErSen": 2185,
+    "cat1EeCoreSen": 625,
+    "cat1EeSkbbkSen": 935,
+    "cat2ErSen": 1560,
+    "cat2EeSkbbkSen": 935
+  },
+  {
+    "fromSen": 130001,
+    "toSen": 140000,
+    "cat1ErSen": 2365,
+    "cat1EeCoreSen": 675,
+    "cat1EeSkbbkSen": 1015,
+    "cat2ErSen": 1690,
+    "cat2EeSkbbkSen": 1015
+  },
+  {
+    "fromSen": 140001,
+    "toSen": 150000,
+    "cat1ErSen": 2535,
+    "cat1EeCoreSen": 725,
+    "cat1EeSkbbkSen": 1085,
+    "cat2ErSen": 1810,
+    "cat2EeSkbbkSen": 1085
+  },
+  {
+    "fromSen": 150001,
+    "toSen": 160000,
+    "cat1ErSen": 2715,
+    "cat1EeCoreSen": 775,
+    "cat1EeSkbbkSen": 1165,
+    "cat2ErSen": 1940,
+    "cat2EeSkbbkSen": 1165
+  },
+  {
+    "fromSen": 160001,
+    "toSen": 170000,
+    "cat1ErSen": 2885,
+    "cat1EeCoreSen": 825,
+    "cat1EeSkbbkSen": 1235,
+    "cat2ErSen": 2060,
+    "cat2EeSkbbkSen": 1235
+  },
+  {
+    "fromSen": 170001,
+    "toSen": 180000,
+    "cat1ErSen": 3065,
+    "cat1EeCoreSen": 875,
+    "cat1EeSkbbkSen": 1315,
+    "cat2ErSen": 2190,
+    "cat2EeSkbbkSen": 1315
+  },
+  {
+    "fromSen": 180001,
+    "toSen": 190000,
+    "cat1ErSen": 3235,
+    "cat1EeCoreSen": 925,
+    "cat1EeSkbbkSen": 1385,
+    "cat2ErSen": 2310,
+    "cat2EeSkbbkSen": 1385
+  },
+  {
+    "fromSen": 190001,
+    "toSen": 200000,
+    "cat1ErSen": 3415,
+    "cat1EeCoreSen": 975,
+    "cat1EeSkbbkSen": 1465,
+    "cat2ErSen": 2440,
+    "cat2EeSkbbkSen": 1465
+  },
+  {
+    "fromSen": 200001,
+    "toSen": 210000,
+    "cat1ErSen": 3585,
+    "cat1EeCoreSen": 1025,
+    "cat1EeSkbbkSen": 1535,
+    "cat2ErSen": 2560,
+    "cat2EeSkbbkSen": 1535
+  },
+  {
+    "fromSen": 210001,
+    "toSen": 220000,
+    "cat1ErSen": 3765,
+    "cat1EeCoreSen": 1075,
+    "cat1EeSkbbkSen": 1615,
+    "cat2ErSen": 2690,
+    "cat2EeSkbbkSen": 1615
+  },
+  {
+    "fromSen": 220001,
+    "toSen": 230000,
+    "cat1ErSen": 3935,
+    "cat1EeCoreSen": 1125,
+    "cat1EeSkbbkSen": 1685,
+    "cat2ErSen": 2810,
+    "cat2EeSkbbkSen": 1685
+  },
+  {
+    "fromSen": 230001,
+    "toSen": 240000,
+    "cat1ErSen": 4115,
+    "cat1EeCoreSen": 1175,
+    "cat1EeSkbbkSen": 1765,
+    "cat2ErSen": 2940,
+    "cat2EeSkbbkSen": 1765
+  },
+  {
+    "fromSen": 240001,
+    "toSen": 250000,
+    "cat1ErSen": 4285,
+    "cat1EeCoreSen": 1225,
+    "cat1EeSkbbkSen": 1835,
+    "cat2ErSen": 3060,
+    "cat2EeSkbbkSen": 1835
+  },
+  {
+    "fromSen": 250001,
+    "toSen": 260000,
+    "cat1ErSen": 4465,
+    "cat1EeCoreSen": 1275,
+    "cat1EeSkbbkSen": 1915,
+    "cat2ErSen": 3190,
+    "cat2EeSkbbkSen": 1915
+  },
+  {
+    "fromSen": 260001,
+    "toSen": 270000,
+    "cat1ErSen": 4635,
+    "cat1EeCoreSen": 1325,
+    "cat1EeSkbbkSen": 1985,
+    "cat2ErSen": 3310,
+    "cat2EeSkbbkSen": 1985
+  },
+  {
+    "fromSen": 270001,
+    "toSen": 280000,
+    "cat1ErSen": 4815,
+    "cat1EeCoreSen": 1375,
+    "cat1EeSkbbkSen": 2065,
+    "cat2ErSen": 3440,
+    "cat2EeSkbbkSen": 2065
+  },
+  {
+    "fromSen": 280001,
+    "toSen": 290000,
+    "cat1ErSen": 4985,
+    "cat1EeCoreSen": 1425,
+    "cat1EeSkbbkSen": 2135,
+    "cat2ErSen": 3560,
+    "cat2EeSkbbkSen": 2135
+  },
+  {
+    "fromSen": 290001,
+    "toSen": 300000,
+    "cat1ErSen": 5165,
+    "cat1EeCoreSen": 1475,
+    "cat1EeSkbbkSen": 2215,
+    "cat2ErSen": 3690,
+    "cat2EeSkbbkSen": 2215
+  },
+  {
+    "fromSen": 300001,
+    "toSen": 310000,
+    "cat1ErSen": 5335,
+    "cat1EeCoreSen": 1525,
+    "cat1EeSkbbkSen": 2285,
+    "cat2ErSen": 3810,
+    "cat2EeSkbbkSen": 2285
+  },
+  {
+    "fromSen": 310001,
+    "toSen": 320000,
+    "cat1ErSen": 5515,
+    "cat1EeCoreSen": 1575,
+    "cat1EeSkbbkSen": 2365,
+    "cat2ErSen": 3940,
+    "cat2EeSkbbkSen": 2365
+  },
+  {
+    "fromSen": 320001,
+    "toSen": 330000,
+    "cat1ErSen": 5685,
+    "cat1EeCoreSen": 1625,
+    "cat1EeSkbbkSen": 2435,
+    "cat2ErSen": 4060,
+    "cat2EeSkbbkSen": 2435
+  },
+  {
+    "fromSen": 330001,
+    "toSen": 340000,
+    "cat1ErSen": 5865,
+    "cat1EeCoreSen": 1675,
+    "cat1EeSkbbkSen": 2515,
+    "cat2ErSen": 4190,
+    "cat2EeSkbbkSen": 2515
+  },
+  {
+    "fromSen": 340001,
+    "toSen": 350000,
+    "cat1ErSen": 6035,
+    "cat1EeCoreSen": 1725,
+    "cat1EeSkbbkSen": 2585,
+    "cat2ErSen": 4310,
+    "cat2EeSkbbkSen": 2585
+  },
+  {
+    "fromSen": 350001,
+    "toSen": 360000,
+    "cat1ErSen": 6215,
+    "cat1EeCoreSen": 1775,
+    "cat1EeSkbbkSen": 2665,
+    "cat2ErSen": 4440,
+    "cat2EeSkbbkSen": 2665
+  },
+  {
+    "fromSen": 360001,
+    "toSen": 370000,
+    "cat1ErSen": 6385,
+    "cat1EeCoreSen": 1825,
+    "cat1EeSkbbkSen": 2735,
+    "cat2ErSen": 4560,
+    "cat2EeSkbbkSen": 2735
+  },
+  {
+    "fromSen": 370001,
+    "toSen": 380000,
+    "cat1ErSen": 6565,
+    "cat1EeCoreSen": 1875,
+    "cat1EeSkbbkSen": 2815,
+    "cat2ErSen": 4690,
+    "cat2EeSkbbkSen": 2815
+  },
+  {
+    "fromSen": 380001,
+    "toSen": 390000,
+    "cat1ErSen": 6735,
+    "cat1EeCoreSen": 1925,
+    "cat1EeSkbbkSen": 2885,
+    "cat2ErSen": 4810,
+    "cat2EeSkbbkSen": 2885
+  },
+  {
+    "fromSen": 390001,
+    "toSen": 400000,
+    "cat1ErSen": 6915,
+    "cat1EeCoreSen": 1975,
+    "cat1EeSkbbkSen": 2965,
+    "cat2ErSen": 4940,
+    "cat2EeSkbbkSen": 2965
+  },
+  {
+    "fromSen": 400001,
+    "toSen": 410000,
+    "cat1ErSen": 7085,
+    "cat1EeCoreSen": 2025,
+    "cat1EeSkbbkSen": 3035,
+    "cat2ErSen": 5060,
+    "cat2EeSkbbkSen": 3035
+  },
+  {
+    "fromSen": 410001,
+    "toSen": 420000,
+    "cat1ErSen": 7265,
+    "cat1EeCoreSen": 2075,
+    "cat1EeSkbbkSen": 3115,
+    "cat2ErSen": 5190,
+    "cat2EeSkbbkSen": 3115
+  },
+  {
+    "fromSen": 420001,
+    "toSen": 430000,
+    "cat1ErSen": 7435,
+    "cat1EeCoreSen": 2125,
+    "cat1EeSkbbkSen": 3185,
+    "cat2ErSen": 5310,
+    "cat2EeSkbbkSen": 3185
+  },
+  {
+    "fromSen": 430001,
+    "toSen": 440000,
+    "cat1ErSen": 7615,
+    "cat1EeCoreSen": 2175,
+    "cat1EeSkbbkSen": 3265,
+    "cat2ErSen": 5440,
+    "cat2EeSkbbkSen": 3265
+  },
+  {
+    "fromSen": 440001,
+    "toSen": 450000,
+    "cat1ErSen": 7785,
+    "cat1EeCoreSen": 2225,
+    "cat1EeSkbbkSen": 3335,
+    "cat2ErSen": 5560,
+    "cat2EeSkbbkSen": 3335
+  },
+  {
+    "fromSen": 450001,
+    "toSen": 460000,
+    "cat1ErSen": 7965,
+    "cat1EeCoreSen": 2275,
+    "cat1EeSkbbkSen": 3415,
+    "cat2ErSen": 5690,
+    "cat2EeSkbbkSen": 3415
+  },
+  {
+    "fromSen": 460001,
+    "toSen": 470000,
+    "cat1ErSen": 8135,
+    "cat1EeCoreSen": 2325,
+    "cat1EeSkbbkSen": 3485,
+    "cat2ErSen": 5810,
+    "cat2EeSkbbkSen": 3485
+  },
+  {
+    "fromSen": 470001,
+    "toSen": 480000,
+    "cat1ErSen": 8315,
+    "cat1EeCoreSen": 2375,
+    "cat1EeSkbbkSen": 3565,
+    "cat2ErSen": 5940,
+    "cat2EeSkbbkSen": 3565
+  },
+  {
+    "fromSen": 480001,
+    "toSen": 490000,
+    "cat1ErSen": 8485,
+    "cat1EeCoreSen": 2425,
+    "cat1EeSkbbkSen": 3635,
+    "cat2ErSen": 6060,
+    "cat2EeSkbbkSen": 3635
+  },
+  {
+    "fromSen": 490001,
+    "toSen": 500000,
+    "cat1ErSen": 8665,
+    "cat1EeCoreSen": 2475,
+    "cat1EeSkbbkSen": 3715,
+    "cat2ErSen": 6190,
+    "cat2EeSkbbkSen": 3715
+  },
+  {
+    "fromSen": 500001,
+    "toSen": 510000,
+    "cat1ErSen": 8835,
+    "cat1EeCoreSen": 2525,
+    "cat1EeSkbbkSen": 3785,
+    "cat2ErSen": 6310,
+    "cat2EeSkbbkSen": 3785
+  },
+  {
+    "fromSen": 510001,
+    "toSen": 520000,
+    "cat1ErSen": 9015,
+    "cat1EeCoreSen": 2575,
+    "cat1EeSkbbkSen": 3865,
+    "cat2ErSen": 6440,
+    "cat2EeSkbbkSen": 3865
+  },
+  {
+    "fromSen": 520001,
+    "toSen": 530000,
+    "cat1ErSen": 9185,
+    "cat1EeCoreSen": 2625,
+    "cat1EeSkbbkSen": 3935,
+    "cat2ErSen": 6560,
+    "cat2EeSkbbkSen": 3935
+  },
+  {
+    "fromSen": 530001,
+    "toSen": 540000,
+    "cat1ErSen": 9365,
+    "cat1EeCoreSen": 2675,
+    "cat1EeSkbbkSen": 4015,
+    "cat2ErSen": 6690,
+    "cat2EeSkbbkSen": 4015
+  },
+  {
+    "fromSen": 540001,
+    "toSen": 550000,
+    "cat1ErSen": 9535,
+    "cat1EeCoreSen": 2725,
+    "cat1EeSkbbkSen": 4085,
+    "cat2ErSen": 6810,
+    "cat2EeSkbbkSen": 4085
+  },
+  {
+    "fromSen": 550001,
+    "toSen": 560000,
+    "cat1ErSen": 9715,
+    "cat1EeCoreSen": 2775,
+    "cat1EeSkbbkSen": 4165,
+    "cat2ErSen": 6940,
+    "cat2EeSkbbkSen": 4165
+  },
+  {
+    "fromSen": 560001,
+    "toSen": 570000,
+    "cat1ErSen": 9885,
+    "cat1EeCoreSen": 2825,
+    "cat1EeSkbbkSen": 4235,
+    "cat2ErSen": 7060,
+    "cat2EeSkbbkSen": 4235
+  },
+  {
+    "fromSen": 570001,
+    "toSen": 580000,
+    "cat1ErSen": 10065,
+    "cat1EeCoreSen": 2875,
+    "cat1EeSkbbkSen": 4315,
+    "cat2ErSen": 7190,
+    "cat2EeSkbbkSen": 4315
+  },
+  {
+    "fromSen": 580001,
+    "toSen": 590000,
+    "cat1ErSen": 10235,
+    "cat1EeCoreSen": 2925,
+    "cat1EeSkbbkSen": 4385,
+    "cat2ErSen": 7310,
+    "cat2EeSkbbkSen": 4385
+  },
+  {
+    "fromSen": 590001,
+    "toSen": 600000,
+    "cat1ErSen": 10415,
+    "cat1EeCoreSen": 2975,
+    "cat1EeSkbbkSen": 4465,
+    "cat2ErSen": 7440,
+    "cat2EeSkbbkSen": 4465
+  },
+  {
+    "fromSen": 600001,
+    "toSen": 100000000000,
+    "cat1ErSen": 10415,
+    "cat1EeCoreSen": 2975,
+    "cat1EeSkbbkSen": 4465,
+    "cat2ErSen": 7440,
+    "cat2EeSkbbkSen": 4465
+  }
 ]

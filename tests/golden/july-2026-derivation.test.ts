@@ -1,10 +1,11 @@
-import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
+import { describe, expect, it } from "vitest";
 import { computeLine } from "@/domain/calc/compose";
 import type { LineItemInput } from "@/domain/calc/types";
 import { deriveLine } from "@/domain/derive/emit";
-import { canonicalJson, readSen, ROOT_KEYS } from "@/domain/derive/graph";
+import { canonicalJson, ROOT_KEYS, readSen } from "@/domain/derive/graph";
+import { renderLabel } from "@/domain/derive/i18n/render";
 import {
   assertAcyclic,
   assertCitationsResolve,
@@ -14,8 +15,12 @@ import {
   assertRoundingDiscipline,
 } from "@/domain/derive/invariants";
 import { assertMirrors } from "@/domain/derive/mirror";
-import { renderLabel } from "@/domain/derive/i18n/render";
-import { loadTables, loadPayItems, defaultSettings, makeEmployee } from "../helpers";
+import {
+  defaultSettings,
+  loadPayItems,
+  loadTables,
+  makeEmployee,
+} from "../helpers";
 
 /**
  * The derivation graph, checked against the same 37 verified employees the
@@ -52,7 +57,10 @@ interface FixtureEmployee {
 }
 
 const fixture = JSON.parse(
-  fs.readFileSync(path.join(process.cwd(), "tests", "golden", "july-2026.json"), "utf8")
+  fs.readFileSync(
+    path.join(process.cwd(), "tests", "golden", "july-2026.json"),
+    "utf8"
+  )
 ) as {
   periodEnd: string;
   workingDays: number;
@@ -68,14 +76,16 @@ const RULE_PACK_ID = "MY-STATUTORY-2026-06";
 function optionsFor(e: FixtureEmployee) {
   const items: LineItemInput[] = [];
   for (const [code, amountSen] of Object.entries(e.allowances)) {
-    if (amountSen > 0) items.push({ payItemCode: code, amountSen });
+    if (amountSen > 0) {
+      items.push({ payItemCode: code, basis: "AMOUNT", amountSen });
+    }
   }
   if (e.mealDays > 0 && e.mealRateSen > 0) {
     items.push({
       payItemCode: "MEAL",
+      basis: "PER_DAY",
       qty: e.mealDays,
       rateSen: e.mealRateSen,
-      amountSen: e.mealDays * e.mealRateSen,
     });
   }
   return {
@@ -93,10 +103,7 @@ function optionsFor(e: FixtureEmployee) {
     inputs: {
       workingDays: fixture.workingDays,
       paidDays: fixture.paidDays,
-      mealDays: e.mealDays,
       hoursWorked: null,
-      otHours: 0,
-      otRateSen: 0,
       items,
       periodEnd: fixture.periodEnd,
     },
@@ -121,55 +128,66 @@ describe("Derivation graph over the July 2026 golden fixture", () => {
     expect(cases.length).toBe(37);
   });
 
-  describe.each(cases)("$employee.id $employee.name", ({ employee, result, graph }) => {
-    it("reproduces every figure the engine computed", () => {
-      assertMirrors(graph, result);
-    });
+  describe.each(cases)(
+    "$employee.id $employee.name",
+    ({ employee, result, graph }) => {
+      it("reproduces every figure the engine computed", () => {
+        assertMirrors(graph, result);
+      });
 
-    it("reproduces the figures the golden master asserts", () => {
-      expect(readSen(graph, "gross")).toBe(employee.expected.grossSen);
-      expect(readSen(graph, "epfEe")).toBe(employee.expected.epfEeSen);
-      expect(readSen(graph, "epfEr")).toBe(employee.expected.epfErSen);
-      expect(readSen(graph, "socsoEeCore")).toBe(employee.expected.socsoCoreSen);
-      expect(readSen(graph, "socsoEeSkbbk")).toBe(employee.expected.skbbkSen);
-      expect(readSen(graph, "socsoEr")).toBe(employee.expected.socsoErSen);
-      expect(readSen(graph, "eisEe")).toBe(employee.expected.eisEeSen);
-      expect(readSen(graph, "eisEr")).toBe(employee.expected.eisErSen);
-      expect(readSen(graph, "net")).toBe(employee.expected.netSen);
-    });
+      it("reproduces the figures the golden master asserts", () => {
+        expect(readSen(graph, "gross")).toBe(employee.expected.grossSen);
+        expect(readSen(graph, "epfEe")).toBe(employee.expected.epfEeSen);
+        expect(readSen(graph, "epfEr")).toBe(employee.expected.epfErSen);
+        expect(readSen(graph, "socsoEeCore")).toBe(
+          employee.expected.socsoCoreSen
+        );
+        expect(readSen(graph, "socsoEeSkbbk")).toBe(employee.expected.skbbkSen);
+        expect(readSen(graph, "socsoEr")).toBe(employee.expected.socsoErSen);
+        expect(readSen(graph, "eisEe")).toBe(employee.expected.eisEeSen);
+        expect(readSen(graph, "eisEr")).toBe(employee.expected.eisErSen);
+        expect(readSen(graph, "net")).toBe(employee.expected.netSen);
+      });
 
-    it("has no dead ends", () => {
-      assertNoDeadEnds(graph);
-    });
+      it("has no dead ends", () => {
+        assertNoDeadEnds(graph);
+      });
 
-    it("shows every rounding step", () => {
-      assertRoundingDiscipline(graph);
-    });
+      it("shows every rounding step", () => {
+        assertRoundingDiscipline(graph);
+      });
 
-    it("is acyclic with every edge resolving", () => {
-      assertEdgesResolve(graph);
-      assertAcyclic(graph);
-    });
+      it("is acyclic with every edge resolving", () => {
+        assertEdgesResolve(graph);
+        assertAcyclic(graph);
+      });
 
-    it("cites only sources the rule pack publishes", () => {
-      assertCitationsResolve(graph);
-    });
+      it("cites only sources the rule pack publishes", () => {
+        assertCitationsResolve(graph);
+      });
 
-    it("renders in both English and Malay", () => {
-      assertKeysTranslated(graph);
-    });
+      it("renders in both English and Malay", () => {
+        assertKeysTranslated(graph);
+      });
 
-    it("emits an identical graph when recomputed", () => {
-      const again = deriveLine({ ...optionsFor(employee), rulePackId: RULE_PACK_ID });
-      expect(canonicalJson(again)).toBe(canonicalJson(graph));
-    });
+      it("emits an identical graph when recomputed", () => {
+        const again = deriveLine({
+          ...optionsFor(employee),
+          rulePackId: RULE_PACK_ID,
+        });
+        expect(canonicalJson(again)).toBe(canonicalJson(graph));
+      });
 
-    it("names every root", () => {
-      for (const root of ROOT_KEYS) {
-        expect(graph.roots[root], `root ${root} was never emitted`).toBeDefined();
-      }
-    });
-  });
+      it("names every root", () => {
+        for (const root of ROOT_KEYS) {
+          expect(
+            graph.roots[root],
+            `root ${root} was never emitted`
+          ).toBeDefined();
+        }
+      });
+    }
+  );
 });
 
 describe("What the graph explains", () => {
@@ -178,7 +196,9 @@ describe("What the graph explains", () => {
   it("reaches the exact EPF Third Schedule row, cited to KWSP", () => {
     const band = sample.graph.nodes["line.epf.band"];
     expect(band?.kind).toBe("TABLE_LOOKUP");
-    if (band?.kind !== "TABLE_LOOKUP") throw new Error("expected a table lookup");
+    if (band?.kind !== "TABLE_LOOKUP") {
+      throw new Error("expected a table lookup");
+    }
 
     // The wage searched for actually falls inside the row that was returned.
     expect(band.keySen).toBeGreaterThanOrEqual(band.value.row.fromSen);
@@ -191,9 +211,13 @@ describe("What the graph explains", () => {
 
   it("says why overtime is excluded from EPF wages", () => {
     const epfWages = sample.graph.nodes["line.wages.epf"];
-    const excluded = epfWages?.inputs.filter((r) => r.role === "EXCLUDED") ?? [];
+    const excluded =
+      epfWages?.inputs.filter((r) => r.role === "EXCLUDED") ?? [];
     for (const ref of excluded) {
-      expect(ref.because, `${ref.nodeId} is excluded without a reason`).toBeDefined();
+      expect(
+        ref.because,
+        `${ref.nodeId} is excluded without a reason`
+      ).toBeDefined();
     }
   });
 

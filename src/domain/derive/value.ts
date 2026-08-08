@@ -37,7 +37,11 @@ export type NodeValue =
   /** A settled money figure, integer sen. The only money type allowed at a graph root. */
   | { readonly t: "SEN"; readonly sen: number }
   /** Money before rounding. May only be consumed by a ROUNDING node. */
-  | { readonly t: "EXACT_SEN"; readonly exact: Exact; readonly approxSen: number }
+  | {
+      readonly t: "EXACT_SEN";
+      readonly exact: Exact;
+      readonly approxSen: number;
+    }
   /** Deliberately unknown — PCB not entered. Never coerced to zero. */
   | { readonly t: "SEN_UNKNOWN" }
   | { readonly t: "ROW"; readonly row: TableRow }
@@ -48,12 +52,37 @@ export type NodeValue =
   | { readonly t: "RATE_PCT"; readonly pctX100: number }
   | { readonly t: "DATE"; readonly iso: string };
 
-export const sen = (v: number): NodeValue => ({ t: "SEN", sen: v });
-export const exactSen = (exact: Exact, approxSen: number): NodeValue => ({
-  t: "EXACT_SEN",
-  exact,
-  approxSen,
-});
+/**
+ * These constructors are the only way money enters the graph, so they hold the
+ * same line `money.ts` holds on its own inputs: a fractional or unsafe sen value
+ * is a bug in the emitter, and letting it through would put a figure on a
+ * payslip that no rounding node accounts for.
+ */
+export const sen = (v: number): NodeValue => {
+  if (!Number.isSafeInteger(v)) {
+    throw new RangeError(`sen(): expected a safe integer sen value, got ${v}`);
+  }
+  return { t: "SEN", sen: v };
+};
+
+export const exactSen = (exact: Exact, approxSen: number): NodeValue => {
+  // A zero or negative denominator renders as Infinity or flips the sign of the
+  // pre-rounding figure, and `assertRoundingDiscipline` would still pass it.
+  if (
+    !(Number.isFinite(exact.num) && Number.isSafeInteger(exact.den)) ||
+    exact.den <= 0
+  ) {
+    throw new RangeError(
+      `exactSen(): expected an exact rational with den > 0, got ${exact.num}/${exact.den}`
+    );
+  }
+  if (!Number.isSafeInteger(approxSen)) {
+    throw new RangeError(
+      `exactSen(): approxSen must be a safe integer, got ${approxSen}`
+    );
+  }
+  return { t: "EXACT_SEN", exact, approxSen };
+};
 export const senUnknown = (): NodeValue => ({ t: "SEN_UNKNOWN" });
 export const row = (r: TableRow): NodeValue => ({ t: "ROW", row: r });
 export const enumValue = (domain: EnumDomain, code: string): NodeValue => ({
@@ -62,12 +91,32 @@ export const enumValue = (domain: EnumDomain, code: string): NodeValue => ({
   code,
 });
 export const bool = (value: boolean): NodeValue => ({ t: "BOOL", value });
-export const count = (value: number, unit: CountUnit): NodeValue => ({ t: "COUNT", value, unit });
-export const ratePct = (pctX100: number): NodeValue => ({ t: "RATE_PCT", pctX100 });
+export const count = (value: number, unit: CountUnit): NodeValue => ({
+  t: "COUNT",
+  value,
+  unit,
+});
+export const ratePct = (pctX100: number): NodeValue => ({
+  t: "RATE_PCT",
+  pctX100,
+});
 export const date = (iso: string): NodeValue => ({ t: "DATE", iso });
 
-/** Percentages arrive from the rule pack as decimal numbers (5.5); store them exactly. */
-export const pctFromNumber = (pct: number): NodeValue => ratePct(Math.round(pct * 100));
+/**
+ * Percentages arrive from the rule pack as decimal numbers (5.5); store them
+ * exactly. Rates carry at most two decimals, and a third would be silently
+ * rounded away here while `pctRoundUpToRinggitSen` still computes with the full
+ * value — the graph would then explain a figure it did not produce.
+ */
+export const pctFromNumber = (pct: number): NodeValue => {
+  const pctX100 = Math.round(pct * 100);
+  if (!Number.isFinite(pct) || Math.abs(pct * 100 - pctX100) > 1e-6) {
+    throw new RangeError(
+      `pctFromNumber(): rate must have at most 2 decimals, got ${pct}`
+    );
+  }
+  return ratePct(pctX100);
+};
 
 /**
  * The settled sen value of a node, or null when it is deliberately unknown.
@@ -76,7 +125,11 @@ export const pctFromNumber = (pct: number): NodeValue => ratePct(Math.round(pct 
  * to prevent.
  */
 export function senOf(v: NodeValue): number | null {
-  if (v.t === "SEN") return v.sen;
-  if (v.t === "SEN_UNKNOWN") return null;
+  if (v.t === "SEN") {
+    return v.sen;
+  }
+  if (v.t === "SEN_UNKNOWN") {
+    return null;
+  }
   throw new Error(`expected a settled money value, got ${v.t}`);
 }

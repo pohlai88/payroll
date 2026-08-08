@@ -7,27 +7,54 @@
  * imports.
  */
 
-import { EN, type MessageKey } from "./en";
-import { MS } from "./ms";
 import { formatRM } from "../../money";
 import type { LabelParam, LabelRef } from "../label";
+import { EN, type MessageKey } from "./en";
+import { MS } from "./ms";
 
 export type Lang = "en" | "ms";
 
 const DICT: Record<Lang, Record<MessageKey, string>> = { en: EN, ms: MS };
 
 const MONTHS: Record<Lang, readonly string[]> = {
-  en: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-  ms: ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Julai", "Ogos", "Sep", "Okt", "Nov", "Dis"],
+  en: [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ],
+  ms: [
+    "Jan",
+    "Feb",
+    "Mac",
+    "Apr",
+    "Mei",
+    "Jun",
+    "Julai",
+    "Ogos",
+    "Sep",
+    "Okt",
+    "Nov",
+    "Dis",
+  ],
 };
 
 function formatDate(iso: string, lang: Lang): string {
-  const parts = iso.split("-");
-  const y = parts[0];
-  const m = Number(parts[1]);
-  const d = Number(parts[2]);
+  const [y, rawMonth, rawDay] = iso.split("-");
+  const m = Number(rawMonth);
+  const d = Number(rawDay);
   const month = MONTHS[lang][m - 1];
-  if (y === undefined || month === undefined || Number.isNaN(d)) return iso;
+  if (y === undefined || month === undefined || Number.isNaN(d)) {
+    return iso;
+  }
   return `${d} ${month} ${y}`;
 }
 
@@ -65,9 +92,13 @@ function formatParam(param: LabelParam, lang: Lang): string {
  */
 export function renderLabel(label: LabelRef, lang: Lang = "en"): string {
   const template = DICT[lang][label.key as MessageKey];
-  if (template === undefined) return label.key;
+  if (template === undefined) {
+    return label.key;
+  }
   const params = label.params;
-  if (!params) return template;
+  if (!params) {
+    return template;
+  }
   return template.replace(/\{(\w+)\}/g, (whole, name: string) => {
     const param = params[name];
     return param === undefined ? whole : formatParam(param, lang);
@@ -76,7 +107,7 @@ export function renderLabel(label: LabelRef, lang: Lang = "en"): string {
 
 /** Every key referenced by a graph must exist in every language. Used by the conformance tests. */
 export function hasKey(key: string, lang: Lang): boolean {
-  return Object.prototype.hasOwnProperty.call(DICT[lang], key);
+  return Object.hasOwn(DICT[lang], key);
 }
 
 export const LANGS: readonly Lang[] = ["en", "ms"];

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   ALL_RULE_IDS,
   ALL_SOURCE_REFS,
@@ -47,7 +47,16 @@ describe("Citation identifiers are an append-only wire format", () => {
   });
 
   it("has not renamed or removed a source reference", () => {
-    expect([...ALL_SOURCE_REFS]).toEqual(["S1", "S2", "S2A", "S3", "S4", "S5", "L1", "L2"]);
+    expect([...ALL_SOURCE_REFS]).toEqual([
+      "S1",
+      "S2",
+      "S2A",
+      "S3",
+      "S4",
+      "S5",
+      "L1",
+      "L2",
+    ]);
   });
 
   it("names a proving source for every rule", () => {
@@ -76,8 +85,13 @@ describe("Citation identifiers are an append-only wire format", () => {
       "MY.EA1955.REG9.WAGE_STATEMENT",
     ]);
     for (const id of ALL_RULE_IDS) {
-      if (STATUTE_NUMBERED.has(id)) continue;
-      expect(id, `${id} embeds a number that belongs in the rule pack`).not.toMatch(/\d/);
+      if (STATUTE_NUMBERED.has(id)) {
+        continue;
+      }
+      expect(
+        id,
+        `${id} embeds a number that belongs in the rule pack`
+      ).not.toMatch(/\d/);
     }
   });
 
@@ -92,7 +106,9 @@ describe("Citation identifiers are an append-only wire format", () => {
     };
     for (const id of ALL_RULE_IDS) {
       const want = expected[familyOf(id)];
-      if (want === undefined) continue; // EA 1955 and the wage matrix are handled separately
+      if (want === undefined) {
+        continue; // EA 1955 and the wage matrix are handled separately
+      }
       // SKBBK is a PERKESO sub-scheme with its own published source.
       const got = RULE_SOURCE[id];
       const acceptable = id.includes("SKBBK") ? ["S2", "S2A"] : [want];

@@ -5,6 +5,9 @@
 
 import { isRealDate, parseIsoDate } from "./date";
 
+const NON_DIGITS = /\D/g;
+const TWELVE_DIGITS = /^\d{12}$/;
+
 /**
  * Derive date of birth (ISO yyyy-mm-dd) from a 12-digit NRIC, or null if the
  * input is not a well-formed NRIC with a real birth date.
@@ -31,10 +34,12 @@ import { isRealDate, parseIsoDate } from "./date";
  * the result rather than relying on the `new Date()` default.
  */
 export function dobFromIc(ic: string, today: Date = new Date()): string | null {
-  const digits = ic.replace(/\D/g, "");
+  const digits = ic.replace(NON_DIGITS, "");
   // A Malaysian NRIC is exactly 12 digits. Accepting a shorter prefix would let
   // free text pasted into the wrong field yield six digits that happen to parse.
-  if (!/^\d{12}$/.test(digits)) return null;
+  if (!TWELVE_DIGITS.test(digits)) {
+    return null;
+  }
   const yy = Number(digits.slice(0, 2));
   const mm = Number(digits.slice(2, 4));
   const dd = Number(digits.slice(4, 6));
@@ -43,7 +48,9 @@ export function dobFromIc(ic: string, today: Date = new Date()): string | null {
   // implausibly young age is the schema's job, not the pivot's.
   const century = yy > currentYY ? 1900 : 2000;
   const year = century + yy;
-  if (!isRealDate(year, mm, dd)) return null;
+  if (!isRealDate(year, mm, dd)) {
+    return null;
+  }
   return `${year.toString().padStart(4, "0")}-${mm.toString().padStart(2, "0")}-${dd
     .toString()
     .padStart(2, "0")}`;
@@ -64,6 +71,8 @@ export function ageAt(dobIso: string, atDateIso: string): number {
   const b = parseIsoDate(dobIso, "ageAt(dobIso)");
   const a = parseIsoDate(atDateIso, "ageAt(atDateIso)");
   let age = a.y - b.y;
-  if (a.m < b.m || (a.m === b.m && a.d < b.d)) age--;
+  if (a.m < b.m || (a.m === b.m && a.d < b.d)) {
+    age -= 1;
+  }
   return age;
 }

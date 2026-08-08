@@ -35,8 +35,15 @@ export const p = {
   int: (n: number): LabelParam => ({ t: "int", n }),
   num: (n: number, dp = 2): LabelParam => ({ t: "num", n, dp }),
   pct: (pctX100: number): LabelParam => ({ t: "pct", pctX100 }),
-  pctOf: (pct: number): LabelParam => ({ t: "pct", pctX100: Math.round(pct * 100) }),
+  pctOf: (pct: number): LabelParam => ({
+    t: "pct",
+    pctX100: Math.round(pct * 100),
+  }),
   date: (iso: string): LabelParam => ({ t: "date", iso }),
-  enum: (domain: EnumDomain, code: string): LabelParam => ({ t: "enum", domain, code }),
+  enum: (domain: EnumDomain, code: string): LabelParam => ({
+    t: "enum",
+    domain,
+    code,
+  }),
   text: (text: string): LabelParam => ({ t: "text", text }),
 };

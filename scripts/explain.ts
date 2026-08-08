@@ -9,18 +9,30 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { deriveLine } from "../src/domain/derive/emit";
-import { nodeAt, type DerivationGraph, type RootKey } from "../src/domain/derive/graph";
-import { renderLabel, type Lang } from "../src/domain/derive/i18n/render";
-import { formatRM } from "../src/domain/money";
 import type { LineItemInput } from "../src/domain/calc/types";
-import { loadTables, loadPayItems, defaultSettings, makeEmployee } from "../tests/helpers";
+import { deriveLine } from "../src/domain/derive/emit";
+import {
+  type DerivationGraph,
+  nodeAt,
+  type RootKey,
+} from "../src/domain/derive/graph";
+import { type Lang, renderLabel } from "../src/domain/derive/i18n/render";
+import { formatRM } from "../src/domain/money";
+import {
+  defaultSettings,
+  loadPayItems,
+  loadTables,
+  makeEmployee,
+} from "../tests/helpers";
 
 const [, , wantId, wantRoot = "net", langArg = "en"] = process.argv;
 const lang = langArg as Lang;
 
 const fixture = JSON.parse(
-  fs.readFileSync(path.join(process.cwd(), "tests", "golden", "july-2026.json"), "utf8")
+  fs.readFileSync(
+    path.join(process.cwd(), "tests", "golden", "july-2026.json"),
+    "utf8"
+  )
 ) as {
   periodEnd: string;
   workingDays: number;
@@ -40,7 +52,9 @@ const fixture = JSON.parse(
   }>;
 };
 
-const e = wantId ? fixture.employees.find((x) => x.id === wantId) : fixture.employees[0];
+const e = wantId
+  ? fixture.employees.find((x) => x.id === wantId)
+  : fixture.employees[0];
 if (!e) {
   console.error(`no such employee: ${wantId}`);
   console.error(`available: ${fixture.employees.map((x) => x.id).join(", ")}`);
@@ -49,14 +63,16 @@ if (!e) {
 
 const items: LineItemInput[] = [];
 for (const [code, amountSen] of Object.entries(e.allowances)) {
-  if (amountSen > 0) items.push({ payItemCode: code, amountSen });
+  if (amountSen > 0) {
+    items.push({ payItemCode: code, basis: "AMOUNT", amountSen });
+  }
 }
 if (e.mealDays > 0 && e.mealRateSen > 0) {
   items.push({
     payItemCode: "MEAL",
+    basis: "PER_DAY",
     qty: e.mealDays,
     rateSen: e.mealRateSen,
-    amountSen: e.mealDays * e.mealRateSen,
   });
 }
 
@@ -76,10 +92,7 @@ const graph = deriveLine({
   inputs: {
     workingDays: fixture.workingDays,
     paidDays: fixture.paidDays,
-    mealDays: e.mealDays,
     hoursWorked: null,
-    otHours: 0,
-    otRateSen: 0,
     items,
     periodEnd: fixture.periodEnd,
   },
@@ -135,21 +148,37 @@ function drill(
   );
   const childPrefix = root ? "" : pad + (last ? "   " : "│  ");
 
-  if (repeat) return;
+  if (repeat) {
+    return;
+  }
   seen.add(id);
 
   const notes: string[] = [];
-  if (n.detail) notes.push(renderLabel(n.detail, lang));
-  for (const c of n.citations) {
-    notes.push(`[${c.sourceRef}] ${c.ruleId}${c.clause?.locator ? ` · ${c.clause.locator}` : ""}`);
+  if (n.detail) {
+    notes.push(renderLabel(n.detail, lang));
   }
-  if (n.flags?.length) notes.push(`flags: ${n.flags.join(", ")}`);
-  for (const note of notes) console.log(`${childPrefix}   ${note}`);
+  for (const c of n.citations) {
+    notes.push(
+      `[${c.sourceRef}] ${c.ruleId}${c.clause?.locator ? ` · ${c.clause.locator}` : ""}`
+    );
+  }
+  if (n.flags?.length) {
+    notes.push(`flags: ${n.flags.join(", ")}`);
+  }
+  for (const note of notes) {
+    console.log(`${childPrefix}   ${note}`);
+  }
 
   const included = n.inputs.filter((r) => r.role !== "EXCLUDED");
   const excluded = n.inputs.filter((r) => r.role === "EXCLUDED");
   for (const [i, ref] of included.entries()) {
-    drill(g, ref.nodeId, childPrefix, i === included.length - 1 && excluded.length === 0, seen);
+    drill(
+      g,
+      ref.nodeId,
+      childPrefix,
+      i === included.length - 1 && excluded.length === 0,
+      seen
+    );
   }
   for (const [i, ref] of excluded.entries()) {
     const child = nodeAt(g, ref.nodeId);
@@ -162,8 +191,12 @@ function drill(
   }
 }
 
-console.log(`\n${e.id}  ${e.name}   ·   period ending ${fixture.periodEnd}   ·   ${lang}`);
-console.log(`rule pack ${graph.rulePackId}   ·   ${graph.order.length} nodes\n`);
+console.log(
+  `\n${e.id}  ${e.name}   ·   period ending ${fixture.periodEnd}   ·   ${lang}`
+);
+console.log(
+  `rule pack ${graph.rulePackId}   ·   ${graph.order.length} nodes\n`
+);
 
 const rootId = graph.roots[wantRoot as RootKey];
 if (rootId === undefined) {

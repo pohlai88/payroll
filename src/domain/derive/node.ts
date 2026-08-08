@@ -10,8 +10,8 @@
  */
 
 import type { Citation } from "./citation";
-import type { LabelRef } from "./label";
 import type { MessageKey } from "./i18n/en";
+import type { LabelRef } from "./label";
 import type { NodeValue, TableRow } from "./value";
 
 export type NodeId = string;
@@ -26,11 +26,7 @@ export type NodeFlag =
   /** PCB absent — blocks net pay. */
   | "NOT_ENTERED"
   /** Rounding changed nothing, or a full month needed no proration. */
-  | "NO_OP"
-  /** This node's value was superseded by a manual override downstream. */
-  | "OVERRIDDEN"
-  /** A band search found no row. An error, never a zero. */
-  | "LOOKUP_FAILED";
+  | "NO_OP";
 
 /** An edge into a node. `because` is required when the role is EXCLUDED. */
 export interface Ref {
@@ -55,7 +51,12 @@ export interface InputNode extends NodeBase {
   readonly kind: "INPUT";
   readonly inputs: readonly [];
   readonly citations: readonly [];
-  readonly origin: "EMPLOYEE_MASTER" | "LINE_ENTRY" | "PERIOD" | "IMPORT" | "COMPANY";
+  readonly origin:
+    | "EMPLOYEE_MASTER"
+    | "LINE_ENTRY"
+    | "PERIOD"
+    | "IMPORT"
+    | "COMPANY";
   readonly fieldPath: string;
   readonly provenance?: {
     readonly enteredBy?: string;

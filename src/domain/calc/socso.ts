@@ -1,4 +1,10 @@
-import type { RuleSettings, SocsoBand, SocsoCategory, TraceStep } from "./types";
+import { isIsoDate } from "../date";
+import type {
+  RuleSettings,
+  SocsoBand,
+  SocsoCategory,
+  TraceStep,
+} from "./types";
 
 export interface SocsoResult {
   erSen: number;
@@ -29,14 +35,27 @@ export function socso(
   }
   const band = bands.find((b) => wageSen >= b.fromSen && wageSen <= b.toSen);
   if (!band) {
-    return {
-      erSen: 0,
-      eeCoreSen: 0,
-      eeSkbbkSen: 0,
-      trace: { label: "SOCSO", detail: "No band matched; contribution 0" },
-    };
+    // The Act 4 table covers every wage from zero upward, so a miss means the
+    // rule pack has a gap. Returning zero would under-deduct silently and put a
+    // wrong figure on a payslip; a misconfigured pack must stop the run.
+    throw new RangeError(`socso: no Act 4 band covers wages of ${wageSen} sen`);
   }
-  const skbbkActive = periodEnd >= s.skbbkPhaseFrom && periodEnd <= s.skbbkPhaseTo;
+  // The window test is a lexicographic string comparison, which is only sound
+  // for well-formed ISO dates. "2026-5-31" sorts after "2026-06-01" and would
+  // silently switch SKBBK on a month before the phase started.
+  for (const [what, value] of [
+    ["periodEnd", periodEnd],
+    ["skbbkPhaseFrom", s.skbbkPhaseFrom],
+    ["skbbkPhaseTo", s.skbbkPhaseTo],
+  ] as const) {
+    if (!isIsoDate(value)) {
+      throw new RangeError(
+        `socso: ${what} must be ISO yyyy-mm-dd, got ${JSON.stringify(value)}`
+      );
+    }
+  }
+  const skbbkActive =
+    periodEnd >= s.skbbkPhaseFrom && periodEnd <= s.skbbkPhaseTo;
   if (category === "FIRST") {
     return {
       erSen: band.cat1ErSen,

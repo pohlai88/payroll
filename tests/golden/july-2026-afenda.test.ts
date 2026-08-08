@@ -1,9 +1,14 @@
-import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
+import { describe, expect, it } from "vitest";
 import { computeLine } from "@/domain/calc/compose";
 import type { LineItemInput } from "@/domain/calc/types";
-import { loadTables, loadPayItems, defaultSettings, makeEmployee } from "../helpers";
+import {
+  defaultSettings,
+  loadPayItems,
+  loadTables,
+  makeEmployee,
+} from "../helpers";
 
 /**
  * Golden master: reproduces the verified July 2026 DLBB payroll run from the
@@ -38,7 +43,10 @@ interface FixtureEmployee {
 }
 
 const fixture = JSON.parse(
-  fs.readFileSync(path.join(process.cwd(), "tests", "golden", "july-2026.json"), "utf8")
+  fs.readFileSync(
+    path.join(process.cwd(), "tests", "golden", "july-2026.json"),
+    "utf8"
+  )
 ) as {
   periodEnd: string;
   workingDays: number;
@@ -63,14 +71,16 @@ const settings = defaultSettings();
 function runEmployee(e: FixtureEmployee) {
   const items: LineItemInput[] = [];
   for (const [code, amountSen] of Object.entries(e.allowances)) {
-    if (amountSen > 0) items.push({ payItemCode: code, amountSen });
+    if (amountSen > 0) {
+      items.push({ payItemCode: code, basis: "AMOUNT", amountSen });
+    }
   }
   if (e.mealDays > 0 && e.mealRateSen > 0) {
     items.push({
       payItemCode: "MEAL",
+      basis: "PER_DAY",
       qty: e.mealDays,
       rateSen: e.mealRateSen,
-      amountSen: e.mealDays * e.mealRateSen,
     });
   }
   return computeLine({
@@ -88,10 +98,7 @@ function runEmployee(e: FixtureEmployee) {
     inputs: {
       workingDays: fixture.workingDays,
       paidDays: fixture.paidDays,
-      mealDays: e.mealDays,
       hoursWorked: null,
-      otHours: 0,
-      otRateSen: 0,
       items,
       periodEnd: fixture.periodEnd,
     },
@@ -130,7 +137,9 @@ describe("Golden master: July 2026 DLBB run (37 employees)", () => {
       results.reduce((s, r) => s + f(r), 0);
     expect(sum((r) => r.grossSen)).toBe(fixture.totals.grossSen); // 176,930.00
     expect(sum((r) => r.epfEeSen)).toBe(fixture.totals.epfEeSen); // 19,210.00
-    expect(sum((r) => r.socsoEeCoreSen + r.socsoEeSkbbkSen)).toBe(fixture.totals.socsoEeTotalSen); // 1,822.05
+    expect(sum((r) => r.socsoEeCoreSen + r.socsoEeSkbbkSen)).toBe(
+      fixture.totals.socsoEeTotalSen
+    ); // 1,822.05
     expect(sum((r) => r.eisEeSen)).toBe(fixture.totals.eisEeSen); // 288.40
     expect(sum((r) => r.netSen ?? 0)).toBe(fixture.totals.netSen); // 155,609.55
     expect(sum((r) => r.epfErSen)).toBe(fixture.totals.epfErSen); // 21,977.00

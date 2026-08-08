@@ -16,13 +16,17 @@
  */
 
 import type { Citation } from "./citation";
-import { type DerivationGraph } from "./graph";
+import { canonicalize, type DerivationGraph } from "./graph";
 import type { DerivationNode, NodeId, Ref } from "./node";
 import type { NodeValue } from "./value";
 
 export type NodeDiff =
   | { readonly d: "ADDED"; readonly id: NodeId; readonly to: DerivationNode }
-  | { readonly d: "REMOVED"; readonly id: NodeId; readonly from: DerivationNode }
+  | {
+      readonly d: "REMOVED";
+      readonly id: NodeId;
+      readonly from: DerivationNode;
+    }
   | {
       readonly d: "VALUE";
       readonly id: NodeId;
@@ -45,12 +49,26 @@ export type NodeDiff =
       readonly to: readonly Citation[];
     };
 
-function sameValue(a: NodeValue, b: NodeValue): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
+/**
+ * Structural equality, insensitive to key order. A graph that has been through
+ * storage carries the same data in whatever order the serializer chose, and a
+ * raw `JSON.stringify` comparison would report every node of it as changed —
+ * turning the one thing this module exists to produce, a readable month-over-
+ * month explanation, into noise.
+ */
+function same(a: unknown, b: unknown): boolean {
+  return JSON.stringify(canonicalize(a)) === JSON.stringify(canonicalize(b));
 }
 
-function sameCitations(a: readonly Citation[], b: readonly Citation[]): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
+function sameValue(a: NodeValue, b: NodeValue): boolean {
+  return same(a, b);
+}
+
+function sameCitations(
+  a: readonly Citation[],
+  b: readonly Citation[]
+): boolean {
+  return same(a, b);
 }
 
 function refKey(r: Ref): string {
@@ -61,13 +79,20 @@ function settledSen(v: NodeValue): number | null {
   return v.t === "SEN" ? v.sen : null;
 }
 
-export function diffGraphs(from: DerivationGraph, to: DerivationGraph): NodeDiff[] {
+export function diffGraphs(
+  from: DerivationGraph,
+  to: DerivationGraph
+): NodeDiff[] {
   const out: NodeDiff[] = [];
-  const ids = new Set<NodeId>([...Object.keys(from.nodes), ...Object.keys(to.nodes)]);
+  const ids = new Set<NodeId>([
+    ...Object.keys(from.nodes),
+    ...Object.keys(to.nodes),
+  ]);
 
   // Report in the newer graph's emit order so the diff reads top-down like the
   // payslip does, with anything only in the old graph appended.
-  const ordered = [...to.order, ...[...ids].filter((id) => !to.order.includes(id))];
+  const inTo = new Set(to.order);
+  const ordered = [...to.order, ...[...ids].filter((id) => !inTo.has(id))];
 
   for (const id of ordered) {
     const a = from.nodes[id];
@@ -81,7 +106,9 @@ export function diffGraphs(from: DerivationGraph, to: DerivationGraph): NodeDiff
       out.push({ d: "REMOVED", id, from: a });
       continue;
     }
-    if (a === undefined || b === undefined) continue;
+    if (a === undefined || b === undefined) {
+      continue;
+    }
 
     if (!sameValue(a.value, b.value)) {
       const fromSen = settledSen(a.value);
@@ -91,7 +118,9 @@ export function diffGraphs(from: DerivationGraph, to: DerivationGraph): NodeDiff
         id,
         from: a.value,
         to: b.value,
-        ...(fromSen !== null && toSen !== null ? { deltaSen: toSen - fromSen } : {}),
+        ...(fromSen !== null && toSen !== null
+          ? { deltaSen: toSen - fromSen }
+          : {}),
       });
     }
 
@@ -112,6 +141,9 @@ export function diffGraphs(from: DerivationGraph, to: DerivationGraph): NodeDiff
 }
 
 /** True when nothing about the derivation moved — same figures, same shape, same sources. */
-export function graphsIdentical(from: DerivationGraph, to: DerivationGraph): boolean {
+export function graphsIdentical(
+  from: DerivationGraph,
+  to: DerivationGraph
+): boolean {
   return diffGraphs(from, to).length === 0;
 }

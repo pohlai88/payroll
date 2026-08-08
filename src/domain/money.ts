@@ -7,9 +7,14 @@
  * silently producing a wrong ringgit.
  */
 
+const THOUSANDS_SEPARATOR = /,/g;
+const RM_PATTERN = /^([+-]?)(\d*)(?:\.(\d{0,2}))?$/;
+
 function assertSen(value: number, what: string): void {
   if (!Number.isSafeInteger(value)) {
-    throw new RangeError(`${what}: expected a safe integer sen value, got ${value}`);
+    throw new RangeError(
+      `${what}: expected a safe integer sen value, got ${value}`
+    );
   }
 }
 
@@ -20,13 +25,18 @@ function assertSen(value: number, what: string): void {
  */
 export function roundHalfUpSen(value: number): number {
   if (!Number.isFinite(value)) {
-    throw new RangeError(`roundHalfUpSen: expected a finite number, got ${value}`);
+    throw new RangeError(
+      `roundHalfUpSen: expected a finite number, got ${value}`
+    );
   }
   // Math.round on a non-negative operand is half-up and avoids the `+ 0.5`
   // epsilon trap (Math.floor(0.49999999999999994 + 0.5) === 1).
   const rounded = value < 0 ? -Math.round(-value) : Math.round(value);
   assertSen(rounded, "roundHalfUpSen");
-  return rounded;
+  // Negating a rounded-to-zero magnitude yields -0, which compares equal to 0
+  // everywhere except Object.is and Map keys — the places a stored sen value
+  // eventually reaches. Settle it as 0.
+  return rounded === 0 ? 0 : rounded;
 }
 
 /**
@@ -40,13 +50,19 @@ export function roundHalfUpSen(value: number): number {
  * Throws if denominator is 0: a divide-by-zero proration is a caller bug, not
  * an RM 0.00 payment. Call sites that legitimately want zero must say so.
  */
-export function mulDivSen(amountSen: number, numerator: number, denominator: number): number {
+export function mulDivSen(
+  amountSen: number,
+  numerator: number,
+  denominator: number
+): number {
   assertSen(amountSen, "mulDivSen(amountSen)");
   if (denominator === 0) {
     throw new RangeError("mulDivSen: denominator is 0");
   }
-  if (!Number.isFinite(numerator) || !Number.isFinite(denominator)) {
-    throw new RangeError(`mulDivSen: non-finite numerator/denominator (${numerator}/${denominator})`);
+  if (!(Number.isFinite(numerator) && Number.isFinite(denominator))) {
+    throw new RangeError(
+      `mulDivSen: non-finite numerator/denominator (${numerator}/${denominator})`
+    );
   }
 
   if (Number.isSafeInteger(numerator) && Number.isSafeInteger(denominator)) {
@@ -77,14 +93,20 @@ export function mulDivSen(amountSen: number, numerator: number, denominator: num
 export function pctRoundUpToRinggitSen(amountSen: number, pct: number): number {
   assertSen(amountSen, "pctRoundUpToRinggitSen(amountSen)");
   if (amountSen < 0) {
-    throw new RangeError(`pctRoundUpToRinggitSen: amountSen must be >= 0, got ${amountSen}`);
+    throw new RangeError(
+      `pctRoundUpToRinggitSen: amountSen must be >= 0, got ${amountSen}`
+    );
   }
   if (!Number.isFinite(pct) || pct < 0) {
-    throw new RangeError(`pctRoundUpToRinggitSen: pct must be finite and >= 0, got ${pct}`);
+    throw new RangeError(
+      `pctRoundUpToRinggitSen: pct must be finite and >= 0, got ${pct}`
+    );
   }
   const pctBp = Math.round(pct * 100); // pct in basis points; exact for <= 2dp rates
   if (Math.abs(pct * 100 - pctBp) > 1e-6) {
-    throw new RangeError(`pctRoundUpToRinggitSen: pct must have at most 2 decimals, got ${pct}`);
+    throw new RangeError(
+      `pctRoundUpToRinggitSen: pct must have at most 2 decimals, got ${pct}`
+    );
   }
   // amountSen × pct / 100 sen = amountSen × pctBp / 10_000 sen;
   // divide by a further 100 to reach ringgit → denominator 1_000_000.
@@ -118,15 +140,22 @@ export function formatRM(sen: number): string {
  * is deliberate paste-tolerance.
  */
 export function parseRM(input: string): number | null {
-  const t = input.replace(/,/g, "").trim();
-  const m = /^([+-]?)(\d*)(?:\.(\d{0,2}))?$/.exec(t);
-  if (!m) return null;
-  const digits = m[2] ?? "";
-  const frac = m[3];
-  if (digits === "" && (frac === undefined || frac === "")) return null;
-  const sign = m[1] === "-" ? -1 : 1;
-  const ringgit = digits === "" ? 0 : parseInt(digits, 10);
-  const cents = frac === undefined || frac === "" ? 0 : parseInt(frac.padEnd(2, "0"), 10);
+  const t = input.replace(THOUSANDS_SEPARATOR, "").trim();
+  const m = RM_PATTERN.exec(t);
+  if (!m) {
+    return null;
+  }
+  const [, signPart, digitPart, frac] = m;
+  const digits = digitPart ?? "";
+  if (digits === "" && (frac === undefined || frac === "")) {
+    return null;
+  }
+  const sign = signPart === "-" ? -1 : 1;
+  const ringgit = digits === "" ? 0 : Number.parseInt(digits, 10);
+  const cents =
+    frac === undefined || frac === ""
+      ? 0
+      : Number.parseInt(frac.padEnd(2, "0"), 10);
   const sen = sign * (ringgit * 100 + cents);
   return Number.isSafeInteger(sen) ? sen : null;
 }

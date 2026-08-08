@@ -12,12 +12,18 @@ function lookupBand(bands: Band5[], wageSen: number): Band5 | null {
   let lo = 0;
   let hi = bands.length - 1;
   while (lo <= hi) {
-    const mid = (lo + hi) >> 1;
+    const mid = Math.floor((lo + hi) / 2);
     const b = bands[mid];
-    if (b === undefined) break;
-    if (wageSen < b.fromSen) hi = mid - 1;
-    else if (wageSen > b.toSen) lo = mid + 1;
-    else return b;
+    if (b === undefined) {
+      break;
+    }
+    if (wageSen < b.fromSen) {
+      hi = mid - 1;
+    } else if (wageSen > b.toSen) {
+      lo = mid + 1;
+    } else {
+      return b;
+    }
   }
   return null;
 }
@@ -34,7 +40,11 @@ export function epf(
   s: RuleSettings
 ): EpfResult {
   if (part === "NONE" || wageSen <= 0) {
-    return { eeSen: 0, erSen: 0, trace: { label: "EPF", detail: "Not applicable", amountSen: 0 } };
+    return {
+      eeSen: 0,
+      erSen: 0,
+      trace: { label: "EPF", detail: "Not applicable", amountSen: 0 },
+    };
   }
 
   if (part === "F") {
@@ -53,13 +63,13 @@ export function epf(
   if (wageSen <= s.epfTableCeilingSen) {
     const band = lookupBand(tables[part], wageSen);
     if (!band) {
-      // Third Schedule: wages of RM0.01–RM10 fall in the zero band; if below all
-      // bands, contributions are zero.
-      return {
-        eeSen: 0,
-        erSen: 0,
-        trace: { label: `EPF (Part ${part})`, detail: `No band for wage; contribution 0` },
-      };
+      // The Third Schedule runs unbroken from one sen to the table ceiling, and
+      // this branch is only reached inside that range — the RM0.01–RM10 rows are
+      // present with zero contributions rather than absent. A miss is therefore a
+      // gap in the rule pack, and zeroing it would silently under-deduct.
+      throw new RangeError(
+        `epf: no Third Schedule Part ${part} band covers wages of ${wageSen} sen`
+      );
     }
     return {
       eeSen: band.eeSen,
@@ -83,7 +93,9 @@ export function epf(
   } else {
     eePct = s.epfAboveEePct;
     erPct =
-      wageSen <= s.epfErThresholdSen ? s.epfAboveErPctLeThreshold : s.epfAboveErPctGtThreshold;
+      wageSen <= s.epfErThresholdSen
+        ? s.epfAboveErPctLeThreshold
+        : s.epfAboveErPctGtThreshold;
   }
   return {
     eeSen: pctRoundUpToRinggitSen(wageSen, eePct),

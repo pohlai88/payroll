@@ -9,39 +9,44 @@
  */
 
 import { classify } from "../calc/classify";
-import { epf } from "../calc/epf";
-import { socso } from "../calc/socso";
 import { eis } from "../calc/eis";
+import { epf } from "../calc/epf";
 import { pcbNet } from "../calc/pcb";
-import { regularPay, overtimePay } from "../calc/proration";
-import { roundHalfUpSen } from "../money";
+import { regularPay } from "../calc/proration";
+import { resolveItems } from "../calc/resolve-items";
+import { socso } from "../calc/socso";
 import type {
   Band5,
   EmployeeSnapshot,
-  EpfPart,
   LineInputs,
-  LineItemInput,
   OverrideInput,
   PayItemDef,
   PcbInput,
+  ResolvedLineItem,
   RuleSettings,
   SocsoBand,
   SocsoCategory,
   StatutoryTables,
 } from "../calc/types";
+import { roundHalfUpSen } from "../money";
 import type { Citation, RuleId, SourceRef } from "./citation";
-import { GraphBuilder, type DerivationGraph, type RootKey } from "./graph";
+import { type DerivationGraph, GraphBuilder, type RootKey } from "./graph";
 import type { MessageKey } from "./i18n/en";
-import { p, type LabelRef } from "./label";
-import { explainMulHalfUp, explainPctCeilRinggit, explainPctHalfUp } from "./money-explain";
+import { type LabelRef, p } from "./label";
 import {
-  ROLE_EXCLUDED,
-  ROLE_INCLUDED,
+  explainMulDiv,
+  explainMulHalfUp,
+  explainPctCeilRinggit,
+  explainPctHalfUp,
+} from "./money-explain";
+import {
   type Label,
   type NodeFlag,
   type NodeId,
   type Operand,
   type Ref,
+  ROLE_EXCLUDED,
+  ROLE_INCLUDED,
 } from "./node";
 import {
   bool,
@@ -49,10 +54,10 @@ import {
   date,
   enumValue,
   exactSen,
+  type NodeValue,
   pctFromNumber,
   sen,
   senUnknown,
-  type NodeValue,
   type TableRow,
 } from "./value";
 
@@ -78,7 +83,10 @@ export interface DeriveOptions {
   readonly hrdfLevyPct?: number;
 }
 
-const label = (key: MessageKey, params?: LabelRef["params"]): Label => ({ key, params });
+const label = (key: MessageKey, params?: LabelRef["params"]): Label => ({
+  key,
+  params,
+});
 
 export function deriveLine(opts: DeriveOptions): DerivationGraph {
   const { employee, inputs, settings, tables, rulePackId } = opts;
@@ -86,11 +94,15 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
   const matrix = new Map(opts.payItems.map((i) => [i.code, i]));
   const overrides = new Map((opts.overrides ?? []).map((o) => [o.field, o]));
 
-  const cite = (sourceRef: SourceRef, ruleId: RuleId, locator?: string): Citation => ({
+  const cite = (
+    sourceRef: SourceRef,
+    ruleId: RuleId,
+    locator?: string
+  ): Citation => ({
     rulePackId,
     sourceRef,
     ruleId,
-    ...(locator === undefined ? {} : { clause: { label: label("op.sum"), locator } }),
+    ...(locator === undefined ? {} : { clause: { locator } }),
   });
 
   // ---------------------------------------------------------------- inputs --
@@ -121,13 +133,14 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     "PERIOD"
   );
 
+  const dob = employee.dob;
   const dobId =
-    employee.dob === null
+    dob === null
       ? null
       : input(
           "line.input.dob",
           label("input.dob"),
-          date(employee.dob),
+          date(dob),
           "employee.dob",
           "EMPLOYEE_MASTER"
         );
@@ -152,18 +165,23 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
 
   const cls = classify(employee, inputs.periodEnd, settings);
 
+  // A null age is not rendered as age 0 anywhere below: the classification
+  // nodes carry statutory citations, so stating an age the record does not
+  // support would attach a fabricated fact to a real rule reference.
+  const age = cls.ageAtPeriodEnd;
+
   const ageId =
-    cls.ageAtPeriodEnd === null || dobId === null
+    age === null || dob === null || dobId === null
       ? null
       : g.add({
           kind: "CLASSIFICATION",
           id: "line.class.age",
           subject: "AGE",
           label: label("class.age"),
-          value: count(cls.ageAtPeriodEnd, "YEAR"),
+          value: count(age, "YEAR"),
           detail: label("class.age.detail", {
-            dob: p.date(employee.dob ?? ""),
-            age: p.int(cls.ageAtPeriodEnd),
+            dob: p.date(dob),
+            age: p.int(age),
             periodEnd: p.date(inputs.periodEnd),
           }),
           inputs: [
@@ -183,13 +201,22 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     value: enumValue("EPF_PART", cls.epfPart),
     manual: employee.epfPartOverride !== null,
     detail:
-      employee.epfPartOverride !== null
-        ? label("class.epfPart.override", { part: p.enum("EPF_PART", cls.epfPart) })
-        : label("class.epfPart.detail", {
+      employee.epfPartOverride === null
+        ? employee.epfApplicable
+          ? age === null
+            ? label("class.epfPart.noAge", {
+                part: p.enum("EPF_PART", cls.epfPart),
+              })
+            : label("class.epfPart.detail", {
+                part: p.enum("EPF_PART", cls.epfPart),
+                age: p.int(age),
+              })
+          : label("class.epfPart.notApplicable")
+        : label("class.epfPart.override", {
             part: p.enum("EPF_PART", cls.epfPart),
-            age: p.int(cls.ageAtPeriodEnd ?? 0),
           }),
-    inputs: ageRefs.length > 0 ? ageRefs : [{ nodeId: periodEndId, role: "AS_AT" }],
+    inputs:
+      ageRefs.length > 0 ? ageRefs : [{ nodeId: periodEndId, role: "AS_AT" }],
     citations: [cite("S1", "MY.EPF.CLASSIFY.PART")],
   });
 
@@ -201,15 +228,22 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     value: enumValue("SOCSO_CATEGORY", cls.socsoCategory),
     manual: employee.socsoCategoryOverride !== null,
     detail:
-      employee.socsoCategoryOverride !== null
-        ? label("class.socsoCategory.override", {
+      employee.socsoCategoryOverride === null
+        ? employee.socsoApplicable
+          ? age === null
+            ? label("class.socsoCategory.noAge", {
+                category: p.enum("SOCSO_CATEGORY", cls.socsoCategory),
+              })
+            : label("class.socsoCategory.detail", {
+                category: p.enum("SOCSO_CATEGORY", cls.socsoCategory),
+                age: p.int(age),
+              })
+          : label("class.socsoCategory.notApplicable")
+        : label("class.socsoCategory.override", {
             category: p.enum("SOCSO_CATEGORY", cls.socsoCategory),
-          })
-        : label("class.socsoCategory.detail", {
-            category: p.enum("SOCSO_CATEGORY", cls.socsoCategory),
-            age: p.int(cls.ageAtPeriodEnd ?? 0),
           }),
-    inputs: ageRefs.length > 0 ? ageRefs : [{ nodeId: periodEndId, role: "AS_AT" }],
+    inputs:
+      ageRefs.length > 0 ? ageRefs : [{ nodeId: periodEndId, role: "AS_AT" }],
     citations: [cite("S2", "MY.SOCSO.CLASSIFY.CATEGORY")],
   });
 
@@ -219,21 +253,32 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     subject: "EIS_ELIGIBILITY",
     label: label("class.eisEligible"),
     value: bool(cls.eisEligible),
-    detail: cls.eisAge57Review
-      ? label("class.eisEligible.age57Review", { age: p.int(cls.ageAtPeriodEnd ?? 0) })
-      : label("class.eisEligible.detail", {
-          eligibility: p.enum(
-            "EIS_ELIGIBILITY",
-            cls.eisEligible ? "ELIGIBLE" : "NOT_ELIGIBLE"
-          ),
-          age: p.int(cls.ageAtPeriodEnd ?? 0),
-          min: p.int(settings.eisMinAge),
-          max: p.int(settings.eisMaxAgeExclusive),
-        }),
-    inputs: ageRefs.length > 0 ? ageRefs : [{ nodeId: periodEndId, role: "AS_AT" }],
+    detail:
+      cls.eisAge57Review && age !== null
+        ? label("class.eisEligible.age57Review", { age: p.int(age) })
+        : employee.eisApplicable
+          ? age === null
+            ? label("class.eisEligible.noAge", {
+                min: p.int(settings.eisMinAge),
+                max: p.int(settings.eisMaxAgeExclusive),
+              })
+            : label("class.eisEligible.detail", {
+                eligibility: p.enum(
+                  "EIS_ELIGIBILITY",
+                  cls.eisEligible ? "ELIGIBLE" : "NOT_ELIGIBLE"
+                ),
+                age: p.int(age),
+                min: p.int(settings.eisMinAge),
+                max: p.int(settings.eisMaxAgeExclusive),
+              })
+          : label("class.eisEligible.notApplicable"),
+    inputs:
+      ageRefs.length > 0 ? ageRefs : [{ nodeId: periodEndId, role: "AS_AT" }],
     citations: [
       cite("S3", "MY.EIS.CLASSIFY.ELIGIBILITY"),
-      ...(cls.eisAge57Review ? [cite("S3", "MY.EIS.FIRST_TIME_REVIEW.HISTORY_UNKNOWN")] : []),
+      ...(cls.eisAge57Review
+        ? [cite("S3", "MY.EIS.FIRST_TIME_REVIEW.HISTORY_UNKNOWN")]
+        : []),
     ],
     ...(cls.eisAge57Review ? { flags: ["REVIEW_REQUIRED" as NodeFlag] } : {}),
   });
@@ -262,7 +307,15 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
         "LINE_ENTRY"
       );
       const fullMonth = paid === inputs.workingDays;
-      const exact = { num: employee.baseRateSen * paid, den: inputs.workingDays };
+      // Routed through money.ts rather than recomputing the quotient here, so the
+      // unrounded value shown to the user is the one that actually got rounded.
+      const r = explainMulDiv(employee.baseRateSen, paid, inputs.workingDays);
+      if (r.sen !== reg.amountSen) {
+        throw new Error(
+          `derive: proration of ${employee.baseRateSen} sen over ${paid}/${inputs.workingDays} gives ${r.sen}, but regularPay produced ${reg.amountSen}`
+        );
+      }
+      const exact = r.exact;
       const prorationId = g.add({
         kind: "PRORATION",
         id: "line.earn.BASIC.proration",
@@ -289,7 +342,14 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
         citations: [cite("L1", "MY.EA1955.S18A.PRORATION", "s.18A")],
         ...(fullMonth ? { flags: ["NO_OP" as NodeFlag] } : {}),
       });
-      return emitRounding("line.earn.BASIC", label("earn.basic"), prorationId, exact, reg.amountSen, "HALF_UP_SEN");
+      return emitRounding(
+        "line.earn.BASIC",
+        label("earn.basic"),
+        prorationId,
+        exact,
+        reg.amountSen,
+        "HALF_UP_SEN"
+      );
     }
 
     if (employee.payBasis === "DAILY") {
@@ -319,7 +379,14 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
         ],
         citations: [cite("L1", "MY.EA1955.S18A.PRORATION")],
       });
-      return emitRounding("line.earn.BASIC", label("earn.basic"), calcId, exact, reg.amountSen, "HALF_UP_SEN");
+      return emitRounding(
+        "line.earn.BASIC",
+        label("earn.basic"),
+        calcId,
+        exact,
+        reg.amountSen,
+        "HALF_UP_SEN"
+      );
     }
 
     const hours = inputs.hoursWorked ?? 0;
@@ -348,7 +415,14 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
       ],
       citations: [cite("L1", "MY.EA1955.S18A.PRORATION")],
     });
-    return emitRounding("line.earn.BASIC", label("earn.basic"), calcId, exact, reg.amountSen, "HALF_UP_SEN");
+    return emitRounding(
+      "line.earn.BASIC",
+      label("earn.basic"),
+      calcId,
+      exact,
+      reg.amountSen,
+      "HALF_UP_SEN"
+    );
   }
 
   function emitRounding(
@@ -381,7 +455,10 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
                 result: p.sen(settled),
               }),
       inputs: [{ nodeId: sourceId, role: "UNROUNDED" }],
-      citations: mode === "CEIL_RINGGIT" ? [cite("S1", "MY.EPF.ABOVE_CEILING.ROUND_UP")] : [],
+      citations:
+        mode === "CEIL_RINGGIT"
+          ? [cite("S1", "MY.EPF.ABOVE_CEILING.ROUND_UP")]
+          : [],
       ...(delta === 0 ? { flags: ["NO_OP" as NodeFlag] } : {}),
     });
   }
@@ -390,56 +467,17 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
   const earningRefs: Array<{ id: NodeId; code: string; amountSen: number }> = [
     { id: basicId, code: "BASIC", amountSen: reg.amountSen },
   ];
-  const deductionRefs: Array<{ id: NodeId; code: string; amountSen: number }> = [];
+  const deductionRefs: Array<{ id: NodeId; code: string; amountSen: number }> =
+    [];
 
-  const otAmount = overtimePay(inputs.otHours, inputs.otRateSen);
-  if (otAmount > 0) {
-    const otHoursId = input(
-      "line.input.otHours",
-      label("input.otHours"),
-      count(inputs.otHours, "HOUR"),
-      "inputs.otHours",
-      "LINE_ENTRY"
-    );
-    const otRateId = input(
-      "line.input.otRate",
-      label("input.otRate"),
-      sen(inputs.otRateSen),
-      "inputs.otRateSen",
-      "LINE_ENTRY"
-    );
-    const r = explainMulHalfUp(inputs.otRateSen, inputs.otHours);
-    const otCalcId = g.add({
-      kind: "CALCULATION",
-      id: "line.earn.OT.product",
-      op: "MUL",
-      label: label("earn.overtime.detail", {
-        hours: p.num(inputs.otHours, 2),
-        rate: p.sen(inputs.otRateSen),
-      }),
-      value: exactSen(r.exact, r.sen),
-      operands: [
-        { o: "REF", nodeId: otRateId },
-        { o: "REF", nodeId: otHoursId },
-      ],
-      inputs: [
-        { nodeId: otRateId, role: "RATE" },
-        { nodeId: otHoursId, role: "QUANTITY" },
-      ],
-      citations: [],
-    });
-    const otId = emitRounding(
-      "line.earn.OT",
-      label("earn.overtime"),
-      otCalcId,
-      r.exact,
-      r.sen,
-      "HALF_UP_SEN"
-    );
-    earningRefs.push({ id: otId, code: "OT", amountSen: otAmount });
-  }
-
-  for (const item of inputs.items) {
+  /**
+   * Overtime has no dedicated branch here any more: it is an entered `PER_HOUR`
+   * item like any other quantity-based earning, and `emitItem` explains it as
+   * the multiplication it actually is. Resolving through the same `resolveItems`
+   * that `computeLine` uses is what keeps the graph's amounts identical to the
+   * ones the golden master pins.
+   */
+  for (const item of resolveItems(inputs.items, matrix)) {
     const def = matrix.get(item.payItemCode);
     const isDeduction = def?.kind === "DEDUCTION";
     const id = emitItem(item);
@@ -455,12 +493,13 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
    * amount. Anything else would be an explanation that does not match the number
    * it explains, which is the exact failure this system exists to prevent.
    */
-  function emitItem(item: LineItemInput): NodeId {
+  function emitItem(item: ResolvedLineItem): NodeId {
     const base = `line.earn.${item.payItemCode}`;
-    const qty = item.qty ?? null;
-    const rate = item.rateSen ?? null;
+    const { qty, rateSen: rate } = item;
     const derivable =
-      qty !== null && rate !== null && roundHalfUpSen(qty * rate) === item.amountSen;
+      qty !== null &&
+      rate !== null &&
+      roundHalfUpSen(qty * rate) === item.amountSen;
 
     if (!derivable) {
       return input(
@@ -491,7 +530,10 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
       kind: "CALCULATION",
       id: g.uniqueId(`${base}.product`),
       op: "MUL",
-      label: label("earn.meal.detail", { days: p.num(qty, 0), rate: p.sen(rate) }),
+      label: label("earn.perUnit.detail", {
+        days: p.num(qty, 0),
+        rate: p.sen(rate),
+      }),
       value: exactSen(r.exact, r.sen),
       operands: [
         { o: "REF", nodeId: rateId },
@@ -564,8 +606,14 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
       inputs: refs,
       citations: [citation, cite("S1", "MY.WAGES.PAY_ITEM_MATRIX")],
     });
-    const finalId = applyOverride(rootKeyToField(rootKey), computedId, total, id);
-    const finalAmount = overrides.get(rootKeyToField(rootKey))?.overrideSen ?? total;
+    const finalId = applyOverride(
+      rootKeyToField(rootKey),
+      computedId,
+      total,
+      id
+    );
+    const finalAmount =
+      overrides.get(rootKeyToField(rootKey))?.overrideSen ?? total;
     g.root(rootKey, finalId);
     return { id: finalId, amountSen: finalAmount };
   }
@@ -605,7 +653,9 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     baseId: NodeId
   ): NodeId {
     const o = overrides.get(field);
-    if (o === undefined) return computedId;
+    if (o === undefined) {
+      return computedId;
+    }
     return g.add({
       kind: "MANUAL_OVERRIDE",
       id: `${baseId}.override`,
@@ -664,8 +714,7 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     lbl: Label,
     why: Label,
     citation: Citation,
-    becauseOf?: NodeId,
-    flags?: readonly NodeFlag[]
+    becauseOf?: NodeId
   ): NodeId {
     return g.add({
       kind: "NOT_APPLICABLE",
@@ -673,14 +722,20 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
       label: lbl,
       value: { t: "SEN", sen: 0 },
       detail: why,
-      inputs: becauseOf === undefined ? [] : [{ nodeId: becauseOf, role: "RULED_OUT_BY" }],
+      inputs:
+        becauseOf === undefined
+          ? []
+          : [{ nodeId: becauseOf, role: "RULED_OUT_BY" }],
       citations: [citation],
-      ...(flags === undefined ? {} : { flags }),
     });
   }
 
   function bandRow(b: Band5): TableRow {
-    return { fromSen: b.fromSen, toSen: b.toSen, columns: { eeSen: b.eeSen, erSen: b.erSen } };
+    return {
+      fromSen: b.fromSen,
+      toSen: b.toSen,
+      columns: { eeSen: b.eeSen, erSen: b.erSen },
+    };
   }
 
   function emitEpf(): void {
@@ -713,7 +768,11 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
         "line.epf.ee",
         label("epf.ee"),
         epfWages,
-        settings.epfPartFEePct,
+        {
+          pct: settings.epfPartFEePct,
+          settingKey: "epf.partF.ee_pct",
+          label: label("setting.epf.partFEePct"),
+        },
         epfRes.eeSen,
         label("epf.partF.detail", { pct: p.pctOf(settings.epfPartFEePct) }),
         "MY.EPF.PART_F.FLAT_PCT"
@@ -722,13 +781,23 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
         "line.epf.er",
         label("epf.er"),
         epfWages,
-        settings.epfPartFErPct,
+        {
+          pct: settings.epfPartFErPct,
+          settingKey: "epf.partF.er_pct",
+          label: label("setting.epf.partFErPct"),
+        },
         epfRes.erSen,
         label("epf.partF.detail", { pct: p.pctOf(settings.epfPartFErPct) }),
         "MY.EPF.PART_F.FLAT_PCT"
       );
-      g.root("epfEe", applyOverride("EPF_EE", eeId, epfRes.eeSen, "line.epf.ee"));
-      g.root("epfEr", applyOverride("EPF_ER", erId, epfRes.erSen, "line.epf.er"));
+      g.root(
+        "epfEe",
+        applyOverride("EPF_EE", eeId, epfRes.eeSen, "line.epf.ee")
+      );
+      g.root(
+        "epfEr",
+        applyOverride("EPF_ER", erId, epfRes.erSen, "line.epf.er")
+      );
       return;
     }
 
@@ -738,28 +807,13 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
         (b) => epfWages.amountSen >= b.fromSen && epfWages.amountSen <= b.toSen
       );
       const band = index < 0 ? undefined : table[index];
-
+      // `epf()` searched the same table under the same predicate and would have
+      // thrown on a gap, so reaching here without a row means the two searches
+      // disagree — a bug in one of them, not a zero-contribution employee.
       if (band === undefined) {
-        // A failed lookup is an error, never a zero. It is flagged, not silently paid.
-        const ee = notApplicable(
-          "line.epf.ee",
-          label("epf.ee"),
-          label("epf.na.noWages"),
-          cite("S1", "MY.EPF.THIRD_SCHEDULE.BAND"),
-          epfWages.id,
-          ["LOOKUP_FAILED"]
+        throw new Error(
+          `derive: no EPF Part ${cls.epfPart} band for ${epfWages.amountSen} sen, but epf() found one`
         );
-        const er = notApplicable(
-          "line.epf.er",
-          label("epf.er"),
-          label("epf.na.noWages"),
-          cite("S1", "MY.EPF.THIRD_SCHEDULE.BAND"),
-          epfWages.id,
-          ["LOOKUP_FAILED"]
-        );
-        g.root("epfEe", applyOverride("EPF_EE", ee, 0, "line.epf.ee"));
-        g.root("epfEr", applyOverride("EPF_ER", er, 0, "line.epf.er"));
-        return;
       }
 
       const tableId =
@@ -796,7 +850,9 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
           { nodeId: epfWages.id, role: "KEY" },
           { nodeId: epfPartId, role: "SELECTS_TABLE" },
         ],
-        citations: [cite("S1", "MY.EPF.THIRD_SCHEDULE.BAND", `row ${index + 1}`)],
+        citations: [
+          cite("S1", "MY.EPF.THIRD_SCHEDULE.BAND", `row ${index + 1}`),
+        ],
       });
 
       const eeId = emitColumn(
@@ -806,7 +862,9 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
         "eeSen",
         band.eeSen,
         label("epf.column"),
-        cls.epfPart === "E" ? cite("S1", "MY.EPF.PART_E.EE_ZERO") : cite("S1", "MY.EPF.THIRD_SCHEDULE.BAND")
+        cls.epfPart === "E"
+          ? cite("S1", "MY.EPF.PART_E.EE_ZERO")
+          : cite("S1", "MY.EPF.THIRD_SCHEDULE.BAND")
       );
       const erId = emitColumn(
         "line.epf.er",
@@ -823,26 +881,58 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     }
 
     // Above the schedule ceiling: statutory percentages, rounded up to the ringgit.
-    const eePct =
+    // Each rate is paired with the rule-pack key it came from, so the drill can
+    // answer "where does this percentage come from?" with the setting itself.
+    const eeRate: { pct: number; settingKey: string; label: Label } =
       cls.epfPart === "C"
-        ? settings.epfPartCAboveEePct
+        ? {
+            pct: settings.epfPartCAboveEePct,
+            settingKey: "epf.partC.above.ee_pct",
+            label: label("setting.epf.aboveEePct"),
+          }
         : cls.epfPart === "E"
-          ? settings.epfPartEAboveEePct
-          : settings.epfAboveEePct;
-    const erPct =
+          ? {
+              pct: settings.epfPartEAboveEePct,
+              settingKey: "epf.partE.above.ee_pct",
+              label: label("setting.epf.aboveEePct"),
+            }
+          : {
+              pct: settings.epfAboveEePct,
+              settingKey: "epf.above.ee_pct",
+              label: label("setting.epf.aboveEePct"),
+            };
+    const erRate: { pct: number; settingKey: string; label: Label } =
       cls.epfPart === "C"
-        ? settings.epfPartCAboveErPct
+        ? {
+            pct: settings.epfPartCAboveErPct,
+            settingKey: "epf.partC.above.er_pct",
+            label: label("setting.epf.aboveErPct"),
+          }
         : cls.epfPart === "E"
-          ? settings.epfPartEAboveErPct
+          ? {
+              pct: settings.epfPartEAboveErPct,
+              settingKey: "epf.partE.above.er_pct",
+              label: label("setting.epf.aboveErPct"),
+            }
           : epfWages.amountSen <= settings.epfErThresholdSen
-            ? settings.epfAboveErPctLeThreshold
-            : settings.epfAboveErPctGtThreshold;
+            ? {
+                pct: settings.epfAboveErPctLeThreshold,
+                settingKey: "epf.above.er_pct_le_threshold",
+                label: label("setting.epf.aboveErPct"),
+              }
+            : {
+                pct: settings.epfAboveErPctGtThreshold,
+                settingKey: "epf.above.er_pct_gt_threshold",
+                label: label("setting.epf.aboveErPct"),
+              };
+    const eePct = eeRate.pct;
+    const erPct = erRate.pct;
 
     const eeId = emitPctCeil(
       "line.epf.ee",
       label("epf.above.ee"),
       epfWages,
-      eePct,
+      eeRate,
       epfRes.eeSen,
       label("epf.above.detail", {
         wages: p.sen(epfWages.amountSen),
@@ -855,7 +945,7 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
       "line.epf.er",
       label("epf.above.er"),
       epfWages,
-      erPct,
+      erRate,
       epfRes.erSen,
       label("epf.above.detail", {
         wages: p.sen(epfWages.amountSen),
@@ -891,22 +981,39 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     });
   }
 
+  /**
+   * A percentage of wages rounded up to the whole ringgit — the KWSP rule for
+   * Part F and for wages above the schedule ceiling.
+   *
+   * `rate` names the rule-pack setting the percentage actually came from. It is
+   * passed in rather than derived from the node id because a SETTING node is the
+   * drill's answer to "where does 11% come from?", and a fabricated key answers
+   * that question wrongly while looking authoritative.
+   */
   function emitPctCeil(
     id: NodeId,
     lbl: Label,
     base: { id: NodeId; amountSen: number },
-    pct: number,
+    rate: { pct: number; settingKey: string; label: Label },
     settled: number,
     detail: Label,
     ruleId: RuleId
   ): NodeId {
+    const pct = rate.pct;
     const r = explainPctCeilRinggit(base.amountSen, pct);
+    // The graph must round to the same figure the calculator produced, or the
+    // explanation would describe arithmetic that did not happen.
+    if (r.sen !== settled) {
+      throw new Error(
+        `derive: ${id} rounds ${base.amountSen} sen at ${pct}% to ${r.sen}, but the engine produced ${settled}`
+      );
+    }
     const rateId = g.add({
       kind: "SETTING",
       id: `${id}.rate`,
-      settingKey: `epf.rate.${id}`,
+      settingKey: rate.settingKey,
       rawValue: String(pct),
-      label: label("setting.epf.aboveEePct"),
+      label: rate.label,
       value: pctFromNumber(pct),
       inputs: [],
       citations: [cite("S1", ruleId)],
@@ -915,7 +1022,10 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
       kind: "CALCULATION",
       id: `${id}.product`,
       op: "PCT",
-      label: label("op.percent", { pct: p.pctOf(pct), base: p.sen(base.amountSen) }),
+      label: label("op.percent", {
+        pct: p.pctOf(pct),
+        base: p.sen(base.amountSen),
+      }),
       value: exactSen(r.exact, r.sen),
       detail,
       operands: [
@@ -958,25 +1068,33 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
 
   function emitSocso(): void {
     const naReason = (): Label =>
-      cls.socsoCategory === "NONE" ? label("socso.na.category") : label("socso.na.noWages");
+      cls.socsoCategory === "NONE"
+        ? label("socso.na.category")
+        : label("socso.na.noWages");
 
-    const emitAllNotApplicable = (flags?: readonly NodeFlag[]): void => {
-      const becauseOf = cls.socsoCategory === "NONE" ? socsoCategoryId : socsoWages.id;
+    const emitAllNotApplicable = (): void => {
+      const becauseOf =
+        cls.socsoCategory === "NONE" ? socsoCategoryId : socsoWages.id;
       const mk = (id: NodeId, lbl: Label): NodeId =>
         notApplicable(
           id,
           lbl,
           naReason(),
           cite("S2", "MY.SOCSO.NOT_APPLICABLE"),
-          becauseOf,
-          flags
+          becauseOf
         );
       const er = mk("line.socso.er", label("socso.er"));
       const core = mk("line.socso.eeCore", label("socso.eeCore"));
       const skbbk = mk("line.socso.eeSkbbk", label("socso.eeSkbbk"));
       g.root("socsoEr", applyOverride("SOCSO_ER", er, 0, "line.socso.er"));
-      g.root("socsoEeCore", applyOverride("SOCSO_EE_CORE", core, 0, "line.socso.eeCore"));
-      g.root("socsoEeSkbbk", applyOverride("SOCSO_EE_SKBBK", skbbk, 0, "line.socso.eeSkbbk"));
+      g.root(
+        "socsoEeCore",
+        applyOverride("SOCSO_EE_CORE", core, 0, "line.socso.eeCore")
+      );
+      g.root(
+        "socsoEeSkbbk",
+        applyOverride("SOCSO_EE_SKBBK", skbbk, 0, "line.socso.eeSkbbk")
+      );
     };
 
     if (cls.socsoCategory === "NONE" || socsoWages.amountSen <= 0) {
@@ -985,16 +1103,21 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     }
 
     const index = tables.socso.findIndex(
-      (b) => socsoWages.amountSen >= b.fromSen && socsoWages.amountSen <= b.toSen
+      (b) =>
+        socsoWages.amountSen >= b.fromSen && socsoWages.amountSen <= b.toSen
     );
     const band = index < 0 ? undefined : tables.socso[index];
+    // `socso()` already searched this table and throws on a gap, so a miss here
+    // means the two searches disagree rather than that no contribution is due.
     if (band === undefined) {
-      emitAllNotApplicable(["LOOKUP_FAILED"]);
-      return;
+      throw new Error(
+        `derive: no SOCSO band for ${socsoWages.amountSen} sen, but socso() found one`
+      );
     }
 
     const prev = index > 0 ? tables.socso[index - 1] : undefined;
-    const next = index + 1 < tables.socso.length ? tables.socso[index + 1] : undefined;
+    const next =
+      index + 1 < tables.socso.length ? tables.socso[index + 1] : undefined;
 
     const bandId = g.add({
       kind: "TABLE_LOOKUP",
@@ -1023,7 +1146,9 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
       citations: [cite("S2", "MY.SOCSO.ACT4.BAND", `row ${index + 1}`)],
     });
 
-    const skbbkActive = inputs.periodEnd >= settings.skbbkPhaseFrom && inputs.periodEnd <= settings.skbbkPhaseTo;
+    const skbbkActive =
+      inputs.periodEnd >= settings.skbbkPhaseFrom &&
+      inputs.periodEnd <= settings.skbbkPhaseTo;
     const windowId = g.add({
       kind: "CLASSIFICATION",
       id: "line.socso.skbbkWindow",
@@ -1085,7 +1210,9 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
           column: skbbkColumn,
           label: label("socso.eeSkbbk"),
           value: sen(socsoRes.eeSkbbkSen),
-          detail: label("socso.column", { category: p.enum("SOCSO_CATEGORY", cat) }),
+          detail: label("socso.column", {
+            category: p.enum("SOCSO_CATEGORY", cat),
+          }),
           operands: [{ o: "REF", nodeId: bandId }],
           inputs: [
             { nodeId: bandId, role: "ROW" },
@@ -1110,9 +1237,28 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
           citations: [cite("S2A", "MY.SOCSO.SKBBK.PHASE_WINDOW")],
         });
 
-    g.root("socsoEr", applyOverride("SOCSO_ER", erId, socsoRes.erSen, "line.socso.er"));
-    g.root("socsoEeCore", applyOverride("SOCSO_EE_CORE", coreId, socsoRes.eeCoreSen, "line.socso.eeCore"));
-    g.root("socsoEeSkbbk", applyOverride("SOCSO_EE_SKBBK", skbbkId, socsoRes.eeSkbbkSen, "line.socso.eeSkbbk"));
+    g.root(
+      "socsoEr",
+      applyOverride("SOCSO_ER", erId, socsoRes.erSen, "line.socso.er")
+    );
+    g.root(
+      "socsoEeCore",
+      applyOverride(
+        "SOCSO_EE_CORE",
+        coreId,
+        socsoRes.eeCoreSen,
+        "line.socso.eeCore"
+      )
+    );
+    g.root(
+      "socsoEeSkbbk",
+      applyOverride(
+        "SOCSO_EE_SKBBK",
+        skbbkId,
+        socsoRes.eeSkbbkSen,
+        "line.socso.eeSkbbk"
+      )
+    );
   }
 
   // ------------------------------------------------------------------- EIS --
@@ -1122,12 +1268,18 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
 
   function emitEis(): void {
     const naReason = (): Label =>
-      !cls.eisEligible ? label("eis.na.notEligible") : label("eis.na.noWages");
+      cls.eisEligible ? label("eis.na.noWages") : label("eis.na.notEligible");
 
-    const emitNa = (flags?: readonly NodeFlag[]): void => {
-      const becauseOf = !cls.eisEligible ? eisEligibleId : eisWages.id;
+    const emitNa = (): void => {
+      const becauseOf = cls.eisEligible ? eisWages.id : eisEligibleId;
       const mk = (id: NodeId, lbl: Label): NodeId =>
-        notApplicable(id, lbl, naReason(), cite("S3", "MY.EIS.NOT_APPLICABLE"), becauseOf, flags);
+        notApplicable(
+          id,
+          lbl,
+          naReason(),
+          cite("S3", "MY.EIS.NOT_APPLICABLE"),
+          becauseOf
+        );
       const ee = mk("line.eis.ee", label("eis.ee"));
       const er = mk("line.eis.er", label("eis.er"));
       g.root("eisEe", applyOverride("EIS_EE", ee, 0, "line.eis.ee"));
@@ -1143,13 +1295,17 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
       (b) => eisWages.amountSen >= b.fromSen && eisWages.amountSen <= b.toSen
     );
     const band = index < 0 ? undefined : tables.eis[index];
+    // As with EPF and SOCSO: `eis()` throws on a gap, so this can only mean the
+    // emitter's search and the calculator's have diverged.
     if (band === undefined) {
-      emitNa(["LOOKUP_FAILED"]);
-      return;
+      throw new Error(
+        `derive: no EIS band for ${eisWages.amountSen} sen, but eis() found one`
+      );
     }
 
     const prev = index > 0 ? tables.eis[index - 1] : undefined;
-    const next = index + 1 < tables.eis.length ? tables.eis[index + 1] : undefined;
+    const next =
+      index + 1 < tables.eis.length ? tables.eis[index + 1] : undefined;
 
     const bandId = g.add({
       kind: "TABLE_LOOKUP",
@@ -1217,52 +1373,103 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
   });
   g.root("zakat", zakatId);
 
-  const pcbStatus: "VERIFIED" | "UNVERIFIED" | "NOT_ENTERED" =
-    opts.pcb?.pcbAmountSen == null ? "NOT_ENTERED" : pcbRes.verified ? "VERIFIED" : "UNVERIFIED";
-
-  const declaredId = g.add({
-    kind: "EXTERNAL_VERIFIED",
-    id: "line.pcb.declared",
-    label: label("pcb.declared"),
-    value: opts.pcb?.pcbAmountSen == null ? senUnknown() : sen(opts.pcb.pcbAmountSen),
-    detail:
-      pcbStatus === "NOT_ENTERED"
-        ? label("pcb.declared.notEntered")
-        : label("pcb.declared.entered", {
-            source: p.text(opts.pcbSource ?? "manual entry"),
-            status: p.enum("VERIFICATION_STATUS", pcbStatus),
-          }),
-    source: opts.pcbSource ?? null,
-    verificationStatus: pcbStatus,
-    ...(opts.pcbEvidenceRef === undefined ? {} : { evidenceRef: opts.pcbEvidenceRef }),
-    inputs: [],
-    citations: [cite("S4", "MY.PCB.EXTERNAL_ONLY")],
-    flags: pcbStatus === "NOT_ENTERED" ? ["NOT_ENTERED"] : pcbStatus === "UNVERIFIED" ? ["UNVERIFIED"] : [],
-  });
-
-  const pcbNetId = g.add({
-    kind: "CALCULATION",
-    id: "line.pcb.net",
-    op: "MAX",
-    label: label("pcb.net"),
-    value: pcbRes.netPcbSen === null ? senUnknown() : sen(pcbRes.netPcbSen),
-    detail:
-      pcbRes.netPcbSen === null
-        ? label("pcb.declared.notEntered")
-        : label("pcb.net.detail", { zakat: p.sen(zakatSen) }),
-    operands: [
-      { o: "REF", nodeId: declaredId },
-      { o: "REF", nodeId: zakatId },
-      { o: "LITERAL", value: sen(0) },
-    ],
-    inputs: [
-      { nodeId: declaredId, role: "DECLARED" },
-      { nodeId: zakatId, role: "OFFSET" },
-    ],
-    citations: [cite("S4", "MY.PCB.ZAKAT_OFFSET")],
-    ...(pcbRes.netPcbSen === null ? { flags: ["NOT_ENTERED" as NodeFlag] } : {}),
-  });
+  /**
+   * An employee outside PCB is a zero that statute explains, not an unknown.
+   *
+   * Modelling it as unknown was wrong in a way the totals hid: `line.pcb.net`
+   * rendered as "—" while the deductions total quietly substituted zero, so the
+   * graph showed a figure the arithmetic had not used. NOT_APPLICABLE states the
+   * zero and cites why, and the total then adds a number the drill can reach.
+   */
+  // An amount that was actually entered is deducted by `computeLine` whatever the
+  // applicability flag says, so the graph follows the engine rather than the flag —
+  // showing zero here while the total deducted a figure is the failure this guards.
+  const pcbEntered = opts.pcb?.pcbAmountSen != null;
+  const pcbNetId =
+    employee.pcbApplicable || pcbEntered
+      ? emitPcbApplicable()
+      : emitPcbNotApplicable();
   g.root("pcbNet", pcbNetId);
+
+  function emitPcbNotApplicable(): NodeId {
+    const declared = notApplicable(
+      "line.pcb.declared",
+      label("pcb.declared"),
+      label("pcb.na"),
+      cite("S4", "MY.PCB.EXTERNAL_ONLY")
+    );
+    return notApplicable(
+      "line.pcb.net",
+      label("pcb.net"),
+      label("pcb.na"),
+      cite("S4", "MY.PCB.EXTERNAL_ONLY"),
+      declared
+    );
+  }
+
+  function emitPcbApplicable(): NodeId {
+    const pcbStatus: "VERIFIED" | "UNVERIFIED" | "NOT_ENTERED" =
+      opts.pcb?.pcbAmountSen == null
+        ? "NOT_ENTERED"
+        : pcbRes.verified
+          ? "VERIFIED"
+          : "UNVERIFIED";
+
+    const declaredId = g.add({
+      kind: "EXTERNAL_VERIFIED",
+      id: "line.pcb.declared",
+      label: label("pcb.declared"),
+      value:
+        opts.pcb?.pcbAmountSen == null
+          ? senUnknown()
+          : sen(opts.pcb.pcbAmountSen),
+      detail:
+        pcbStatus === "NOT_ENTERED"
+          ? label("pcb.declared.notEntered")
+          : label("pcb.declared.entered", {
+              source: p.text(opts.pcbSource ?? "manual entry"),
+              status: p.enum("VERIFICATION_STATUS", pcbStatus),
+            }),
+      source: opts.pcbSource ?? null,
+      verificationStatus: pcbStatus,
+      ...(opts.pcbEvidenceRef === undefined
+        ? {}
+        : { evidenceRef: opts.pcbEvidenceRef }),
+      inputs: [],
+      citations: [cite("S4", "MY.PCB.EXTERNAL_ONLY")],
+      flags:
+        pcbStatus === "NOT_ENTERED"
+          ? ["NOT_ENTERED"]
+          : pcbStatus === "UNVERIFIED"
+            ? ["UNVERIFIED"]
+            : [],
+    });
+
+    return g.add({
+      kind: "CALCULATION",
+      id: "line.pcb.net",
+      op: "MAX",
+      label: label("pcb.net"),
+      value: pcbRes.netPcbSen === null ? senUnknown() : sen(pcbRes.netPcbSen),
+      detail:
+        pcbRes.netPcbSen === null
+          ? label("pcb.declared.notEntered")
+          : label("pcb.net.detail", { zakat: p.sen(zakatSen) }),
+      operands: [
+        { o: "REF", nodeId: declaredId },
+        { o: "REF", nodeId: zakatId },
+        { o: "LITERAL", value: sen(0) },
+      ],
+      inputs: [
+        { nodeId: declaredId, role: "DECLARED" },
+        { nodeId: zakatId, role: "OFFSET" },
+      ],
+      citations: [cite("S4", "MY.PCB.ZAKAT_OFFSET")],
+      ...(pcbRes.netPcbSen === null
+        ? { flags: ["NOT_ENTERED" as NodeFlag] }
+        : {}),
+    });
+  }
 
   const cp38Id = g.add({
     kind: "INPUT",
@@ -1286,15 +1493,11 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
   const eisEeSen = readRootSen("eisEe");
   const eisErSen = readRootSen("eisEr");
 
-  function rootId(key: RootKey): NodeId {
-    const id = g.build().roots[key];
-    if (id === undefined) throw new Error(`root ${key} was never emitted`);
-    return id;
-  }
-
   function readRootSen(key: RootKey): number {
-    const v = g.get(rootId(key)).value;
-    if (v.t !== "SEN") throw new Error(`root ${key} is not a settled money value`);
+    const v = g.get(g.rootOf(key)).value;
+    if (v.t !== "SEN") {
+      throw new Error(`root ${key} is not a settled money value`);
+    }
     return v.sen;
   }
 
@@ -1304,10 +1507,10 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     label: label("total.statutoryEe"),
     value: sen(epfEeSen + socsoEeCoreSen + socsoEeSkbbkSen + eisEeSen),
     inputs: [
-      { nodeId: rootId("epfEe"), role: ROLE_INCLUDED },
-      { nodeId: rootId("socsoEeCore"), role: ROLE_INCLUDED },
-      { nodeId: rootId("socsoEeSkbbk"), role: ROLE_INCLUDED },
-      { nodeId: rootId("eisEe"), role: ROLE_INCLUDED },
+      { nodeId: g.rootOf("epfEe"), role: ROLE_INCLUDED },
+      { nodeId: g.rootOf("socsoEeCore"), role: ROLE_INCLUDED },
+      { nodeId: g.rootOf("socsoEeSkbbk"), role: ROLE_INCLUDED },
+      { nodeId: g.rootOf("eisEe"), role: ROLE_INCLUDED },
     ],
     citations: [],
   });
@@ -1318,7 +1521,9 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     id: "line.deductions.other",
     label: label("total.otherDeductions"),
     value: sen(otherDeductionsSen),
-    ...(deductionRefs.length === 0 ? { detail: label("total.otherDeductions.none") } : {}),
+    ...(deductionRefs.length === 0
+      ? { detail: label("total.otherDeductions.none") }
+      : {}),
     inputs: deductionRefs.map((d) => ({ nodeId: d.id, role: ROLE_INCLUDED })),
     citations: [],
   });
@@ -1340,7 +1545,9 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     id: "line.deductions.total",
     label: label("total.deductions"),
     value: deductionsTotalSen === null ? senUnknown() : sen(deductionsTotalSen),
-    ...(deductionsTotalSen === null ? { detail: label("total.deductions.pendingPcb") } : {}),
+    ...(deductionsTotalSen === null
+      ? { detail: label("total.deductions.pendingPcb") }
+      : {}),
     inputs: [
       { nodeId: statutoryEeId, role: ROLE_INCLUDED },
       { nodeId: pcbNetId, role: ROLE_INCLUDED },
@@ -1348,11 +1555,14 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
       { nodeId: otherId, role: ROLE_INCLUDED },
     ],
     citations: [],
-    ...(deductionsTotalSen === null ? { flags: ["NOT_ENTERED" as NodeFlag] } : {}),
+    ...(deductionsTotalSen === null
+      ? { flags: ["NOT_ENTERED" as NodeFlag] }
+      : {}),
   });
   g.root("deductionsTotal", deductionsId);
 
-  const netSen = deductionsTotalSen === null ? null : grossSen - deductionsTotalSen;
+  const netSen =
+    deductionsTotalSen === null ? null : grossSen - deductionsTotalSen;
   const netId = g.add({
     kind: "CALCULATION",
     id: "line.net",
@@ -1414,7 +1624,14 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
       ],
       citations: [cite("S5", "MY.HRDF.LEVY")],
     });
-    return emitRounding("line.hrdf", label("total.hrdf"), productId, r.exact, r.sen, "HALF_UP_SEN");
+    return emitRounding(
+      "line.hrdf",
+      label("total.hrdf"),
+      productId,
+      r.exact,
+      r.sen,
+      "HALF_UP_SEN"
+    );
   }
 
   function emitHrdfDisabled(): NodeId {
@@ -1436,9 +1653,9 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     detail: label("total.employerCost.detail"),
     inputs: [
       { nodeId: grossId, role: ROLE_INCLUDED },
-      { nodeId: rootId("epfEr"), role: ROLE_INCLUDED },
-      { nodeId: rootId("socsoEr"), role: ROLE_INCLUDED },
-      { nodeId: rootId("eisEr"), role: ROLE_INCLUDED },
+      { nodeId: g.rootOf("epfEr"), role: ROLE_INCLUDED },
+      { nodeId: g.rootOf("socsoEr"), role: ROLE_INCLUDED },
+      { nodeId: g.rootOf("eisEr"), role: ROLE_INCLUDED },
       { nodeId: hrdfId, role: ROLE_INCLUDED },
     ],
     citations: [],

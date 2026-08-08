@@ -1,24 +1,25 @@
-import { classify } from "./classify";
-import { epf } from "./epf";
-import { socso } from "./socso";
-import { eis } from "./eis";
-import { pcbNet } from "./pcb";
-import { regularPay, overtimePay } from "./proration";
-import { wageBases } from "./wage-base";
 import { formatRM, roundHalfUpSen } from "../money";
-import { validateLineInputs, type ValidationIssue } from "./validate";
+import { classify } from "./classify";
+import { eis } from "./eis";
+import { epf } from "./epf";
+import { pcbNet } from "./pcb";
+import { regularPay } from "./proration";
+import { resolveItems } from "./resolve-items";
+import { socso } from "./socso";
 import type {
   EmployeeSnapshot,
   LineInputs,
-  LineItemInput,
   LineResult,
   OverrideInput,
   PayItemDef,
   PcbInput,
+  ResolvedLineItem,
   RuleSettings,
   StatutoryTables,
   TraceStep,
 } from "./types";
+import { type ValidationIssue, validateLineInputs } from "./validate";
+import { wageBases } from "./wage-base";
 
 export interface ComposeOptions {
   employee: EmployeeSnapshot;
@@ -26,7 +27,10 @@ export interface ComposeOptions {
   payItems: PayItemDef[];
   tables: StatutoryTables;
   settings: RuleSettings;
-  overrides?: OverrideInput[];
+  // `readonly` so a `DeriveOptions` — whose overrides carry extra justification
+  // fields and are declared readonly — can be passed straight through. Compose
+  // only reads them into a lookup map.
+  overrides?: readonly OverrideInput[];
   pcb?: PcbInput | null;
   hrdfLevyEnabled?: boolean;
   hrdfLevyPct?: number;
@@ -44,7 +48,9 @@ export type ComputeLineOutcome =
  */
 export function computeLineChecked(opts: ComposeOptions): ComputeLineOutcome {
   const issues = validateLineInputs(opts.employee, opts.inputs);
-  if (issues.length > 0) return { ok: false, issues };
+  if (issues.length > 0) {
+    return { ok: false, issues };
+  }
   return { ok: true, result: computeLine(opts) };
 }
 
@@ -60,7 +66,9 @@ export function computeLine(opts: ComposeOptions): LineResult {
   const { employee, inputs, tables, settings } = opts;
   const trace: TraceStep[] = [];
   const matrix = new Map(opts.payItems.map((p) => [p.code, p]));
-  const ovr = new Map((opts.overrides ?? []).map((o) => [o.field, o.overrideSen]));
+  const ovr = new Map(
+    (opts.overrides ?? []).map((o) => [o.field, o.overrideSen])
+  );
 
   // ---- classification ----
   const cls = classify(employee, inputs.periodEnd, settings);
@@ -79,41 +87,58 @@ export function computeLine(opts: ComposeOptions): LineResult {
   );
   trace.push(reg.trace);
 
-  const items: Array<LineItemInput & { computed: boolean }> = [
-    { payItemCode: "BASIC", amountSen: reg.amountSen, computed: true },
+  /**
+   * BASIC is the only item the engine derives from the employee record. Every
+   * other earning and deduction — overtime included — is an entered item whose
+   * amount follows the basis configured on its pay item.
+   */
+  const items: ResolvedLineItem[] = [
+    {
+      payItemCode: "BASIC",
+      basis: employee.payBasis === "MONTHLY" ? "FIXED_MONTHLY" : "PER_DAY",
+      qty: null,
+      rateSen: employee.baseRateSen,
+      amountSen: reg.amountSen,
+      computed: true,
+    },
+    ...resolveItems(inputs.items, matrix),
   ];
 
-  const ot = overtimePay(inputs.otHours, inputs.otRateSen);
-  if (ot > 0) {
-    items.push({
-      payItemCode: "OT",
-      qty: inputs.otHours,
-      rateSen: inputs.otRateSen,
-      amountSen: ot,
-      computed: true,
-    });
+  for (const item of items) {
+    if (item.computed) {
+      continue;
+    }
     trace.push({
-      label: "Overtime",
-      detail: `${inputs.otHours} h × ${formatRM(inputs.otRateSen)}`,
-      amountSen: ot,
+      label: item.payItemCode,
+      detail:
+        item.qty === null || item.rateSen === null
+          ? "Entered amount"
+          : `${item.qty} × ${formatRM(item.rateSen)}`,
+      amountSen: item.amountSen,
     });
   }
 
-  for (const item of inputs.items) {
-    items.push({ ...item, computed: false });
-  }
-
-  const earnings = items.filter((i) => matrix.get(i.payItemCode)?.kind !== "DEDUCTION");
-  const deductionsOther = items.filter((i) => matrix.get(i.payItemCode)?.kind === "DEDUCTION");
+  const earnings = items.filter(
+    (i) => matrix.get(i.payItemCode)?.kind !== "DEDUCTION"
+  );
+  const deductionsOther = items.filter(
+    (i) => matrix.get(i.payItemCode)?.kind === "DEDUCTION"
+  );
 
   const grossSen = earnings.reduce((s, i) => s + i.amountSen, 0);
-  trace.push({ label: "Gross pay", detail: `Sum of ${earnings.length} earning items`, amountSen: grossSen });
+  trace.push({
+    label: "Gross pay",
+    detail: `Sum of ${earnings.length} earning items`,
+    amountSen: grossSen,
+  });
 
   // ---- wage bases ----
-  let { epfWagesSen, socsoWagesSen, eisWagesSen } = wageBases(earnings, matrix);
-  if (ovr.has("EPF_WAGES")) epfWagesSen = ovr.get("EPF_WAGES")!;
-  if (ovr.has("SOCSO_WAGES")) socsoWagesSen = ovr.get("SOCSO_WAGES")!;
-  if (ovr.has("EIS_WAGES")) eisWagesSen = ovr.get("EIS_WAGES")!;
+  const computedBases = wageBases(earnings, matrix);
+  // A single `get` carries its own narrowing; `has` + `get!` asserted away the
+  // one case that matters — an override recorded as absent.
+  const epfWagesSen = ovr.get("EPF_WAGES") ?? computedBases.epfWagesSen;
+  const socsoWagesSen = ovr.get("SOCSO_WAGES") ?? computedBases.socsoWagesSen;
+  const eisWagesSen = ovr.get("EIS_WAGES") ?? computedBases.eisWagesSen;
   trace.push({
     label: "Statutory wage bases",
     detail: `EPF ${formatRM(epfWagesSen)} / SOCSO ${formatRM(socsoWagesSen)} / EIS ${formatRM(eisWagesSen)}`,
@@ -121,12 +146,23 @@ export function computeLine(opts: ComposeOptions): LineResult {
 
   // ---- statutory contributions ----
   const epfRes = epf(epfWagesSen, cls.epfPart, tables.epf, settings);
-  const socsoRes = socso(socsoWagesSen, cls.socsoCategory, tables.socso, inputs.periodEnd, settings);
+  const socsoRes = socso(
+    socsoWagesSen,
+    cls.socsoCategory,
+    tables.socso,
+    inputs.periodEnd,
+    settings
+  );
   const eisRes = eis(eisWagesSen, cls.eisEligible, tables.eis);
 
-  const applyOvr = (field: OverrideInput["field"], computed: number): number => {
-    if (!ovr.has(field)) return computed;
-    const v = ovr.get(field)!;
+  const applyOvr = (
+    field: OverrideInput["field"],
+    computed: number
+  ): number => {
+    const v = ovr.get(field);
+    if (v === undefined) {
+      return computed;
+    }
     trace.push({
       label: `Override ${field}`,
       detail: `Computed ${formatRM(computed)} overridden to ${formatRM(v)}`,
@@ -143,16 +179,35 @@ export function computeLine(opts: ComposeOptions): LineResult {
   const eisEeSen = applyOvr("EIS_EE", eisRes.eeSen);
   const eisErSen = applyOvr("EIS_ER", eisRes.erSen);
 
-  trace.push({ ...epfRes.trace, detail: `${epfRes.trace.detail} → EE ${formatRM(epfEeSen)} / ER ${formatRM(epfErSen)}` });
+  trace.push({
+    ...epfRes.trace,
+    detail: `${epfRes.trace.detail} → EE ${formatRM(epfEeSen)} / ER ${formatRM(epfErSen)}`,
+  });
   trace.push({
     ...socsoRes.trace,
     detail: `${socsoRes.trace.detail} → ER ${formatRM(socsoErSen)} / EE core ${formatRM(socsoEeCoreSen)} / SKBBK ${formatRM(socsoEeSkbbkSen)}`,
   });
-  trace.push({ ...eisRes.trace, detail: `${eisRes.trace.detail} → EE ${formatRM(eisEeSen)} / ER ${formatRM(eisErSen)}` });
+  trace.push({
+    ...eisRes.trace,
+    detail: `${eisRes.trace.detail} → EE ${formatRM(eisEeSen)} / ER ${formatRM(eisErSen)}`,
+  });
 
   // ---- PCB (controlled input) ----
   const pcbRes = pcbNet(opts.pcb ?? null);
   const zakatSen = opts.pcb?.zakatOffsetSen ?? 0;
+  /**
+   * `null` means "not entered, so unknowable" and must block net pay. An
+   * employee outside PCB with nothing entered is not unknowable — nothing is
+   * due. Reporting `null` there contradicted the totals below, which already
+   * added zero and produced a real net, so the payslip showed an unknown next
+   * to a net that had quietly assumed zero.
+   */
+  const pcbNetSen =
+    pcbRes.netPcbSen === null &&
+    !employee.pcbApplicable &&
+    opts.pcb?.pcbAmountSen == null
+      ? 0
+      : pcbRes.netPcbSen;
   if (employee.pcbApplicable) {
     trace.push({
       label: "PCB / MTD",
@@ -165,30 +220,37 @@ export function computeLine(opts: ComposeOptions): LineResult {
   }
 
   // ---- totals ----
-  const otherDeductionsSen = deductionsOther.reduce((s, i) => s + i.amountSen, 0);
+  const otherDeductionsSen = deductionsOther.reduce(
+    (s, i) => s + i.amountSen,
+    0
+  );
   const statutoryEe = epfEeSen + socsoEeCoreSen + socsoEeSkbbkSen + eisEeSen;
 
-  const pcbMissing = employee.pcbApplicable && pcbRes.netPcbSen === null;
-  const pcbComponent = (pcbRes.netPcbSen ?? 0) + pcbRes.cp38Sen;
+  const pcbMissing = pcbNetSen === null;
+  const pcbComponent = (pcbNetSen ?? 0) + pcbRes.cp38Sen;
   const deductionsTotalSen = pcbMissing
     ? null
     : statutoryEe + pcbComponent + otherDeductionsSen;
-  const netSen = deductionsTotalSen === null ? null : grossSen - deductionsTotalSen;
+  const netSen =
+    deductionsTotalSen === null ? null : grossSen - deductionsTotalSen;
 
   const hrdfLevySen =
     opts.hrdfLevyEnabled && (opts.hrdfLevyPct ?? settings.hrdfLevyPct) > 0
-      ? roundHalfUpSen((epfWagesSen * (opts.hrdfLevyPct ?? settings.hrdfLevyPct)) / 100)
+      ? roundHalfUpSen(
+          (epfWagesSen * (opts.hrdfLevyPct ?? settings.hrdfLevyPct)) / 100
+        )
       : 0;
 
-  const employerCostSen = grossSen + epfErSen + socsoErSen + eisErSen + hrdfLevySen;
+  const employerCostSen =
+    grossSen + epfErSen + socsoErSen + eisErSen + hrdfLevySen;
 
-  trace.push({
-    label: "Totals",
-    detail:
-      deductionsTotalSen === null
-        ? "Deductions/net pending PCB entry"
-        : `Deductions ${formatRM(deductionsTotalSen)}; Net ${formatRM(netSen!)}; Employer cost ${formatRM(employerCostSen)}`,
-  });
+  // Both go null together (net is derived from the total), but testing both is
+  // what lets the compiler prove the formatted branch has real figures.
+  const totalsDetail =
+    deductionsTotalSen === null || netSen === null
+      ? "Deductions/net pending PCB entry"
+      : `Deductions ${formatRM(deductionsTotalSen)}; Net ${formatRM(netSen)}; Employer cost ${formatRM(employerCostSen)}`;
+  trace.push({ label: "Totals", detail: totalsDetail });
 
   return {
     classification: cls,
@@ -204,7 +266,7 @@ export function computeLine(opts: ComposeOptions): LineResult {
     socsoErSen,
     eisEeSen,
     eisErSen,
-    pcbNetSen: pcbRes.netPcbSen,
+    pcbNetSen,
     cp38Sen: pcbRes.cp38Sen,
     zakatSen,
     otherDeductionsSen,

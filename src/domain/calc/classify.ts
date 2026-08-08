@@ -12,7 +12,12 @@ export function classify(
   periodEnd: string,
   settings: RuleSettings
 ): Classification {
-  const age = emp.dob ? ageAt(emp.dob, periodEnd) : null;
+  // `=== null` rather than a falsy check: `dob: ""` is garbage that should have
+  // been stopped at the wall, and routing it to `age = null` here would hide it
+  // from `ageAt`'s throw and silently produce an under-60 classification. Only a
+  // genuinely absent DOB yields a null age, and validation guarantees that only
+  // happens when no age band applies.
+  const age = emp.dob === null ? null : ageAt(emp.dob, periodEnd);
 
   let epfPart: Classification["epfPart"] = "NONE";
   if (emp.epfApplicable) {
@@ -22,13 +27,11 @@ export function classify(
       epfPart = age !== null && age >= 60 ? "E" : "A";
     } else if (emp.isPermanentResident) {
       epfPart = age !== null && age >= 60 ? "C" : "A";
-    } else {
+    } else if (emp.epfMemberBeforeAug1998) {
       // non-Malaysian, non-PR
-      if (emp.epfMemberBeforeAug1998) {
-        epfPart = age !== null && age >= 60 ? "C" : "A";
-      } else {
-        epfPart = "F";
-      }
+      epfPart = age !== null && age >= 60 ? "C" : "A";
+    } else {
+      epfPart = "F";
     }
   }
 
@@ -44,7 +47,8 @@ export function classify(
   let eisEligible = false;
   let eisAge57Review = false;
   if (emp.eisApplicable && age !== null) {
-    eisEligible = age >= settings.eisMinAge && age < settings.eisMaxAgeExclusive;
+    eisEligible =
+      age >= settings.eisMinAge && age < settings.eisMaxAgeExclusive;
     if (
       eisEligible &&
       age >= settings.eisFirstTimeReviewAge &&
@@ -62,5 +66,11 @@ export function classify(
     }
   }
 
-  return { ageAtPeriodEnd: age, epfPart, socsoCategory, eisEligible, eisAge57Review };
+  return {
+    ageAtPeriodEnd: age,
+    epfPart,
+    socsoCategory,
+    eisEligible,
+    eisAge57Review,
+  };
 }

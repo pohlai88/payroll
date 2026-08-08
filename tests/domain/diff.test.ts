@@ -1,7 +1,12 @@
-import { describe, it, expect } from "vitest";
-import { deriveLine, type DeriveOptions } from "@/domain/derive/emit";
+import { describe, expect, it } from "vitest";
 import { diffGraphs, graphsIdentical } from "@/domain/derive/diff";
-import { loadTables, loadPayItems, defaultSettings, makeEmployee } from "../helpers";
+import { type DeriveOptions, deriveLine } from "@/domain/derive/emit";
+import {
+  defaultSettings,
+  loadPayItems,
+  loadTables,
+  makeEmployee,
+} from "../helpers";
 
 /**
  * Diffing is the test of the id design. If ids were content hashes, every node
@@ -24,10 +29,7 @@ const base: DeriveOptions = {
   inputs: {
     workingDays: 26,
     paidDays: 26,
-    mealDays: null,
     hoursWorked: null,
-    otHours: 0,
-    otRateSen: 0,
     items: [],
     periodEnd: "2026-07-31",
   },
@@ -66,7 +68,9 @@ describe("Comparing two months of the same employee", () => {
 
     const wages = diff.find((d) => d.id === "line.wages.epf");
     expect(wages?.d).toBe("VALUE");
-    if (wages?.d === "VALUE") expect(wages.deltaSen).toBe(50_000);
+    if (wages?.d === "VALUE") {
+      expect(wages.deltaSen).toBe(50_000);
+    }
   });
 
   it("reports a new allowance as an added node and a changed gross", () => {
@@ -75,7 +79,7 @@ describe("Comparing two months of the same employee", () => {
       ...base,
       inputs: {
         ...base.inputs,
-        items: [{ payItemCode: "PARKING", amountSen: 10_000 }],
+        items: [{ payItemCode: "PARKING", basis: "AMOUNT", amountSen: 10_000 }],
       },
     });
 
@@ -83,7 +87,9 @@ describe("Comparing two months of the same employee", () => {
     const added = diff.filter((d) => d.d === "ADDED").map((d) => d.id);
     expect(added).toContain("line.earn.PARKING");
 
-    const gross = diff.find((d) => d.id === "line.gross" && d.d === "STRUCTURE");
+    const gross = diff.find(
+      (d) => d.id === "line.gross" && d.d === "STRUCTURE"
+    );
     expect(gross, "gross should gain an input edge").toBeDefined();
     if (gross?.d === "STRUCTURE") {
       expect(gross.added.map((r) => r.nodeId)).toContain("line.earn.PARKING");

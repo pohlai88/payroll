@@ -1,10 +1,10 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
-  roundHalfUpSen,
-  mulDivSen,
-  pctRoundUpToRinggitSen,
   formatRM,
+  mulDivSen,
   parseRM,
+  pctRoundUpToRinggitSen,
+  roundHalfUpSen,
 } from "@/domain/money";
 
 describe("parseRM", () => {
@@ -74,12 +74,14 @@ describe("roundHalfUpSen", () => {
 
   it("is not fooled by the +0.5 epsilon trap", () => {
     expect(roundHalfUpSen(0.49999999999999994)).toBe(0);
-    expect(roundHalfUpSen(-0.49999999999999994)).toBe(-0);
+    // Normalised to +0: a stored sen value must not carry a negative zero,
+    // which would compare unequal under Object.is and split Map keys.
+    expect(roundHalfUpSen(-0.49999999999999994)).toBe(0);
   });
 
   it("throws on non-finite input", () => {
-    expect(() => roundHalfUpSen(NaN)).toThrow(RangeError);
-    expect(() => roundHalfUpSen(Infinity)).toThrow(RangeError);
+    expect(() => roundHalfUpSen(Number.NaN)).toThrow(RangeError);
+    expect(() => roundHalfUpSen(Number.POSITIVE_INFINITY)).toThrow(RangeError);
   });
 });
 
@@ -108,7 +110,9 @@ describe("mulDivSen", () => {
 
   it("is exact where float multiplication would overflow safe integers", () => {
     // 1e15 sen × 999 exceeds MAX_SAFE_INTEGER as a float product.
-    expect(mulDivSen(1_000_000_000_000_000, 999, 1000)).toBe(999_000_000_000_000);
+    expect(mulDivSen(1_000_000_000_000_000, 999, 1000)).toBe(
+      999_000_000_000_000
+    );
   });
 
   it("rejects non-integer sen amounts", () => {

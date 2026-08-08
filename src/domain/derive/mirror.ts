@@ -9,7 +9,12 @@
  */
 
 import type { LineResult } from "../calc/types";
-import { readSen, ROOT_KEYS, type DerivationGraph, type RootKey } from "./graph";
+import {
+  type DerivationGraph,
+  ROOT_KEYS,
+  type RootKey,
+  readSen,
+} from "./graph";
 
 /** Maps each root to the `LineResult` field it must reproduce. */
 const SCALAR_OF: Record<RootKey, (r: LineResult) => number | null> = {
@@ -40,21 +45,34 @@ export interface Divergence {
   readonly engineSen: number | null;
 }
 
-export function findDivergences(graph: DerivationGraph, result: LineResult): Divergence[] {
+export function findDivergences(
+  graph: DerivationGraph,
+  result: LineResult
+): Divergence[] {
   const out: Divergence[] = [];
   for (const root of ROOT_KEYS) {
     const graphSen = readSen(graph, root);
     const engineSen = SCALAR_OF[root](result);
-    if (graphSen !== engineSen) out.push({ root, graphSen, engineSen });
+    if (graphSen !== engineSen) {
+      out.push({ root, graphSen, engineSen });
+    }
   }
   return out;
 }
 
-export function assertMirrors(graph: DerivationGraph, result: LineResult): void {
+export function assertMirrors(
+  graph: DerivationGraph,
+  result: LineResult
+): void {
   const diffs = findDivergences(graph, result);
-  if (diffs.length === 0) return;
+  if (diffs.length === 0) {
+    return;
+  }
   const detail = diffs
-    .map((d) => `  ${d.root}: graph ${d.graphSen ?? "unknown"} vs engine ${d.engineSen ?? "unknown"}`)
+    .map(
+      (d) =>
+        `  ${d.root}: graph ${d.graphSen ?? "unknown"} vs engine ${d.engineSen ?? "unknown"}`
+    )
     .join("\n");
   throw new Error(`derivation graph disagrees with the engine:\n${detail}`);
 }

@@ -59,14 +59,13 @@ export function regularPay(
   };
 }
 
-/** Meal allowance = mealDays × ratePerDay. */
-export function mealAllowance(mealDays: number | null, ratePerDaySen: number): number {
-  if (!mealDays || ratePerDaySen <= 0) return 0;
-  return roundHalfUpSen(mealDays * ratePerDaySen);
-}
-
-/** Overtime = otHours × otRate (rate is a manual policy input). */
-export function overtimePay(otHours: number, otRateSen: number): number {
-  if (!otHours || otRateSen <= 0) return 0;
-  return roundHalfUpSen(otHours * otRateSen);
+/**
+ * A quantity times a rate, rounded half away from zero to the sen.
+ *
+ * One function for every quantity-based item — days, hours or units. Overtime
+ * and meal allowance each had their own copy of this line, which is why adding
+ * a per-day allowance used to mean editing the engine.
+ */
+export function quantityAmount(qty: number, rateSen: number): number {
+  return roundHalfUpSen(qty * rateSen);
 }

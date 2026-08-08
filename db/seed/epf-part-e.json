@@ -1,2408 +1,2408 @@
 [
- {
-  "fromSen": 1,
-  "toSen": 1000,
-  "erSen": 0,
-  "eeSen": 0
- },
- {
-  "fromSen": 1001,
-  "toSen": 2000,
-  "erSen": 100,
-  "eeSen": 0
- },
- {
-  "fromSen": 2001,
-  "toSen": 4000,
-  "erSen": 200,
-  "eeSen": 0
- },
- {
-  "fromSen": 4001,
-  "toSen": 6000,
-  "erSen": 300,
-  "eeSen": 0
- },
- {
-  "fromSen": 6001,
-  "toSen": 8000,
-  "erSen": 400,
-  "eeSen": 0
- },
- {
-  "fromSen": 8001,
-  "toSen": 10000,
-  "erSen": 400,
-  "eeSen": 0
- },
- {
-  "fromSen": 10001,
-  "toSen": 12000,
-  "erSen": 500,
-  "eeSen": 0
- },
- {
-  "fromSen": 12001,
-  "toSen": 14000,
-  "erSen": 600,
-  "eeSen": 0
- },
- {
-  "fromSen": 14001,
-  "toSen": 16000,
-  "erSen": 700,
-  "eeSen": 0
- },
- {
-  "fromSen": 16001,
-  "toSen": 18000,
-  "erSen": 800,
-  "eeSen": 0
- },
- {
-  "fromSen": 18001,
-  "toSen": 20000,
-  "erSen": 800,
-  "eeSen": 0
- },
- {
-  "fromSen": 20001,
-  "toSen": 22000,
-  "erSen": 900,
-  "eeSen": 0
- },
- {
-  "fromSen": 22001,
-  "toSen": 24000,
-  "erSen": 1000,
-  "eeSen": 0
- },
- {
-  "fromSen": 24001,
-  "toSen": 26000,
-  "erSen": 1100,
-  "eeSen": 0
- },
- {
-  "fromSen": 26001,
-  "toSen": 28000,
-  "erSen": 1200,
-  "eeSen": 0
- },
- {
-  "fromSen": 28001,
-  "toSen": 30000,
-  "erSen": 1200,
-  "eeSen": 0
- },
- {
-  "fromSen": 30001,
-  "toSen": 32000,
-  "erSen": 1300,
-  "eeSen": 0
- },
- {
-  "fromSen": 32001,
-  "toSen": 34000,
-  "erSen": 1400,
-  "eeSen": 0
- },
- {
-  "fromSen": 34001,
-  "toSen": 36000,
-  "erSen": 1500,
-  "eeSen": 0
- },
- {
-  "fromSen": 36001,
-  "toSen": 38000,
-  "erSen": 1600,
-  "eeSen": 0
- },
- {
-  "fromSen": 38001,
-  "toSen": 40000,
-  "erSen": 1600,
-  "eeSen": 0
- },
- {
-  "fromSen": 40001,
-  "toSen": 42000,
-  "erSen": 1700,
-  "eeSen": 0
- },
- {
-  "fromSen": 42001,
-  "toSen": 44000,
-  "erSen": 1800,
-  "eeSen": 0
- },
- {
-  "fromSen": 44001,
-  "toSen": 46000,
-  "erSen": 1900,
-  "eeSen": 0
- },
- {
-  "fromSen": 46001,
-  "toSen": 48000,
-  "erSen": 2000,
-  "eeSen": 0
- },
- {
-  "fromSen": 48001,
-  "toSen": 50000,
-  "erSen": 2000,
-  "eeSen": 0
- },
- {
-  "fromSen": 50001,
-  "toSen": 52000,
-  "erSen": 2100,
-  "eeSen": 0
- },
- {
-  "fromSen": 52001,
-  "toSen": 54000,
-  "erSen": 2200,
-  "eeSen": 0
- },
- {
-  "fromSen": 54001,
-  "toSen": 56000,
-  "erSen": 2300,
-  "eeSen": 0
- },
- {
-  "fromSen": 56001,
-  "toSen": 58000,
-  "erSen": 2400,
-  "eeSen": 0
- },
- {
-  "fromSen": 58001,
-  "toSen": 60000,
-  "erSen": 2400,
-  "eeSen": 0
- },
- {
-  "fromSen": 60001,
-  "toSen": 62000,
-  "erSen": 2500,
-  "eeSen": 0
- },
- {
-  "fromSen": 62001,
-  "toSen": 64000,
-  "erSen": 2600,
-  "eeSen": 0
- },
- {
-  "fromSen": 64001,
-  "toSen": 66000,
-  "erSen": 2700,
-  "eeSen": 0
- },
- {
-  "fromSen": 66001,
-  "toSen": 68000,
-  "erSen": 2800,
-  "eeSen": 0
- },
- {
-  "fromSen": 68001,
-  "toSen": 70000,
-  "erSen": 2800,
-  "eeSen": 0
- },
- {
-  "fromSen": 70001,
-  "toSen": 72000,
-  "erSen": 2900,
-  "eeSen": 0
- },
- {
-  "fromSen": 72001,
-  "toSen": 74000,
-  "erSen": 3000,
-  "eeSen": 0
- },
- {
-  "fromSen": 74001,
-  "toSen": 76000,
-  "erSen": 3100,
-  "eeSen": 0
- },
- {
-  "fromSen": 76001,
-  "toSen": 78000,
-  "erSen": 3200,
-  "eeSen": 0
- },
- {
-  "fromSen": 78001,
-  "toSen": 80000,
-  "erSen": 3200,
-  "eeSen": 0
- },
- {
-  "fromSen": 80001,
-  "toSen": 82000,
-  "erSen": 3300,
-  "eeSen": 0
- },
- {
-  "fromSen": 82001,
-  "toSen": 84000,
-  "erSen": 3400,
-  "eeSen": 0
- },
- {
-  "fromSen": 84001,
-  "toSen": 86000,
-  "erSen": 3500,
-  "eeSen": 0
- },
- {
-  "fromSen": 86001,
-  "toSen": 88000,
-  "erSen": 3600,
-  "eeSen": 0
- },
- {
-  "fromSen": 88001,
-  "toSen": 90000,
-  "erSen": 3600,
-  "eeSen": 0
- },
- {
-  "fromSen": 90001,
-  "toSen": 92000,
-  "erSen": 3700,
-  "eeSen": 0
- },
- {
-  "fromSen": 92001,
-  "toSen": 94000,
-  "erSen": 3800,
-  "eeSen": 0
- },
- {
-  "fromSen": 94001,
-  "toSen": 96000,
-  "erSen": 3900,
-  "eeSen": 0
- },
- {
-  "fromSen": 96001,
-  "toSen": 98000,
-  "erSen": 4000,
-  "eeSen": 0
- },
- {
-  "fromSen": 98001,
-  "toSen": 100000,
-  "erSen": 4000,
-  "eeSen": 0
- },
- {
-  "fromSen": 100001,
-  "toSen": 102000,
-  "erSen": 4100,
-  "eeSen": 0
- },
- {
-  "fromSen": 102001,
-  "toSen": 104000,
-  "erSen": 4200,
-  "eeSen": 0
- },
- {
-  "fromSen": 104001,
-  "toSen": 106000,
-  "erSen": 4300,
-  "eeSen": 0
- },
- {
-  "fromSen": 106001,
-  "toSen": 108000,
-  "erSen": 4400,
-  "eeSen": 0
- },
- {
-  "fromSen": 108001,
-  "toSen": 110000,
-  "erSen": 4400,
-  "eeSen": 0
- },
- {
-  "fromSen": 110001,
-  "toSen": 112000,
-  "erSen": 4500,
-  "eeSen": 0
- },
- {
-  "fromSen": 112001,
-  "toSen": 114000,
-  "erSen": 4600,
-  "eeSen": 0
- },
- {
-  "fromSen": 114001,
-  "toSen": 116000,
-  "erSen": 4700,
-  "eeSen": 0
- },
- {
-  "fromSen": 116001,
-  "toSen": 118000,
-  "erSen": 4800,
-  "eeSen": 0
- },
- {
-  "fromSen": 118001,
-  "toSen": 120000,
-  "erSen": 4800,
-  "eeSen": 0
- },
- {
-  "fromSen": 120001,
-  "toSen": 122000,
-  "erSen": 4900,
-  "eeSen": 0
- },
- {
-  "fromSen": 122001,
-  "toSen": 124000,
-  "erSen": 5000,
-  "eeSen": 0
- },
- {
-  "fromSen": 124001,
-  "toSen": 126000,
-  "erSen": 5100,
-  "eeSen": 0
- },
- {
-  "fromSen": 126001,
-  "toSen": 128000,
-  "erSen": 5200,
-  "eeSen": 0
- },
- {
-  "fromSen": 128001,
-  "toSen": 130000,
-  "erSen": 5200,
-  "eeSen": 0
- },
- {
-  "fromSen": 130001,
-  "toSen": 132000,
-  "erSen": 5300,
-  "eeSen": 0
- },
- {
-  "fromSen": 132001,
-  "toSen": 134000,
-  "erSen": 5400,
-  "eeSen": 0
- },
- {
-  "fromSen": 134001,
-  "toSen": 136000,
-  "erSen": 5500,
-  "eeSen": 0
- },
- {
-  "fromSen": 136001,
-  "toSen": 138000,
-  "erSen": 5600,
-  "eeSen": 0
- },
- {
-  "fromSen": 138001,
-  "toSen": 140000,
-  "erSen": 5600,
-  "eeSen": 0
- },
- {
-  "fromSen": 140001,
-  "toSen": 142000,
-  "erSen": 5700,
-  "eeSen": 0
- },
- {
-  "fromSen": 142001,
-  "toSen": 144000,
-  "erSen": 5800,
-  "eeSen": 0
- },
- {
-  "fromSen": 144001,
-  "toSen": 146000,
-  "erSen": 5900,
-  "eeSen": 0
- },
- {
-  "fromSen": 146001,
-  "toSen": 148000,
-  "erSen": 6000,
-  "eeSen": 0
- },
- {
-  "fromSen": 148001,
-  "toSen": 150000,
-  "erSen": 6000,
-  "eeSen": 0
- },
- {
-  "fromSen": 150001,
-  "toSen": 152000,
-  "erSen": 6100,
-  "eeSen": 0
- },
- {
-  "fromSen": 152001,
-  "toSen": 154000,
-  "erSen": 6200,
-  "eeSen": 0
- },
- {
-  "fromSen": 154001,
-  "toSen": 156000,
-  "erSen": 6300,
-  "eeSen": 0
- },
- {
-  "fromSen": 156001,
-  "toSen": 158000,
-  "erSen": 6400,
-  "eeSen": 0
- },
- {
-  "fromSen": 158001,
-  "toSen": 160000,
-  "erSen": 6400,
-  "eeSen": 0
- },
- {
-  "fromSen": 160001,
-  "toSen": 162000,
-  "erSen": 6500,
-  "eeSen": 0
- },
- {
-  "fromSen": 162001,
-  "toSen": 164000,
-  "erSen": 6600,
-  "eeSen": 0
- },
- {
-  "fromSen": 164001,
-  "toSen": 166000,
-  "erSen": 6700,
-  "eeSen": 0
- },
- {
-  "fromSen": 166001,
-  "toSen": 168000,
-  "erSen": 6800,
-  "eeSen": 0
- },
- {
-  "fromSen": 168001,
-  "toSen": 170000,
-  "erSen": 6800,
-  "eeSen": 0
- },
- {
-  "fromSen": 170001,
-  "toSen": 172000,
-  "erSen": 6900,
-  "eeSen": 0
- },
- {
-  "fromSen": 172001,
-  "toSen": 174000,
-  "erSen": 7000,
-  "eeSen": 0
- },
- {
-  "fromSen": 174001,
-  "toSen": 176000,
-  "erSen": 7100,
-  "eeSen": 0
- },
- {
-  "fromSen": 176001,
-  "toSen": 178000,
-  "erSen": 7200,
-  "eeSen": 0
- },
- {
-  "fromSen": 178001,
-  "toSen": 180000,
-  "erSen": 7200,
-  "eeSen": 0
- },
- {
-  "fromSen": 180001,
-  "toSen": 182000,
-  "erSen": 7300,
-  "eeSen": 0
- },
- {
-  "fromSen": 182001,
-  "toSen": 184000,
-  "erSen": 7400,
-  "eeSen": 0
- },
- {
-  "fromSen": 184001,
-  "toSen": 186000,
-  "erSen": 7500,
-  "eeSen": 0
- },
- {
-  "fromSen": 186001,
-  "toSen": 188000,
-  "erSen": 7600,
-  "eeSen": 0
- },
- {
-  "fromSen": 188001,
-  "toSen": 190000,
-  "erSen": 7600,
-  "eeSen": 0
- },
- {
-  "fromSen": 190001,
-  "toSen": 192000,
-  "erSen": 7700,
-  "eeSen": 0
- },
- {
-  "fromSen": 192001,
-  "toSen": 194000,
-  "erSen": 7800,
-  "eeSen": 0
- },
- {
-  "fromSen": 194001,
-  "toSen": 196000,
-  "erSen": 7900,
-  "eeSen": 0
- },
- {
-  "fromSen": 196001,
-  "toSen": 198000,
-  "erSen": 8000,
-  "eeSen": 0
- },
- {
-  "fromSen": 198001,
-  "toSen": 200000,
-  "erSen": 8000,
-  "eeSen": 0
- },
- {
-  "fromSen": 200001,
-  "toSen": 202000,
-  "erSen": 8100,
-  "eeSen": 0
- },
- {
-  "fromSen": 202001,
-  "toSen": 204000,
-  "erSen": 8200,
-  "eeSen": 0
- },
- {
-  "fromSen": 204001,
-  "toSen": 206000,
-  "erSen": 8300,
-  "eeSen": 0
- },
- {
-  "fromSen": 206001,
-  "toSen": 208000,
-  "erSen": 8400,
-  "eeSen": 0
- },
- {
-  "fromSen": 208001,
-  "toSen": 210000,
-  "erSen": 8400,
-  "eeSen": 0
- },
- {
-  "fromSen": 210001,
-  "toSen": 212000,
-  "erSen": 8500,
-  "eeSen": 0
- },
- {
-  "fromSen": 212001,
-  "toSen": 214000,
-  "erSen": 8600,
-  "eeSen": 0
- },
- {
-  "fromSen": 214001,
-  "toSen": 216000,
-  "erSen": 8700,
-  "eeSen": 0
- },
- {
-  "fromSen": 216001,
-  "toSen": 218000,
-  "erSen": 8800,
-  "eeSen": 0
- },
- {
-  "fromSen": 218001,
-  "toSen": 220000,
-  "erSen": 8800,
-  "eeSen": 0
- },
- {
-  "fromSen": 220001,
-  "toSen": 222000,
-  "erSen": 8900,
-  "eeSen": 0
- },
- {
-  "fromSen": 222001,
-  "toSen": 224000,
-  "erSen": 9000,
-  "eeSen": 0
- },
- {
-  "fromSen": 224001,
-  "toSen": 226000,
-  "erSen": 9100,
-  "eeSen": 0
- },
- {
-  "fromSen": 226001,
-  "toSen": 228000,
-  "erSen": 9200,
-  "eeSen": 0
- },
- {
-  "fromSen": 228001,
-  "toSen": 230000,
-  "erSen": 9200,
-  "eeSen": 0
- },
- {
-  "fromSen": 230001,
-  "toSen": 232000,
-  "erSen": 9300,
-  "eeSen": 0
- },
- {
-  "fromSen": 232001,
-  "toSen": 234000,
-  "erSen": 9400,
-  "eeSen": 0
- },
- {
-  "fromSen": 234001,
-  "toSen": 236000,
-  "erSen": 9500,
-  "eeSen": 0
- },
- {
-  "fromSen": 236001,
-  "toSen": 238000,
-  "erSen": 9600,
-  "eeSen": 0
- },
- {
-  "fromSen": 238001,
-  "toSen": 240000,
-  "erSen": 9600,
-  "eeSen": 0
- },
- {
-  "fromSen": 240001,
-  "toSen": 242000,
-  "erSen": 9700,
-  "eeSen": 0
- },
- {
-  "fromSen": 242001,
-  "toSen": 244000,
-  "erSen": 9800,
-  "eeSen": 0
- },
- {
-  "fromSen": 244001,
-  "toSen": 246000,
-  "erSen": 9900,
-  "eeSen": 0
- },
- {
-  "fromSen": 246001,
-  "toSen": 248000,
-  "erSen": 10000,
-  "eeSen": 0
- },
- {
-  "fromSen": 248001,
-  "toSen": 250000,
-  "erSen": 10000,
-  "eeSen": 0
- },
- {
-  "fromSen": 250001,
-  "toSen": 252000,
-  "erSen": 10100,
-  "eeSen": 0
- },
- {
-  "fromSen": 252001,
-  "toSen": 254000,
-  "erSen": 10200,
-  "eeSen": 0
- },
- {
-  "fromSen": 254001,
-  "toSen": 256000,
-  "erSen": 10300,
-  "eeSen": 0
- },
- {
-  "fromSen": 256001,
-  "toSen": 258000,
-  "erSen": 10400,
-  "eeSen": 0
- },
- {
-  "fromSen": 258001,
-  "toSen": 260000,
-  "erSen": 10400,
-  "eeSen": 0
- },
- {
-  "fromSen": 260001,
-  "toSen": 262000,
-  "erSen": 10500,
-  "eeSen": 0
- },
- {
-  "fromSen": 262001,
-  "toSen": 264000,
-  "erSen": 10600,
-  "eeSen": 0
- },
- {
-  "fromSen": 264001,
-  "toSen": 266000,
-  "erSen": 10700,
-  "eeSen": 0
- },
- {
-  "fromSen": 266001,
-  "toSen": 268000,
-  "erSen": 10800,
-  "eeSen": 0
- },
- {
-  "fromSen": 268001,
-  "toSen": 270000,
-  "erSen": 10800,
-  "eeSen": 0
- },
- {
-  "fromSen": 270001,
-  "toSen": 272000,
-  "erSen": 10900,
-  "eeSen": 0
- },
- {
-  "fromSen": 272001,
-  "toSen": 274000,
-  "erSen": 11000,
-  "eeSen": 0
- },
- {
-  "fromSen": 274001,
-  "toSen": 276000,
-  "erSen": 11100,
-  "eeSen": 0
- },
- {
-  "fromSen": 276001,
-  "toSen": 278000,
-  "erSen": 11200,
-  "eeSen": 0
- },
- {
-  "fromSen": 278001,
-  "toSen": 280000,
-  "erSen": 11200,
-  "eeSen": 0
- },
- {
-  "fromSen": 280001,
-  "toSen": 282000,
-  "erSen": 11300,
-  "eeSen": 0
- },
- {
-  "fromSen": 282001,
-  "toSen": 284000,
-  "erSen": 11400,
-  "eeSen": 0
- },
- {
-  "fromSen": 284001,
-  "toSen": 286000,
-  "erSen": 11500,
-  "eeSen": 0
- },
- {
-  "fromSen": 286001,
-  "toSen": 288000,
-  "erSen": 11600,
-  "eeSen": 0
- },
- {
-  "fromSen": 288001,
-  "toSen": 290000,
-  "erSen": 11600,
-  "eeSen": 0
- },
- {
-  "fromSen": 290001,
-  "toSen": 292000,
-  "erSen": 11700,
-  "eeSen": 0
- },
- {
-  "fromSen": 292001,
-  "toSen": 294000,
-  "erSen": 11800,
-  "eeSen": 0
- },
- {
-  "fromSen": 294001,
-  "toSen": 296000,
-  "erSen": 11900,
-  "eeSen": 0
- },
- {
-  "fromSen": 296001,
-  "toSen": 298000,
-  "erSen": 12000,
-  "eeSen": 0
- },
- {
-  "fromSen": 298001,
-  "toSen": 300000,
-  "erSen": 12000,
-  "eeSen": 0
- },
- {
-  "fromSen": 300001,
-  "toSen": 302000,
-  "erSen": 12100,
-  "eeSen": 0
- },
- {
-  "fromSen": 302001,
-  "toSen": 304000,
-  "erSen": 12200,
-  "eeSen": 0
- },
- {
-  "fromSen": 304001,
-  "toSen": 306000,
-  "erSen": 12300,
-  "eeSen": 0
- },
- {
-  "fromSen": 306001,
-  "toSen": 308000,
-  "erSen": 12400,
-  "eeSen": 0
- },
- {
-  "fromSen": 308001,
-  "toSen": 310000,
-  "erSen": 12400,
-  "eeSen": 0
- },
- {
-  "fromSen": 310001,
-  "toSen": 312000,
-  "erSen": 12500,
-  "eeSen": 0
- },
- {
-  "fromSen": 312001,
-  "toSen": 314000,
-  "erSen": 12600,
-  "eeSen": 0
- },
- {
-  "fromSen": 314001,
-  "toSen": 316000,
-  "erSen": 12700,
-  "eeSen": 0
- },
- {
-  "fromSen": 316001,
-  "toSen": 318000,
-  "erSen": 12800,
-  "eeSen": 0
- },
- {
-  "fromSen": 318001,
-  "toSen": 320000,
-  "erSen": 12800,
-  "eeSen": 0
- },
- {
-  "fromSen": 320001,
-  "toSen": 322000,
-  "erSen": 12900,
-  "eeSen": 0
- },
- {
-  "fromSen": 322001,
-  "toSen": 324000,
-  "erSen": 13000,
-  "eeSen": 0
- },
- {
-  "fromSen": 324001,
-  "toSen": 326000,
-  "erSen": 13100,
-  "eeSen": 0
- },
- {
-  "fromSen": 326001,
-  "toSen": 328000,
-  "erSen": 13200,
-  "eeSen": 0
- },
- {
-  "fromSen": 328001,
-  "toSen": 330000,
-  "erSen": 13200,
-  "eeSen": 0
- },
- {
-  "fromSen": 330001,
-  "toSen": 332000,
-  "erSen": 13300,
-  "eeSen": 0
- },
- {
-  "fromSen": 332001,
-  "toSen": 334000,
-  "erSen": 13400,
-  "eeSen": 0
- },
- {
-  "fromSen": 334001,
-  "toSen": 336000,
-  "erSen": 13500,
-  "eeSen": 0
- },
- {
-  "fromSen": 336001,
-  "toSen": 338000,
-  "erSen": 13600,
-  "eeSen": 0
- },
- {
-  "fromSen": 338001,
-  "toSen": 340000,
-  "erSen": 13600,
-  "eeSen": 0
- },
- {
-  "fromSen": 340001,
-  "toSen": 342000,
-  "erSen": 13700,
-  "eeSen": 0
- },
- {
-  "fromSen": 342001,
-  "toSen": 344000,
-  "erSen": 13800,
-  "eeSen": 0
- },
- {
-  "fromSen": 344001,
-  "toSen": 346000,
-  "erSen": 13900,
-  "eeSen": 0
- },
- {
-  "fromSen": 346001,
-  "toSen": 348000,
-  "erSen": 14000,
-  "eeSen": 0
- },
- {
-  "fromSen": 348001,
-  "toSen": 350000,
-  "erSen": 14000,
-  "eeSen": 0
- },
- {
-  "fromSen": 350001,
-  "toSen": 352000,
-  "erSen": 14100,
-  "eeSen": 0
- },
- {
-  "fromSen": 352001,
-  "toSen": 354000,
-  "erSen": 14200,
-  "eeSen": 0
- },
- {
-  "fromSen": 354001,
-  "toSen": 356000,
-  "erSen": 14300,
-  "eeSen": 0
- },
- {
-  "fromSen": 356001,
-  "toSen": 358000,
-  "erSen": 14400,
-  "eeSen": 0
- },
- {
-  "fromSen": 358001,
-  "toSen": 360000,
-  "erSen": 14400,
-  "eeSen": 0
- },
- {
-  "fromSen": 360001,
-  "toSen": 362000,
-  "erSen": 14500,
-  "eeSen": 0
- },
- {
-  "fromSen": 362001,
-  "toSen": 364000,
-  "erSen": 14600,
-  "eeSen": 0
- },
- {
-  "fromSen": 364001,
-  "toSen": 366000,
-  "erSen": 14700,
-  "eeSen": 0
- },
- {
-  "fromSen": 366001,
-  "toSen": 368000,
-  "erSen": 14800,
-  "eeSen": 0
- },
- {
-  "fromSen": 368001,
-  "toSen": 370000,
-  "erSen": 14800,
-  "eeSen": 0
- },
- {
-  "fromSen": 370001,
-  "toSen": 372000,
-  "erSen": 14900,
-  "eeSen": 0
- },
- {
-  "fromSen": 372001,
-  "toSen": 374000,
-  "erSen": 15000,
-  "eeSen": 0
- },
- {
-  "fromSen": 374001,
-  "toSen": 376000,
-  "erSen": 15100,
-  "eeSen": 0
- },
- {
-  "fromSen": 376001,
-  "toSen": 378000,
-  "erSen": 15200,
-  "eeSen": 0
- },
- {
-  "fromSen": 378001,
-  "toSen": 380000,
-  "erSen": 15200,
-  "eeSen": 0
- },
- {
-  "fromSen": 380001,
-  "toSen": 382000,
-  "erSen": 15300,
-  "eeSen": 0
- },
- {
-  "fromSen": 382001,
-  "toSen": 384000,
-  "erSen": 15400,
-  "eeSen": 0
- },
- {
-  "fromSen": 384001,
-  "toSen": 386000,
-  "erSen": 15500,
-  "eeSen": 0
- },
- {
-  "fromSen": 386001,
-  "toSen": 388000,
-  "erSen": 15600,
-  "eeSen": 0
- },
- {
-  "fromSen": 388001,
-  "toSen": 390000,
-  "erSen": 15600,
-  "eeSen": 0
- },
- {
-  "fromSen": 390001,
-  "toSen": 392000,
-  "erSen": 15700,
-  "eeSen": 0
- },
- {
-  "fromSen": 392001,
-  "toSen": 394000,
-  "erSen": 15800,
-  "eeSen": 0
- },
- {
-  "fromSen": 394001,
-  "toSen": 396000,
-  "erSen": 15900,
-  "eeSen": 0
- },
- {
-  "fromSen": 396001,
-  "toSen": 398000,
-  "erSen": 16000,
-  "eeSen": 0
- },
- {
-  "fromSen": 398001,
-  "toSen": 400000,
-  "erSen": 16000,
-  "eeSen": 0
- },
- {
-  "fromSen": 400001,
-  "toSen": 402000,
-  "erSen": 16100,
-  "eeSen": 0
- },
- {
-  "fromSen": 402001,
-  "toSen": 404000,
-  "erSen": 16200,
-  "eeSen": 0
- },
- {
-  "fromSen": 404001,
-  "toSen": 406000,
-  "erSen": 16300,
-  "eeSen": 0
- },
- {
-  "fromSen": 406001,
-  "toSen": 408000,
-  "erSen": 16400,
-  "eeSen": 0
- },
- {
-  "fromSen": 408001,
-  "toSen": 410000,
-  "erSen": 16400,
-  "eeSen": 0
- },
- {
-  "fromSen": 410001,
-  "toSen": 412000,
-  "erSen": 16500,
-  "eeSen": 0
- },
- {
-  "fromSen": 412001,
-  "toSen": 414000,
-  "erSen": 16600,
-  "eeSen": 0
- },
- {
-  "fromSen": 414001,
-  "toSen": 416000,
-  "erSen": 16700,
-  "eeSen": 0
- },
- {
-  "fromSen": 416001,
-  "toSen": 418000,
-  "erSen": 16800,
-  "eeSen": 0
- },
- {
-  "fromSen": 418001,
-  "toSen": 420000,
-  "erSen": 16800,
-  "eeSen": 0
- },
- {
-  "fromSen": 420001,
-  "toSen": 422000,
-  "erSen": 16900,
-  "eeSen": 0
- },
- {
-  "fromSen": 422001,
-  "toSen": 424000,
-  "erSen": 17000,
-  "eeSen": 0
- },
- {
-  "fromSen": 424001,
-  "toSen": 426000,
-  "erSen": 17100,
-  "eeSen": 0
- },
- {
-  "fromSen": 426001,
-  "toSen": 428000,
-  "erSen": 17200,
-  "eeSen": 0
- },
- {
-  "fromSen": 428001,
-  "toSen": 430000,
-  "erSen": 17200,
-  "eeSen": 0
- },
- {
-  "fromSen": 430001,
-  "toSen": 432000,
-  "erSen": 17300,
-  "eeSen": 0
- },
- {
-  "fromSen": 432001,
-  "toSen": 434000,
-  "erSen": 17400,
-  "eeSen": 0
- },
- {
-  "fromSen": 434001,
-  "toSen": 436000,
-  "erSen": 17500,
-  "eeSen": 0
- },
- {
-  "fromSen": 436001,
-  "toSen": 438000,
-  "erSen": 17600,
-  "eeSen": 0
- },
- {
-  "fromSen": 438001,
-  "toSen": 440000,
-  "erSen": 17600,
-  "eeSen": 0
- },
- {
-  "fromSen": 440001,
-  "toSen": 442000,
-  "erSen": 17700,
-  "eeSen": 0
- },
- {
-  "fromSen": 442001,
-  "toSen": 444000,
-  "erSen": 17800,
-  "eeSen": 0
- },
- {
-  "fromSen": 444001,
-  "toSen": 446000,
-  "erSen": 17900,
-  "eeSen": 0
- },
- {
-  "fromSen": 446001,
-  "toSen": 448000,
-  "erSen": 18000,
-  "eeSen": 0
- },
- {
-  "fromSen": 448001,
-  "toSen": 450000,
-  "erSen": 18000,
-  "eeSen": 0
- },
- {
-  "fromSen": 450001,
-  "toSen": 452000,
-  "erSen": 18100,
-  "eeSen": 0
- },
- {
-  "fromSen": 452001,
-  "toSen": 454000,
-  "erSen": 18200,
-  "eeSen": 0
- },
- {
-  "fromSen": 454001,
-  "toSen": 456000,
-  "erSen": 18300,
-  "eeSen": 0
- },
- {
-  "fromSen": 456001,
-  "toSen": 458000,
-  "erSen": 18400,
-  "eeSen": 0
- },
- {
-  "fromSen": 458001,
-  "toSen": 460000,
-  "erSen": 18400,
-  "eeSen": 0
- },
- {
-  "fromSen": 460001,
-  "toSen": 462000,
-  "erSen": 18500,
-  "eeSen": 0
- },
- {
-  "fromSen": 462001,
-  "toSen": 464000,
-  "erSen": 18600,
-  "eeSen": 0
- },
- {
-  "fromSen": 464001,
-  "toSen": 466000,
-  "erSen": 18700,
-  "eeSen": 0
- },
- {
-  "fromSen": 466001,
-  "toSen": 468000,
-  "erSen": 18800,
-  "eeSen": 0
- },
- {
-  "fromSen": 468001,
-  "toSen": 470000,
-  "erSen": 18800,
-  "eeSen": 0
- },
- {
-  "fromSen": 470001,
-  "toSen": 472000,
-  "erSen": 18900,
-  "eeSen": 0
- },
- {
-  "fromSen": 472001,
-  "toSen": 474000,
-  "erSen": 19000,
-  "eeSen": 0
- },
- {
-  "fromSen": 474001,
-  "toSen": 476000,
-  "erSen": 19100,
-  "eeSen": 0
- },
- {
-  "fromSen": 476001,
-  "toSen": 478000,
-  "erSen": 19200,
-  "eeSen": 0
- },
- {
-  "fromSen": 478001,
-  "toSen": 480000,
-  "erSen": 19200,
-  "eeSen": 0
- },
- {
-  "fromSen": 480001,
-  "toSen": 482000,
-  "erSen": 19300,
-  "eeSen": 0
- },
- {
-  "fromSen": 482001,
-  "toSen": 484000,
-  "erSen": 19400,
-  "eeSen": 0
- },
- {
-  "fromSen": 484001,
-  "toSen": 486000,
-  "erSen": 19500,
-  "eeSen": 0
- },
- {
-  "fromSen": 486001,
-  "toSen": 488000,
-  "erSen": 19600,
-  "eeSen": 0
- },
- {
-  "fromSen": 488001,
-  "toSen": 490000,
-  "erSen": 19600,
-  "eeSen": 0
- },
- {
-  "fromSen": 490001,
-  "toSen": 492000,
-  "erSen": 19700,
-  "eeSen": 0
- },
- {
-  "fromSen": 492001,
-  "toSen": 494000,
-  "erSen": 19800,
-  "eeSen": 0
- },
- {
-  "fromSen": 494001,
-  "toSen": 496000,
-  "erSen": 19900,
-  "eeSen": 0
- },
- {
-  "fromSen": 496001,
-  "toSen": 498000,
-  "erSen": 20000,
-  "eeSen": 0
- },
- {
-  "fromSen": 498001,
-  "toSen": 500000,
-  "erSen": 20000,
-  "eeSen": 0
- },
- {
-  "fromSen": 500001,
-  "toSen": 510000,
-  "erSen": 20400,
-  "eeSen": 0
- },
- {
-  "fromSen": 510001,
-  "toSen": 520000,
-  "erSen": 20800,
-  "eeSen": 0
- },
- {
-  "fromSen": 520001,
-  "toSen": 530000,
-  "erSen": 21200,
-  "eeSen": 0
- },
- {
-  "fromSen": 530001,
-  "toSen": 540000,
-  "erSen": 21600,
-  "eeSen": 0
- },
- {
-  "fromSen": 540001,
-  "toSen": 550000,
-  "erSen": 22000,
-  "eeSen": 0
- },
- {
-  "fromSen": 550001,
-  "toSen": 560000,
-  "erSen": 22400,
-  "eeSen": 0
- },
- {
-  "fromSen": 560001,
-  "toSen": 570000,
-  "erSen": 22800,
-  "eeSen": 0
- },
- {
-  "fromSen": 570001,
-  "toSen": 580000,
-  "erSen": 23200,
-  "eeSen": 0
- },
- {
-  "fromSen": 580001,
-  "toSen": 590000,
-  "erSen": 23600,
-  "eeSen": 0
- },
- {
-  "fromSen": 590001,
-  "toSen": 600000,
-  "erSen": 24000,
-  "eeSen": 0
- },
- {
-  "fromSen": 600001,
-  "toSen": 610000,
-  "erSen": 24400,
-  "eeSen": 0
- },
- {
-  "fromSen": 610001,
-  "toSen": 620000,
-  "erSen": 24800,
-  "eeSen": 0
- },
- {
-  "fromSen": 620001,
-  "toSen": 630000,
-  "erSen": 25200,
-  "eeSen": 0
- },
- {
-  "fromSen": 630001,
-  "toSen": 640000,
-  "erSen": 25600,
-  "eeSen": 0
- },
- {
-  "fromSen": 640001,
-  "toSen": 650000,
-  "erSen": 26000,
-  "eeSen": 0
- },
- {
-  "fromSen": 650001,
-  "toSen": 660000,
-  "erSen": 26400,
-  "eeSen": 0
- },
- {
-  "fromSen": 660001,
-  "toSen": 670000,
-  "erSen": 26800,
-  "eeSen": 0
- },
- {
-  "fromSen": 670001,
-  "toSen": 680000,
-  "erSen": 27200,
-  "eeSen": 0
- },
- {
-  "fromSen": 680001,
-  "toSen": 690000,
-  "erSen": 27600,
-  "eeSen": 0
- },
- {
-  "fromSen": 690001,
-  "toSen": 700000,
-  "erSen": 28000,
-  "eeSen": 0
- },
- {
-  "fromSen": 700001,
-  "toSen": 710000,
-  "erSen": 28400,
-  "eeSen": 0
- },
- {
-  "fromSen": 710001,
-  "toSen": 720000,
-  "erSen": 28800,
-  "eeSen": 0
- },
- {
-  "fromSen": 720001,
-  "toSen": 730000,
-  "erSen": 29200,
-  "eeSen": 0
- },
- {
-  "fromSen": 730001,
-  "toSen": 740000,
-  "erSen": 29600,
-  "eeSen": 0
- },
- {
-  "fromSen": 740001,
-  "toSen": 750000,
-  "erSen": 30000,
-  "eeSen": 0
- },
- {
-  "fromSen": 750001,
-  "toSen": 760000,
-  "erSen": 30400,
-  "eeSen": 0
- },
- {
-  "fromSen": 760001,
-  "toSen": 770000,
-  "erSen": 30800,
-  "eeSen": 0
- },
- {
-  "fromSen": 770001,
-  "toSen": 780000,
-  "erSen": 31200,
-  "eeSen": 0
- },
- {
-  "fromSen": 780001,
-  "toSen": 790000,
-  "erSen": 31600,
-  "eeSen": 0
- },
- {
-  "fromSen": 790001,
-  "toSen": 800000,
-  "erSen": 32000,
-  "eeSen": 0
- },
- {
-  "fromSen": 800001,
-  "toSen": 810000,
-  "erSen": 32400,
-  "eeSen": 0
- },
- {
-  "fromSen": 810001,
-  "toSen": 820000,
-  "erSen": 32800,
-  "eeSen": 0
- },
- {
-  "fromSen": 820001,
-  "toSen": 830000,
-  "erSen": 33200,
-  "eeSen": 0
- },
- {
-  "fromSen": 830001,
-  "toSen": 840000,
-  "erSen": 33600,
-  "eeSen": 0
- },
- {
-  "fromSen": 840001,
-  "toSen": 850000,
-  "erSen": 34000,
-  "eeSen": 0
- },
- {
-  "fromSen": 850001,
-  "toSen": 860000,
-  "erSen": 34400,
-  "eeSen": 0
- },
- {
-  "fromSen": 860001,
-  "toSen": 870000,
-  "erSen": 34800,
-  "eeSen": 0
- },
- {
-  "fromSen": 870001,
-  "toSen": 880000,
-  "erSen": 35200,
-  "eeSen": 0
- },
- {
-  "fromSen": 880001,
-  "toSen": 890000,
-  "erSen": 35600,
-  "eeSen": 0
- },
- {
-  "fromSen": 890001,
-  "toSen": 900000,
-  "erSen": 36000,
-  "eeSen": 0
- },
- {
-  "fromSen": 900001,
-  "toSen": 910000,
-  "erSen": 36400,
-  "eeSen": 0
- },
- {
-  "fromSen": 910001,
-  "toSen": 920000,
-  "erSen": 36800,
-  "eeSen": 0
- },
- {
-  "fromSen": 920001,
-  "toSen": 930000,
-  "erSen": 37200,
-  "eeSen": 0
- },
- {
-  "fromSen": 930001,
-  "toSen": 940000,
-  "erSen": 37600,
-  "eeSen": 0
- },
- {
-  "fromSen": 940001,
-  "toSen": 950000,
-  "erSen": 38000,
-  "eeSen": 0
- },
- {
-  "fromSen": 950001,
-  "toSen": 960000,
-  "erSen": 38400,
-  "eeSen": 0
- },
- {
-  "fromSen": 960001,
-  "toSen": 970000,
-  "erSen": 38800,
-  "eeSen": 0
- },
- {
-  "fromSen": 970001,
-  "toSen": 980000,
-  "erSen": 39200,
-  "eeSen": 0
- },
- {
-  "fromSen": 980001,
-  "toSen": 990000,
-  "erSen": 39600,
-  "eeSen": 0
- },
- {
-  "fromSen": 990001,
-  "toSen": 1000000,
-  "erSen": 40000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1000001,
-  "toSen": 1010000,
-  "erSen": 40400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1010001,
-  "toSen": 1020000,
-  "erSen": 40800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1020001,
-  "toSen": 1030000,
-  "erSen": 41200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1030001,
-  "toSen": 1040000,
-  "erSen": 41600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1040001,
-  "toSen": 1050000,
-  "erSen": 42000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1050001,
-  "toSen": 1060000,
-  "erSen": 42400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1060001,
-  "toSen": 1070000,
-  "erSen": 42800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1070001,
-  "toSen": 1080000,
-  "erSen": 43200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1080001,
-  "toSen": 1090000,
-  "erSen": 43600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1090001,
-  "toSen": 1100000,
-  "erSen": 44000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1100001,
-  "toSen": 1110000,
-  "erSen": 44400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1110001,
-  "toSen": 1120000,
-  "erSen": 44800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1120001,
-  "toSen": 1130000,
-  "erSen": 45200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1130001,
-  "toSen": 1140000,
-  "erSen": 45600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1140001,
-  "toSen": 1150000,
-  "erSen": 46000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1150001,
-  "toSen": 1160000,
-  "erSen": 46400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1160001,
-  "toSen": 1170000,
-  "erSen": 46800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1170001,
-  "toSen": 1180000,
-  "erSen": 47200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1180001,
-  "toSen": 1190000,
-  "erSen": 47600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1190001,
-  "toSen": 1200000,
-  "erSen": 48000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1200001,
-  "toSen": 1210000,
-  "erSen": 48400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1210001,
-  "toSen": 1220000,
-  "erSen": 48800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1220001,
-  "toSen": 1230000,
-  "erSen": 49200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1230001,
-  "toSen": 1240000,
-  "erSen": 49600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1240001,
-  "toSen": 1250000,
-  "erSen": 50000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1250001,
-  "toSen": 1260000,
-  "erSen": 50400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1260001,
-  "toSen": 1270000,
-  "erSen": 50800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1270001,
-  "toSen": 1280000,
-  "erSen": 51200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1280001,
-  "toSen": 1290000,
-  "erSen": 51600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1290001,
-  "toSen": 1300000,
-  "erSen": 52000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1300001,
-  "toSen": 1310000,
-  "erSen": 52400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1310001,
-  "toSen": 1320000,
-  "erSen": 52800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1320001,
-  "toSen": 1330000,
-  "erSen": 53200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1330001,
-  "toSen": 1340000,
-  "erSen": 53600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1340001,
-  "toSen": 1350000,
-  "erSen": 54000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1350001,
-  "toSen": 1360000,
-  "erSen": 54400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1360001,
-  "toSen": 1370000,
-  "erSen": 54800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1370001,
-  "toSen": 1380000,
-  "erSen": 55200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1380001,
-  "toSen": 1390000,
-  "erSen": 55600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1390001,
-  "toSen": 1400000,
-  "erSen": 56000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1400001,
-  "toSen": 1410000,
-  "erSen": 56400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1410001,
-  "toSen": 1420000,
-  "erSen": 56800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1420001,
-  "toSen": 1430000,
-  "erSen": 57200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1430001,
-  "toSen": 1440000,
-  "erSen": 57600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1440001,
-  "toSen": 1450000,
-  "erSen": 58000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1450001,
-  "toSen": 1460000,
-  "erSen": 58400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1460001,
-  "toSen": 1470000,
-  "erSen": 58800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1470001,
-  "toSen": 1480000,
-  "erSen": 59200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1480001,
-  "toSen": 1490000,
-  "erSen": 59600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1490001,
-  "toSen": 1500000,
-  "erSen": 60000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1500001,
-  "toSen": 1510000,
-  "erSen": 60400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1510001,
-  "toSen": 1520000,
-  "erSen": 60800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1520001,
-  "toSen": 1530000,
-  "erSen": 61200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1530001,
-  "toSen": 1540000,
-  "erSen": 61600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1540001,
-  "toSen": 1550000,
-  "erSen": 62000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1550001,
-  "toSen": 1560000,
-  "erSen": 62400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1560001,
-  "toSen": 1570000,
-  "erSen": 62800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1570001,
-  "toSen": 1580000,
-  "erSen": 63200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1580001,
-  "toSen": 1590000,
-  "erSen": 63600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1590001,
-  "toSen": 1600000,
-  "erSen": 64000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1600001,
-  "toSen": 1610000,
-  "erSen": 64400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1610001,
-  "toSen": 1620000,
-  "erSen": 64800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1620001,
-  "toSen": 1630000,
-  "erSen": 65200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1630001,
-  "toSen": 1640000,
-  "erSen": 65600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1640001,
-  "toSen": 1650000,
-  "erSen": 66000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1650001,
-  "toSen": 1660000,
-  "erSen": 66400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1660001,
-  "toSen": 1670000,
-  "erSen": 66800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1670001,
-  "toSen": 1680000,
-  "erSen": 67200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1680001,
-  "toSen": 1690000,
-  "erSen": 67600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1690001,
-  "toSen": 1700000,
-  "erSen": 68000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1700001,
-  "toSen": 1710000,
-  "erSen": 68400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1710001,
-  "toSen": 1720000,
-  "erSen": 68800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1720001,
-  "toSen": 1730000,
-  "erSen": 69200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1730001,
-  "toSen": 1740000,
-  "erSen": 69600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1740001,
-  "toSen": 1750000,
-  "erSen": 70000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1750001,
-  "toSen": 1760000,
-  "erSen": 70400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1760001,
-  "toSen": 1770000,
-  "erSen": 70800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1770001,
-  "toSen": 1780000,
-  "erSen": 71200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1780001,
-  "toSen": 1790000,
-  "erSen": 71600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1790001,
-  "toSen": 1800000,
-  "erSen": 72000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1800001,
-  "toSen": 1810000,
-  "erSen": 72400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1810001,
-  "toSen": 1820000,
-  "erSen": 72800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1820001,
-  "toSen": 1830000,
-  "erSen": 73200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1830001,
-  "toSen": 1840000,
-  "erSen": 73600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1840001,
-  "toSen": 1850000,
-  "erSen": 74000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1850001,
-  "toSen": 1860000,
-  "erSen": 74400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1860001,
-  "toSen": 1870000,
-  "erSen": 74800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1870001,
-  "toSen": 1880000,
-  "erSen": 75200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1880001,
-  "toSen": 1890000,
-  "erSen": 75600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1890001,
-  "toSen": 1900000,
-  "erSen": 76000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1900001,
-  "toSen": 1910000,
-  "erSen": 76400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1910001,
-  "toSen": 1920000,
-  "erSen": 76800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1920001,
-  "toSen": 1930000,
-  "erSen": 77200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1930001,
-  "toSen": 1940000,
-  "erSen": 77600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1940001,
-  "toSen": 1950000,
-  "erSen": 78000,
-  "eeSen": 0
- },
- {
-  "fromSen": 1950001,
-  "toSen": 1960000,
-  "erSen": 78400,
-  "eeSen": 0
- },
- {
-  "fromSen": 1960001,
-  "toSen": 1970000,
-  "erSen": 78800,
-  "eeSen": 0
- },
- {
-  "fromSen": 1970001,
-  "toSen": 1980000,
-  "erSen": 79200,
-  "eeSen": 0
- },
- {
-  "fromSen": 1980001,
-  "toSen": 1990000,
-  "erSen": 79600,
-  "eeSen": 0
- },
- {
-  "fromSen": 1990001,
-  "toSen": 2000000,
-  "erSen": 80000,
-  "eeSen": 0
- }
+  {
+    "fromSen": 1,
+    "toSen": 1000,
+    "erSen": 0,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1001,
+    "toSen": 2000,
+    "erSen": 100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 2001,
+    "toSen": 4000,
+    "erSen": 200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 4001,
+    "toSen": 6000,
+    "erSen": 300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 6001,
+    "toSen": 8000,
+    "erSen": 400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 8001,
+    "toSen": 10000,
+    "erSen": 400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 10001,
+    "toSen": 12000,
+    "erSen": 500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 12001,
+    "toSen": 14000,
+    "erSen": 600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 14001,
+    "toSen": 16000,
+    "erSen": 700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 16001,
+    "toSen": 18000,
+    "erSen": 800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 18001,
+    "toSen": 20000,
+    "erSen": 800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 20001,
+    "toSen": 22000,
+    "erSen": 900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 22001,
+    "toSen": 24000,
+    "erSen": 1000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 24001,
+    "toSen": 26000,
+    "erSen": 1100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 26001,
+    "toSen": 28000,
+    "erSen": 1200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 28001,
+    "toSen": 30000,
+    "erSen": 1200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 30001,
+    "toSen": 32000,
+    "erSen": 1300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 32001,
+    "toSen": 34000,
+    "erSen": 1400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 34001,
+    "toSen": 36000,
+    "erSen": 1500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 36001,
+    "toSen": 38000,
+    "erSen": 1600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 38001,
+    "toSen": 40000,
+    "erSen": 1600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 40001,
+    "toSen": 42000,
+    "erSen": 1700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 42001,
+    "toSen": 44000,
+    "erSen": 1800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 44001,
+    "toSen": 46000,
+    "erSen": 1900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 46001,
+    "toSen": 48000,
+    "erSen": 2000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 48001,
+    "toSen": 50000,
+    "erSen": 2000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 50001,
+    "toSen": 52000,
+    "erSen": 2100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 52001,
+    "toSen": 54000,
+    "erSen": 2200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 54001,
+    "toSen": 56000,
+    "erSen": 2300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 56001,
+    "toSen": 58000,
+    "erSen": 2400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 58001,
+    "toSen": 60000,
+    "erSen": 2400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 60001,
+    "toSen": 62000,
+    "erSen": 2500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 62001,
+    "toSen": 64000,
+    "erSen": 2600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 64001,
+    "toSen": 66000,
+    "erSen": 2700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 66001,
+    "toSen": 68000,
+    "erSen": 2800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 68001,
+    "toSen": 70000,
+    "erSen": 2800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 70001,
+    "toSen": 72000,
+    "erSen": 2900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 72001,
+    "toSen": 74000,
+    "erSen": 3000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 74001,
+    "toSen": 76000,
+    "erSen": 3100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 76001,
+    "toSen": 78000,
+    "erSen": 3200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 78001,
+    "toSen": 80000,
+    "erSen": 3200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 80001,
+    "toSen": 82000,
+    "erSen": 3300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 82001,
+    "toSen": 84000,
+    "erSen": 3400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 84001,
+    "toSen": 86000,
+    "erSen": 3500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 86001,
+    "toSen": 88000,
+    "erSen": 3600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 88001,
+    "toSen": 90000,
+    "erSen": 3600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 90001,
+    "toSen": 92000,
+    "erSen": 3700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 92001,
+    "toSen": 94000,
+    "erSen": 3800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 94001,
+    "toSen": 96000,
+    "erSen": 3900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 96001,
+    "toSen": 98000,
+    "erSen": 4000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 98001,
+    "toSen": 100000,
+    "erSen": 4000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 100001,
+    "toSen": 102000,
+    "erSen": 4100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 102001,
+    "toSen": 104000,
+    "erSen": 4200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 104001,
+    "toSen": 106000,
+    "erSen": 4300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 106001,
+    "toSen": 108000,
+    "erSen": 4400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 108001,
+    "toSen": 110000,
+    "erSen": 4400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 110001,
+    "toSen": 112000,
+    "erSen": 4500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 112001,
+    "toSen": 114000,
+    "erSen": 4600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 114001,
+    "toSen": 116000,
+    "erSen": 4700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 116001,
+    "toSen": 118000,
+    "erSen": 4800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 118001,
+    "toSen": 120000,
+    "erSen": 4800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 120001,
+    "toSen": 122000,
+    "erSen": 4900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 122001,
+    "toSen": 124000,
+    "erSen": 5000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 124001,
+    "toSen": 126000,
+    "erSen": 5100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 126001,
+    "toSen": 128000,
+    "erSen": 5200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 128001,
+    "toSen": 130000,
+    "erSen": 5200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 130001,
+    "toSen": 132000,
+    "erSen": 5300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 132001,
+    "toSen": 134000,
+    "erSen": 5400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 134001,
+    "toSen": 136000,
+    "erSen": 5500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 136001,
+    "toSen": 138000,
+    "erSen": 5600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 138001,
+    "toSen": 140000,
+    "erSen": 5600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 140001,
+    "toSen": 142000,
+    "erSen": 5700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 142001,
+    "toSen": 144000,
+    "erSen": 5800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 144001,
+    "toSen": 146000,
+    "erSen": 5900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 146001,
+    "toSen": 148000,
+    "erSen": 6000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 148001,
+    "toSen": 150000,
+    "erSen": 6000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 150001,
+    "toSen": 152000,
+    "erSen": 6100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 152001,
+    "toSen": 154000,
+    "erSen": 6200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 154001,
+    "toSen": 156000,
+    "erSen": 6300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 156001,
+    "toSen": 158000,
+    "erSen": 6400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 158001,
+    "toSen": 160000,
+    "erSen": 6400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 160001,
+    "toSen": 162000,
+    "erSen": 6500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 162001,
+    "toSen": 164000,
+    "erSen": 6600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 164001,
+    "toSen": 166000,
+    "erSen": 6700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 166001,
+    "toSen": 168000,
+    "erSen": 6800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 168001,
+    "toSen": 170000,
+    "erSen": 6800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 170001,
+    "toSen": 172000,
+    "erSen": 6900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 172001,
+    "toSen": 174000,
+    "erSen": 7000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 174001,
+    "toSen": 176000,
+    "erSen": 7100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 176001,
+    "toSen": 178000,
+    "erSen": 7200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 178001,
+    "toSen": 180000,
+    "erSen": 7200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 180001,
+    "toSen": 182000,
+    "erSen": 7300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 182001,
+    "toSen": 184000,
+    "erSen": 7400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 184001,
+    "toSen": 186000,
+    "erSen": 7500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 186001,
+    "toSen": 188000,
+    "erSen": 7600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 188001,
+    "toSen": 190000,
+    "erSen": 7600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 190001,
+    "toSen": 192000,
+    "erSen": 7700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 192001,
+    "toSen": 194000,
+    "erSen": 7800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 194001,
+    "toSen": 196000,
+    "erSen": 7900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 196001,
+    "toSen": 198000,
+    "erSen": 8000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 198001,
+    "toSen": 200000,
+    "erSen": 8000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 200001,
+    "toSen": 202000,
+    "erSen": 8100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 202001,
+    "toSen": 204000,
+    "erSen": 8200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 204001,
+    "toSen": 206000,
+    "erSen": 8300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 206001,
+    "toSen": 208000,
+    "erSen": 8400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 208001,
+    "toSen": 210000,
+    "erSen": 8400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 210001,
+    "toSen": 212000,
+    "erSen": 8500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 212001,
+    "toSen": 214000,
+    "erSen": 8600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 214001,
+    "toSen": 216000,
+    "erSen": 8700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 216001,
+    "toSen": 218000,
+    "erSen": 8800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 218001,
+    "toSen": 220000,
+    "erSen": 8800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 220001,
+    "toSen": 222000,
+    "erSen": 8900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 222001,
+    "toSen": 224000,
+    "erSen": 9000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 224001,
+    "toSen": 226000,
+    "erSen": 9100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 226001,
+    "toSen": 228000,
+    "erSen": 9200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 228001,
+    "toSen": 230000,
+    "erSen": 9200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 230001,
+    "toSen": 232000,
+    "erSen": 9300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 232001,
+    "toSen": 234000,
+    "erSen": 9400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 234001,
+    "toSen": 236000,
+    "erSen": 9500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 236001,
+    "toSen": 238000,
+    "erSen": 9600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 238001,
+    "toSen": 240000,
+    "erSen": 9600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 240001,
+    "toSen": 242000,
+    "erSen": 9700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 242001,
+    "toSen": 244000,
+    "erSen": 9800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 244001,
+    "toSen": 246000,
+    "erSen": 9900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 246001,
+    "toSen": 248000,
+    "erSen": 10000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 248001,
+    "toSen": 250000,
+    "erSen": 10000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 250001,
+    "toSen": 252000,
+    "erSen": 10100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 252001,
+    "toSen": 254000,
+    "erSen": 10200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 254001,
+    "toSen": 256000,
+    "erSen": 10300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 256001,
+    "toSen": 258000,
+    "erSen": 10400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 258001,
+    "toSen": 260000,
+    "erSen": 10400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 260001,
+    "toSen": 262000,
+    "erSen": 10500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 262001,
+    "toSen": 264000,
+    "erSen": 10600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 264001,
+    "toSen": 266000,
+    "erSen": 10700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 266001,
+    "toSen": 268000,
+    "erSen": 10800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 268001,
+    "toSen": 270000,
+    "erSen": 10800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 270001,
+    "toSen": 272000,
+    "erSen": 10900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 272001,
+    "toSen": 274000,
+    "erSen": 11000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 274001,
+    "toSen": 276000,
+    "erSen": 11100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 276001,
+    "toSen": 278000,
+    "erSen": 11200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 278001,
+    "toSen": 280000,
+    "erSen": 11200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 280001,
+    "toSen": 282000,
+    "erSen": 11300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 282001,
+    "toSen": 284000,
+    "erSen": 11400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 284001,
+    "toSen": 286000,
+    "erSen": 11500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 286001,
+    "toSen": 288000,
+    "erSen": 11600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 288001,
+    "toSen": 290000,
+    "erSen": 11600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 290001,
+    "toSen": 292000,
+    "erSen": 11700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 292001,
+    "toSen": 294000,
+    "erSen": 11800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 294001,
+    "toSen": 296000,
+    "erSen": 11900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 296001,
+    "toSen": 298000,
+    "erSen": 12000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 298001,
+    "toSen": 300000,
+    "erSen": 12000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 300001,
+    "toSen": 302000,
+    "erSen": 12100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 302001,
+    "toSen": 304000,
+    "erSen": 12200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 304001,
+    "toSen": 306000,
+    "erSen": 12300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 306001,
+    "toSen": 308000,
+    "erSen": 12400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 308001,
+    "toSen": 310000,
+    "erSen": 12400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 310001,
+    "toSen": 312000,
+    "erSen": 12500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 312001,
+    "toSen": 314000,
+    "erSen": 12600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 314001,
+    "toSen": 316000,
+    "erSen": 12700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 316001,
+    "toSen": 318000,
+    "erSen": 12800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 318001,
+    "toSen": 320000,
+    "erSen": 12800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 320001,
+    "toSen": 322000,
+    "erSen": 12900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 322001,
+    "toSen": 324000,
+    "erSen": 13000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 324001,
+    "toSen": 326000,
+    "erSen": 13100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 326001,
+    "toSen": 328000,
+    "erSen": 13200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 328001,
+    "toSen": 330000,
+    "erSen": 13200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 330001,
+    "toSen": 332000,
+    "erSen": 13300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 332001,
+    "toSen": 334000,
+    "erSen": 13400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 334001,
+    "toSen": 336000,
+    "erSen": 13500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 336001,
+    "toSen": 338000,
+    "erSen": 13600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 338001,
+    "toSen": 340000,
+    "erSen": 13600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 340001,
+    "toSen": 342000,
+    "erSen": 13700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 342001,
+    "toSen": 344000,
+    "erSen": 13800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 344001,
+    "toSen": 346000,
+    "erSen": 13900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 346001,
+    "toSen": 348000,
+    "erSen": 14000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 348001,
+    "toSen": 350000,
+    "erSen": 14000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 350001,
+    "toSen": 352000,
+    "erSen": 14100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 352001,
+    "toSen": 354000,
+    "erSen": 14200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 354001,
+    "toSen": 356000,
+    "erSen": 14300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 356001,
+    "toSen": 358000,
+    "erSen": 14400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 358001,
+    "toSen": 360000,
+    "erSen": 14400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 360001,
+    "toSen": 362000,
+    "erSen": 14500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 362001,
+    "toSen": 364000,
+    "erSen": 14600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 364001,
+    "toSen": 366000,
+    "erSen": 14700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 366001,
+    "toSen": 368000,
+    "erSen": 14800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 368001,
+    "toSen": 370000,
+    "erSen": 14800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 370001,
+    "toSen": 372000,
+    "erSen": 14900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 372001,
+    "toSen": 374000,
+    "erSen": 15000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 374001,
+    "toSen": 376000,
+    "erSen": 15100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 376001,
+    "toSen": 378000,
+    "erSen": 15200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 378001,
+    "toSen": 380000,
+    "erSen": 15200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 380001,
+    "toSen": 382000,
+    "erSen": 15300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 382001,
+    "toSen": 384000,
+    "erSen": 15400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 384001,
+    "toSen": 386000,
+    "erSen": 15500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 386001,
+    "toSen": 388000,
+    "erSen": 15600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 388001,
+    "toSen": 390000,
+    "erSen": 15600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 390001,
+    "toSen": 392000,
+    "erSen": 15700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 392001,
+    "toSen": 394000,
+    "erSen": 15800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 394001,
+    "toSen": 396000,
+    "erSen": 15900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 396001,
+    "toSen": 398000,
+    "erSen": 16000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 398001,
+    "toSen": 400000,
+    "erSen": 16000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 400001,
+    "toSen": 402000,
+    "erSen": 16100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 402001,
+    "toSen": 404000,
+    "erSen": 16200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 404001,
+    "toSen": 406000,
+    "erSen": 16300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 406001,
+    "toSen": 408000,
+    "erSen": 16400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 408001,
+    "toSen": 410000,
+    "erSen": 16400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 410001,
+    "toSen": 412000,
+    "erSen": 16500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 412001,
+    "toSen": 414000,
+    "erSen": 16600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 414001,
+    "toSen": 416000,
+    "erSen": 16700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 416001,
+    "toSen": 418000,
+    "erSen": 16800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 418001,
+    "toSen": 420000,
+    "erSen": 16800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 420001,
+    "toSen": 422000,
+    "erSen": 16900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 422001,
+    "toSen": 424000,
+    "erSen": 17000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 424001,
+    "toSen": 426000,
+    "erSen": 17100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 426001,
+    "toSen": 428000,
+    "erSen": 17200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 428001,
+    "toSen": 430000,
+    "erSen": 17200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 430001,
+    "toSen": 432000,
+    "erSen": 17300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 432001,
+    "toSen": 434000,
+    "erSen": 17400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 434001,
+    "toSen": 436000,
+    "erSen": 17500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 436001,
+    "toSen": 438000,
+    "erSen": 17600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 438001,
+    "toSen": 440000,
+    "erSen": 17600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 440001,
+    "toSen": 442000,
+    "erSen": 17700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 442001,
+    "toSen": 444000,
+    "erSen": 17800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 444001,
+    "toSen": 446000,
+    "erSen": 17900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 446001,
+    "toSen": 448000,
+    "erSen": 18000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 448001,
+    "toSen": 450000,
+    "erSen": 18000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 450001,
+    "toSen": 452000,
+    "erSen": 18100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 452001,
+    "toSen": 454000,
+    "erSen": 18200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 454001,
+    "toSen": 456000,
+    "erSen": 18300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 456001,
+    "toSen": 458000,
+    "erSen": 18400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 458001,
+    "toSen": 460000,
+    "erSen": 18400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 460001,
+    "toSen": 462000,
+    "erSen": 18500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 462001,
+    "toSen": 464000,
+    "erSen": 18600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 464001,
+    "toSen": 466000,
+    "erSen": 18700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 466001,
+    "toSen": 468000,
+    "erSen": 18800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 468001,
+    "toSen": 470000,
+    "erSen": 18800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 470001,
+    "toSen": 472000,
+    "erSen": 18900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 472001,
+    "toSen": 474000,
+    "erSen": 19000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 474001,
+    "toSen": 476000,
+    "erSen": 19100,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 476001,
+    "toSen": 478000,
+    "erSen": 19200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 478001,
+    "toSen": 480000,
+    "erSen": 19200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 480001,
+    "toSen": 482000,
+    "erSen": 19300,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 482001,
+    "toSen": 484000,
+    "erSen": 19400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 484001,
+    "toSen": 486000,
+    "erSen": 19500,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 486001,
+    "toSen": 488000,
+    "erSen": 19600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 488001,
+    "toSen": 490000,
+    "erSen": 19600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 490001,
+    "toSen": 492000,
+    "erSen": 19700,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 492001,
+    "toSen": 494000,
+    "erSen": 19800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 494001,
+    "toSen": 496000,
+    "erSen": 19900,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 496001,
+    "toSen": 498000,
+    "erSen": 20000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 498001,
+    "toSen": 500000,
+    "erSen": 20000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 500001,
+    "toSen": 510000,
+    "erSen": 20400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 510001,
+    "toSen": 520000,
+    "erSen": 20800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 520001,
+    "toSen": 530000,
+    "erSen": 21200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 530001,
+    "toSen": 540000,
+    "erSen": 21600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 540001,
+    "toSen": 550000,
+    "erSen": 22000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 550001,
+    "toSen": 560000,
+    "erSen": 22400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 560001,
+    "toSen": 570000,
+    "erSen": 22800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 570001,
+    "toSen": 580000,
+    "erSen": 23200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 580001,
+    "toSen": 590000,
+    "erSen": 23600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 590001,
+    "toSen": 600000,
+    "erSen": 24000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 600001,
+    "toSen": 610000,
+    "erSen": 24400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 610001,
+    "toSen": 620000,
+    "erSen": 24800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 620001,
+    "toSen": 630000,
+    "erSen": 25200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 630001,
+    "toSen": 640000,
+    "erSen": 25600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 640001,
+    "toSen": 650000,
+    "erSen": 26000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 650001,
+    "toSen": 660000,
+    "erSen": 26400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 660001,
+    "toSen": 670000,
+    "erSen": 26800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 670001,
+    "toSen": 680000,
+    "erSen": 27200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 680001,
+    "toSen": 690000,
+    "erSen": 27600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 690001,
+    "toSen": 700000,
+    "erSen": 28000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 700001,
+    "toSen": 710000,
+    "erSen": 28400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 710001,
+    "toSen": 720000,
+    "erSen": 28800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 720001,
+    "toSen": 730000,
+    "erSen": 29200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 730001,
+    "toSen": 740000,
+    "erSen": 29600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 740001,
+    "toSen": 750000,
+    "erSen": 30000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 750001,
+    "toSen": 760000,
+    "erSen": 30400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 760001,
+    "toSen": 770000,
+    "erSen": 30800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 770001,
+    "toSen": 780000,
+    "erSen": 31200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 780001,
+    "toSen": 790000,
+    "erSen": 31600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 790001,
+    "toSen": 800000,
+    "erSen": 32000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 800001,
+    "toSen": 810000,
+    "erSen": 32400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 810001,
+    "toSen": 820000,
+    "erSen": 32800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 820001,
+    "toSen": 830000,
+    "erSen": 33200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 830001,
+    "toSen": 840000,
+    "erSen": 33600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 840001,
+    "toSen": 850000,
+    "erSen": 34000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 850001,
+    "toSen": 860000,
+    "erSen": 34400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 860001,
+    "toSen": 870000,
+    "erSen": 34800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 870001,
+    "toSen": 880000,
+    "erSen": 35200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 880001,
+    "toSen": 890000,
+    "erSen": 35600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 890001,
+    "toSen": 900000,
+    "erSen": 36000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 900001,
+    "toSen": 910000,
+    "erSen": 36400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 910001,
+    "toSen": 920000,
+    "erSen": 36800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 920001,
+    "toSen": 930000,
+    "erSen": 37200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 930001,
+    "toSen": 940000,
+    "erSen": 37600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 940001,
+    "toSen": 950000,
+    "erSen": 38000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 950001,
+    "toSen": 960000,
+    "erSen": 38400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 960001,
+    "toSen": 970000,
+    "erSen": 38800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 970001,
+    "toSen": 980000,
+    "erSen": 39200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 980001,
+    "toSen": 990000,
+    "erSen": 39600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 990001,
+    "toSen": 1000000,
+    "erSen": 40000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1000001,
+    "toSen": 1010000,
+    "erSen": 40400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1010001,
+    "toSen": 1020000,
+    "erSen": 40800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1020001,
+    "toSen": 1030000,
+    "erSen": 41200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1030001,
+    "toSen": 1040000,
+    "erSen": 41600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1040001,
+    "toSen": 1050000,
+    "erSen": 42000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1050001,
+    "toSen": 1060000,
+    "erSen": 42400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1060001,
+    "toSen": 1070000,
+    "erSen": 42800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1070001,
+    "toSen": 1080000,
+    "erSen": 43200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1080001,
+    "toSen": 1090000,
+    "erSen": 43600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1090001,
+    "toSen": 1100000,
+    "erSen": 44000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1100001,
+    "toSen": 1110000,
+    "erSen": 44400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1110001,
+    "toSen": 1120000,
+    "erSen": 44800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1120001,
+    "toSen": 1130000,
+    "erSen": 45200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1130001,
+    "toSen": 1140000,
+    "erSen": 45600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1140001,
+    "toSen": 1150000,
+    "erSen": 46000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1150001,
+    "toSen": 1160000,
+    "erSen": 46400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1160001,
+    "toSen": 1170000,
+    "erSen": 46800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1170001,
+    "toSen": 1180000,
+    "erSen": 47200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1180001,
+    "toSen": 1190000,
+    "erSen": 47600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1190001,
+    "toSen": 1200000,
+    "erSen": 48000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1200001,
+    "toSen": 1210000,
+    "erSen": 48400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1210001,
+    "toSen": 1220000,
+    "erSen": 48800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1220001,
+    "toSen": 1230000,
+    "erSen": 49200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1230001,
+    "toSen": 1240000,
+    "erSen": 49600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1240001,
+    "toSen": 1250000,
+    "erSen": 50000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1250001,
+    "toSen": 1260000,
+    "erSen": 50400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1260001,
+    "toSen": 1270000,
+    "erSen": 50800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1270001,
+    "toSen": 1280000,
+    "erSen": 51200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1280001,
+    "toSen": 1290000,
+    "erSen": 51600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1290001,
+    "toSen": 1300000,
+    "erSen": 52000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1300001,
+    "toSen": 1310000,
+    "erSen": 52400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1310001,
+    "toSen": 1320000,
+    "erSen": 52800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1320001,
+    "toSen": 1330000,
+    "erSen": 53200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1330001,
+    "toSen": 1340000,
+    "erSen": 53600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1340001,
+    "toSen": 1350000,
+    "erSen": 54000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1350001,
+    "toSen": 1360000,
+    "erSen": 54400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1360001,
+    "toSen": 1370000,
+    "erSen": 54800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1370001,
+    "toSen": 1380000,
+    "erSen": 55200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1380001,
+    "toSen": 1390000,
+    "erSen": 55600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1390001,
+    "toSen": 1400000,
+    "erSen": 56000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1400001,
+    "toSen": 1410000,
+    "erSen": 56400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1410001,
+    "toSen": 1420000,
+    "erSen": 56800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1420001,
+    "toSen": 1430000,
+    "erSen": 57200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1430001,
+    "toSen": 1440000,
+    "erSen": 57600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1440001,
+    "toSen": 1450000,
+    "erSen": 58000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1450001,
+    "toSen": 1460000,
+    "erSen": 58400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1460001,
+    "toSen": 1470000,
+    "erSen": 58800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1470001,
+    "toSen": 1480000,
+    "erSen": 59200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1480001,
+    "toSen": 1490000,
+    "erSen": 59600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1490001,
+    "toSen": 1500000,
+    "erSen": 60000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1500001,
+    "toSen": 1510000,
+    "erSen": 60400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1510001,
+    "toSen": 1520000,
+    "erSen": 60800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1520001,
+    "toSen": 1530000,
+    "erSen": 61200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1530001,
+    "toSen": 1540000,
+    "erSen": 61600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1540001,
+    "toSen": 1550000,
+    "erSen": 62000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1550001,
+    "toSen": 1560000,
+    "erSen": 62400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1560001,
+    "toSen": 1570000,
+    "erSen": 62800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1570001,
+    "toSen": 1580000,
+    "erSen": 63200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1580001,
+    "toSen": 1590000,
+    "erSen": 63600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1590001,
+    "toSen": 1600000,
+    "erSen": 64000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1600001,
+    "toSen": 1610000,
+    "erSen": 64400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1610001,
+    "toSen": 1620000,
+    "erSen": 64800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1620001,
+    "toSen": 1630000,
+    "erSen": 65200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1630001,
+    "toSen": 1640000,
+    "erSen": 65600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1640001,
+    "toSen": 1650000,
+    "erSen": 66000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1650001,
+    "toSen": 1660000,
+    "erSen": 66400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1660001,
+    "toSen": 1670000,
+    "erSen": 66800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1670001,
+    "toSen": 1680000,
+    "erSen": 67200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1680001,
+    "toSen": 1690000,
+    "erSen": 67600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1690001,
+    "toSen": 1700000,
+    "erSen": 68000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1700001,
+    "toSen": 1710000,
+    "erSen": 68400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1710001,
+    "toSen": 1720000,
+    "erSen": 68800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1720001,
+    "toSen": 1730000,
+    "erSen": 69200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1730001,
+    "toSen": 1740000,
+    "erSen": 69600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1740001,
+    "toSen": 1750000,
+    "erSen": 70000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1750001,
+    "toSen": 1760000,
+    "erSen": 70400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1760001,
+    "toSen": 1770000,
+    "erSen": 70800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1770001,
+    "toSen": 1780000,
+    "erSen": 71200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1780001,
+    "toSen": 1790000,
+    "erSen": 71600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1790001,
+    "toSen": 1800000,
+    "erSen": 72000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1800001,
+    "toSen": 1810000,
+    "erSen": 72400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1810001,
+    "toSen": 1820000,
+    "erSen": 72800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1820001,
+    "toSen": 1830000,
+    "erSen": 73200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1830001,
+    "toSen": 1840000,
+    "erSen": 73600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1840001,
+    "toSen": 1850000,
+    "erSen": 74000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1850001,
+    "toSen": 1860000,
+    "erSen": 74400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1860001,
+    "toSen": 1870000,
+    "erSen": 74800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1870001,
+    "toSen": 1880000,
+    "erSen": 75200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1880001,
+    "toSen": 1890000,
+    "erSen": 75600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1890001,
+    "toSen": 1900000,
+    "erSen": 76000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1900001,
+    "toSen": 1910000,
+    "erSen": 76400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1910001,
+    "toSen": 1920000,
+    "erSen": 76800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1920001,
+    "toSen": 1930000,
+    "erSen": 77200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1930001,
+    "toSen": 1940000,
+    "erSen": 77600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1940001,
+    "toSen": 1950000,
+    "erSen": 78000,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1950001,
+    "toSen": 1960000,
+    "erSen": 78400,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1960001,
+    "toSen": 1970000,
+    "erSen": 78800,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1970001,
+    "toSen": 1980000,
+    "erSen": 79200,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1980001,
+    "toSen": 1990000,
+    "erSen": 79600,
+    "eeSen": 0
+  },
+  {
+    "fromSen": 1990001,
+    "toSen": 2000000,
+    "erSen": 80000,
+    "eeSen": 0
+  }
 ]

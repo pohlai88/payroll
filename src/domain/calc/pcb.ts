@@ -13,7 +13,11 @@ export interface PcbResult {
  */
 export function pcbNet(input: PcbInput | null): PcbResult {
   if (!input || input.pcbAmountSen === null) {
-    return { netPcbSen: null, cp38Sen: input?.cp38Sen ?? 0, verified: input?.verified ?? false };
+    return {
+      netPcbSen: null,
+      cp38Sen: input?.cp38Sen ?? 0,
+      verified: input?.verified ?? false,
+    };
   }
   const net = Math.max(input.pcbAmountSen - input.zakatOffsetSen, 0);
   return { netPcbSen: net, cp38Sen: input.cp38Sen, verified: input.verified };

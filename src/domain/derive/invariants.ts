@@ -7,17 +7,17 @@
  */
 
 import { ALL_SOURCE_REFS, RULE_SOURCE, type SourceRef } from "./citation";
-import { nodeAt, type DerivationGraph } from "./graph";
+import { type DerivationGraph, nodeAt } from "./graph";
 import { hasKey, LANGS } from "./i18n/render";
-import { TERMINAL_KINDS, type DerivationNode } from "./node";
+import { type DerivationNode, TERMINAL_KINDS } from "./node";
 
 export class InvariantError extends Error {
-  constructor(
-    message: string,
-    readonly nodeId?: string
-  ) {
+  readonly nodeId?: string;
+
+  constructor(message: string, nodeId?: string) {
     super(nodeId === undefined ? message : `${message} (node ${nodeId})`);
     this.name = "InvariantError";
+    this.nodeId = nodeId;
   }
 }
 
@@ -30,7 +30,9 @@ export class InvariantError extends Error {
 export function assertNoDeadEnds(graph: DerivationGraph): void {
   for (const id of graph.order) {
     const node = nodeAt(graph, id);
-    if (node.inputs.length > 0) continue;
+    if (node.inputs.length > 0) {
+      continue;
+    }
     /**
      * An aggregate over nothing is a legitimate zero — no other deductions were
      * recorded — and what explains it is structural, not statutory. Rather than
@@ -38,7 +40,10 @@ export function assertNoDeadEnds(graph: DerivationGraph): void {
      */
     if (node.kind === "AGGREGATE") {
       if (node.detail === undefined) {
-        throw new InvariantError("empty AGGREGATE must say that nothing was included", id);
+        throw new InvariantError(
+          "empty AGGREGATE must say that nothing was included",
+          id
+        );
       }
       if (node.value.t !== "SEN" || node.value.sen !== 0) {
         throw new InvariantError("empty AGGREGATE must be zero", id);
@@ -46,12 +51,18 @@ export function assertNoDeadEnds(graph: DerivationGraph): void {
       continue;
     }
     if (!TERMINAL_KINDS.includes(node.kind)) {
-      throw new InvariantError(`${node.kind} has no inputs and is not a terminal kind`, id);
+      throw new InvariantError(
+        `${node.kind} has no inputs and is not a terminal kind`,
+        id
+      );
     }
-    if (node.kind === "SETTING" || node.kind === "NOT_APPLICABLE" || node.kind === "EXTERNAL_VERIFIED") {
-      if (node.citations.length === 0) {
-        throw new InvariantError(`${node.kind} must carry a citation`, id);
-      }
+    if (
+      (node.kind === "SETTING" ||
+        node.kind === "NOT_APPLICABLE" ||
+        node.kind === "EXTERNAL_VERIFIED") &&
+      node.citations.length === 0
+    ) {
+      throw new InvariantError(`${node.kind} must carry a citation`, id);
     }
     if (node.kind === "INPUT" && node.fieldPath.length === 0) {
       throw new InvariantError("INPUT must name the field it came from", id);
@@ -78,7 +89,9 @@ export function assertRoundingDiscipline(graph: DerivationGraph): void {
     }
   }
   for (const [key, rootId] of Object.entries(graph.roots)) {
-    if (rootId === undefined) continue;
+    if (rootId === undefined) {
+      continue;
+    }
     if (nodeAt(graph, rootId).value.t === "EXACT_SEN") {
       throw new InvariantError(`root ${key} is an unrounded value`, rootId);
     }
@@ -92,17 +105,50 @@ export function assertEdgesResolve(graph: DerivationGraph): void {
     const node = nodeAt(graph, id);
     for (const ref of node.inputs) {
       if (graph.nodes[ref.nodeId] === undefined) {
-        throw new InvariantError(`edge points at missing node ${ref.nodeId}`, id);
+        throw new InvariantError(
+          `edge points at missing node ${ref.nodeId}`,
+          id
+        );
       }
       if (ref.role === "EXCLUDED" && ref.because === undefined) {
-        throw new InvariantError(`excluded input ${ref.nodeId} does not say why`, id);
+        throw new InvariantError(
+          `excluded input ${ref.nodeId} does not say why`,
+          id
+        );
       }
     }
-    if (seen.has(id)) throw new InvariantError("id appears twice in the emit order", id);
+    if (seen.has(id)) {
+      throw new InvariantError("id appears twice in the emit order", id);
+    }
     seen.add(id);
   }
   if (seen.size !== Object.keys(graph.nodes).length) {
     throw new InvariantError("emit order does not cover every node");
+  }
+}
+
+/**
+ * A calculation's operands are a second way of naming the nodes it consumes, and
+ * only `inputs` is walked by the builder, the acyclicity check, the rounding
+ * discipline check and the drill-down. An operand with no matching input edge is
+ * therefore a term that appears in the arithmetic but is invisible to every
+ * check that makes the graph trustworthy.
+ */
+export function assertOperandsAreEdges(graph: DerivationGraph): void {
+  for (const id of graph.order) {
+    const node = nodeAt(graph, id);
+    if (node.kind !== "CALCULATION") {
+      continue;
+    }
+    const edges = new Set(node.inputs.map((ref) => ref.nodeId));
+    for (const operand of node.operands) {
+      if (operand.o === "REF" && !edges.has(operand.nodeId)) {
+        throw new InvariantError(
+          `operand ${operand.nodeId} is not among the node's input edges`,
+          id
+        );
+      }
+    }
   }
 }
 
@@ -120,7 +166,10 @@ export function assertAcyclic(graph: DerivationGraph): void {
     for (const ref of nodeAt(graph, id).inputs) {
       const at = position.get(ref.nodeId);
       if (at === undefined || at >= i) {
-        throw new InvariantError(`input ${ref.nodeId} does not precede its consumer`, id);
+        throw new InvariantError(
+          `input ${ref.nodeId} does not precede its consumer`,
+          id
+        );
       }
     }
   }
@@ -135,7 +184,10 @@ export function assertCitationsResolve(
     const node = nodeAt(graph, id);
     for (const c of node.citations) {
       if (!knownRefs.includes(c.sourceRef)) {
-        throw new InvariantError(`citation names unknown source ${c.sourceRef}`, id);
+        throw new InvariantError(
+          `citation names unknown source ${c.sourceRef}`,
+          id
+        );
       }
       /**
        * The rule and the document must actually belong together. Without this,
@@ -166,7 +218,10 @@ export function assertKeysTranslated(graph: DerivationGraph): void {
     for (const label of labelsOf(node)) {
       for (const lang of LANGS) {
         if (!hasKey(label, lang)) {
-          throw new InvariantError(`message key "${label}" is missing from ${lang}`, id);
+          throw new InvariantError(
+            `message key "${label}" is missing from ${lang}`,
+            id
+          );
         }
       }
     }
@@ -175,9 +230,20 @@ export function assertKeysTranslated(graph: DerivationGraph): void {
 
 function labelsOf(node: DerivationNode): string[] {
   const keys: string[] = [node.label.key];
-  if (node.detail) keys.push(node.detail.key);
-  for (const ref of node.inputs) if (ref.because) keys.push(ref.because.key);
-  for (const c of node.citations) if (c.clause) keys.push(c.clause.label.key);
+  if (node.detail) {
+    keys.push(node.detail.key);
+  }
+  for (const ref of node.inputs) {
+    if (ref.because) {
+      keys.push(ref.because.key);
+    }
+  }
+  // A clause may carry only a locator: "row 236" needs no heading above it.
+  for (const c of node.citations) {
+    if (c.clause?.label) {
+      keys.push(c.clause.label.key);
+    }
+  }
   return keys;
 }
 
@@ -185,6 +251,7 @@ function labelsOf(node: DerivationNode): string[] {
 export function assertGraphInvariants(graph: DerivationGraph): void {
   assertEdgesResolve(graph);
   assertAcyclic(graph);
+  assertOperandsAreEdges(graph);
   assertNoDeadEnds(graph);
   assertRoundingDiscipline(graph);
   assertCitationsResolve(graph);

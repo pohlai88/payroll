@@ -70,29 +70,94 @@ export interface EmployeeSnapshot {
   socsoCategoryOverride: SocsoCategory | null;
 }
 
+/**
+ * How a pay item's amount is arrived at.
+ *
+ * This lives on the item, not in code. Meal used to be "days × rate" and
+ * overtime "hours × rate" because the engine said so, which meant adding a
+ * per-day allowance required a code change. Any item can now take any basis.
+ */
+export type RateBasis =
+  | "FIXED_MONTHLY"
+  | "PER_DAY"
+  | "PER_HOUR"
+  | "PER_UNIT"
+  | "AMOUNT";
+
+/** Bases whose amount is a quantity times a rate. */
+export const QUANTITY_BASES = ["PER_DAY", "PER_HOUR", "PER_UNIT"] as const;
+export type QuantityBasis = (typeof QUANTITY_BASES)[number];
+
+export function isQuantityBasis(basis: RateBasis): basis is QuantityBasis {
+  return (QUANTITY_BASES as readonly RateBasis[]).includes(basis);
+}
+
 export interface PayItemDef {
   code: string;
   kind: "EARNING" | "DEDUCTION";
+  rateBasis: RateBasis;
   epfWages: boolean;
   socsoWages: boolean;
   eisWages: boolean;
+  /** MONTHLY-basis pay is reduced by days paid; most allowances are not. */
+  prorates?: boolean;
 }
 
-export interface LineItemInput {
+/**
+ * One entered line item.
+ *
+ * A discriminated union rather than an optional `qty`/`rateSen` beside a
+ * required `amountSen`: with all three present and independent, a stored amount
+ * could disagree with the quantity and rate that supposedly produced it, and the
+ * derivation would be describing arithmetic that never happened. Here a
+ * quantity-based item carries no amount at all — the engine computes it.
+ */
+export type LineItemInput =
+  | {
+      payItemCode: string;
+      basis: "AMOUNT" | "FIXED_MONTHLY";
+      amountSen: number;
+    }
+  | {
+      payItemCode: string;
+      basis: QuantityBasis;
+      qty: number;
+      /** Defaulted from the employee's pay item record, editable for this run. */
+      rateSen: number;
+    };
+
+/** A line item entered against a quantity basis: it carries `qty` and `rateSen`. */
+export type QuantityLineItem = Extract<LineItemInput, { qty: number }>;
+
+/**
+ * Narrows an entry to its quantity-based variant.
+ *
+ * A guard over `item.basis` narrows the field, not the union that owns it, and
+ * TypeScript will not eliminate a variant whose discriminant is itself a union
+ * of literals from a chain of `||` comparisons. The guard therefore has to be
+ * over the item.
+ */
+export function isQuantityItem(item: LineItemInput): item is QuantityLineItem {
+  return isQuantityBasis(item.basis);
+}
+
+/** A line item after the engine has resolved its amount. */
+export interface ResolvedLineItem {
   payItemCode: string;
-  qty?: number | null;
-  rateSen?: number | null;
+  basis: RateBasis;
+  qty: number | null;
+  rateSen: number | null;
   amountSen: number;
+  /** True for BASIC, which the engine derives from the employee's base rate. */
+  computed: boolean;
 }
 
 export interface LineInputs {
   workingDays: number; // days in wage period
   paidDays: number | null; // MONTHLY proration + DAILY basis
-  mealDays: number | null;
   hoursWorked: number | null; // HOURLY basis
-  otHours: number;
-  otRateSen: number;
-  items: LineItemInput[]; // allowances, bonus, other earnings/deductions (excl BASIC & OT which are computed)
+  /** Every earning and deduction other than BASIC, including overtime. */
+  items: LineItemInput[];
   periodEnd: string; // ISO — drives age classification and SKBBK phase
 }
 
@@ -135,7 +200,7 @@ export interface TraceStep {
 
 export interface LineResult {
   classification: Classification;
-  items: Array<LineItemInput & { computed: boolean }>;
+  items: ResolvedLineItem[];
   grossSen: number;
   epfWagesSen: number;
   socsoWagesSen: number;

@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { dobFromIc, ageAt } from "@/domain/ic";
+import { describe, expect, it } from "vitest";
+import { ageAt, dobFromIc } from "@/domain/ic";
 
 const IN_2026 = new Date("2026-08-08");
 const IN_2031 = new Date("2031-08-08");
