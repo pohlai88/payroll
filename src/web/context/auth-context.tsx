@@ -21,10 +21,16 @@ import {
 import type { MeResponse } from "@/web/api/payroll-api";
 import { payrollApi } from "@/web/api/payroll-api";
 import { signOutAuth } from "@/web/auth/client";
+import { isSystemAdminPresentation } from "@/web/auth/is-system-admin";
 
 interface AuthContextValue {
   me: MeResponse | null;
   loading: boolean;
+  /**
+   * UI presentation predicate only (see `is-system-admin.ts`) — derived from
+   * `GET /v1/me/permissions`, since `MeResponse` itself carries no `role`.
+   */
+  isSystemAdmin: boolean;
   signOut: () => void;
 }
 
@@ -32,20 +38,24 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 function AuthProvider({ children }: { children: ReactNode }) {
   const [me, setMe] = useState<MeResponse | null>(null);
+  const [isSystemAdmin, setIsSystemAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    payrollApi
-      .getMe()
-      .then((result) => {
+    Promise.all([payrollApi.getMe(), payrollApi.getPermissions(null)])
+      .then(([meResult, permissionsResult]) => {
         if (!cancelled) {
-          setMe(result);
+          setMe(meResult);
+          setIsSystemAdmin(
+            isSystemAdminPresentation(permissionsResult.permissions)
+          );
         }
       })
       .catch(() => {
         if (!cancelled) {
           setMe(null);
+          setIsSystemAdmin(false);
         }
       })
       .finally(() => {
@@ -60,14 +70,15 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(() => {
     setMe(null);
+    setIsSystemAdmin(false);
     // Neon Auth owns the session cookie/token — there is no local access
     // token to clear here (see `web/auth/client.ts`).
     signOutAuth().catch(() => undefined);
   }, []);
 
   const value = useMemo(
-    () => ({ me, loading, signOut }),
-    [me, loading, signOut]
+    () => ({ me, loading, isSystemAdmin, signOut }),
+    [me, loading, isSystemAdmin, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

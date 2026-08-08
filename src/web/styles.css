@@ -90,10 +90,11 @@ body {
   margin: 0;
 }
 
-main {
-  max-width: 52rem;
-  margin: 0 auto;
-  padding: 1.5rem;
+/* Shell layout base */
+html,
+body,
+#root {
+  height: 100%;
 }
 
 h1 {
