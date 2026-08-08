@@ -37,9 +37,20 @@ export default defineConfig({
           globals: true,
           include: ["tests/db/**/*.test.ts"],
           globalSetup: ["tests/db/harness/global-setup.ts"],
-          // One connection pool per file against one server: parallel files
-          // truncating shared tables would race each other.
+          /**
+           * Strictly one file at a time, in one worker.
+           *
+           * Every db test file truncates the tables it uses, so two running at
+           * once delete each other's fixtures — and the failure surfaces as a
+           * duplicate key or a missing row somewhere unrelated, which is the
+           * worst kind of flake to chase. `fileParallelism` alone did not hold
+           * inside a project, so the worker count is pinned as well.
+           */
           fileParallelism: false,
+          maxWorkers: 1,
+          minWorkers: 1,
+          sequence: { concurrent: false },
+          poolOptions: { threads: { singleThread: true } },
         },
       },
     ],

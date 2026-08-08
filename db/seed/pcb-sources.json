@@ -1,0 +1,46 @@
+{
+  "rulePack": {
+    "id": "MY-PCB-2026",
+    "name": "PCB / MTD year 2026 (sources captured, implementation not started)",
+    "layer": "STATUTORY_CALCULATION",
+    "authority": "HASiL / LHDN",
+    "code": "MY-PCB",
+    "version": "2026",
+    "effectiveFrom": "2026-01-01",
+    "effectiveTo": null,
+    "status": "SOURCE_CAPTURED",
+    "notes": "PCB is never calculated by this system. It is a controlled external input recorded with its source and evidence reference, and net pay is unknown without it. This pack exists so that the figure an operator enters can cite the official instrument it came from. Implementing LHDN's computerised calculation specification — with its official test vectors and the LHDN verification procedure — is a separate compliance vertical and a production-readiness gate, not part of this pack."
+  },
+  "sources": [
+    {
+      "ref": "P-CALC-2026",
+      "issuer": "HASiL / LHDN",
+      "title": "Kalkulator PCB (official LHDN PCB calculator), year 2026",
+      "url": "https://calcpcbplus.hasil.gov.my/HITS_CE/x2026",
+      "retrievedAt": "2026-08-08",
+      "instrumentNumber": null,
+      "provisionReference": null,
+      "pageReference": null,
+      "publishedDate": null,
+      "effectiveDate": "2026-01-01",
+      "sha256": null,
+      "note": "Identity confirmed by loading the page on 2026-08-08: it renders as 'LEMBAGA HASIL DALAM NEGERI / KALKULATOR PCB' with Tahun fixed at 2026. It accepts accumulated prior-month remuneration, PCB, rebates and deductions including those from a previous employer, which is the TP3-style prior-employment tax basis the workspace design keeps separate from employer YTD. This is the tool an operator uses to obtain a PCB figure; it is the natural value for pcb_entries.source, and a screenshot or reference number is the natural evidence.",
+      "targets": ["PCB_MONTHLY_AMOUNT"]
+    },
+    {
+      "ref": "P-SPEC-2026",
+      "issuer": "HASiL / LHDN",
+      "title": "Specification for Monthly Tax Deduction (MTD) Using Computerised Calculation, year 2026",
+      "url": "https://www.hasil.gov.my/wp-content/uploads/spesifikasi-kaedah-pengiraan-berkomputer-pcb-2026.pdf",
+      "retrievedAt": "2026-08-08",
+      "instrumentNumber": null,
+      "provisionReference": null,
+      "pageReference": null,
+      "publishedDate": null,
+      "effectiveDate": "2026-01-01",
+      "sha256": null,
+      "note": "Published as PDF. Required reading before any computerised PCB implementation, and the source of the official test vectors such an implementation must reproduce. Not read yet; no value in this system derives from it.",
+      "targets": ["PCB_SPECIFICATION"]
+    }
+  ]
+}

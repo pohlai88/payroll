@@ -179,6 +179,8 @@ export async function seed(db: Database): Promise<string> {
       );
     }
     await recordSeedFiles(db, files);
+    await seedSourceCapturePack(db, "employment-law-sources.json");
+    await seedSourceCapturePack(db, "pcb-sources.json");
     return packId;
   }
 
@@ -277,7 +279,94 @@ export async function seed(db: Database): Promise<string> {
   });
 
   await recordSeedFiles(db, files);
+  await seedSourceCapturePack(db, "employment-law-sources.json");
+  await seedSourceCapturePack(db, "pcb-sources.json");
   return packId;
+}
+
+interface SourceCaptureSeed {
+  rulePack: {
+    id: string;
+    name: string;
+    layer: "EMPLOYMENT_LAW" | "STATUTORY_CALCULATION";
+    authority: string;
+    code: string;
+    version: string;
+    effectiveFrom: string;
+    effectiveTo: string | null;
+    notes: string;
+  };
+  sources: Array<{
+    ref: string;
+    issuer: string;
+    title: string;
+    url: string;
+    retrievedAt: string;
+    instrumentNumber: string | null;
+    provisionReference: string | null;
+    pageReference: string | null;
+    publishedDate: string | null;
+    effectiveDate: string | null;
+    sha256: string | null;
+  }>;
+}
+
+/**
+ * The employment-law instruments, captured but not verified.
+ *
+ * This pack stays at SOURCE_CAPTURED and holds no rules at all: the working-time
+ * and wage-floor figures live in instruments published as PDFs, and a value is
+ * only written once a reviewer has read the provision and said so. Until then
+ * the register names what must be read, and the database refuses to let any
+ * payroll near the pack.
+ */
+async function seedSourceCapturePack(
+  db: Database,
+  fileName: string
+): Promise<void> {
+  const file = read<SourceCaptureSeed>(fileName);
+  const pack = file.data.rulePack;
+
+  await db.transaction(async (tx) => {
+    await tx
+      .insert(rulePacks)
+      .values({
+        id: pack.id,
+        name: pack.name,
+        layer: pack.layer,
+        jurisdiction: "MY",
+        authority: pack.authority,
+        code: pack.code,
+        version: pack.version,
+        effectiveFrom: pack.effectiveFrom,
+        effectiveTo: pack.effectiveTo,
+        status: "SOURCE_CAPTURED",
+        notes: pack.notes,
+      })
+      .onConflictDoNothing();
+
+    for (const source of file.data.sources) {
+      await tx
+        .insert(ruleSources)
+        .values({
+          rulePackId: pack.id,
+          ref: source.ref,
+          issuer: source.issuer,
+          title: source.title,
+          url: source.url,
+          retrievedAt: source.retrievedAt,
+          instrumentNumber: source.instrumentNumber,
+          provisionReference: source.provisionReference,
+          pageReference: source.pageReference,
+          publishedDate: source.publishedDate,
+          effectiveDate: source.effectiveDate,
+          sha256: source.sha256,
+        })
+        .onConflictDoNothing();
+    }
+  });
+
+  await recordSeedFiles(db, [file]);
 }
 
 /** Outside the pack transaction: these hashes describe files, not pack content. */

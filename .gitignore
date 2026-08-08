@@ -16,3 +16,4 @@ coverage/
 
 # Legacy SQLite files from the v1 app (archived in _payroll-v1-backup)
 data/
+.neon

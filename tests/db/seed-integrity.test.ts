@@ -15,7 +15,11 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { loadPayItems, loadStatutoryTables } from "@/repo/rule-pack";
 import { parseRuleSettings } from "@/repo/rule-pack-schema";
 import { seed } from "../../scripts/seed";
-import { ALL_TABLES, connectTestDatabase } from "./harness/database";
+import {
+  ALL_TABLES,
+  connectTestDatabase,
+  expectRejected,
+} from "./harness/database";
 
 const SEED_DIR = path.join(process.cwd(), "db", "seed");
 const database = connectTestDatabase();
@@ -146,6 +150,73 @@ describe("rule pack settings", () => {
         `${ref} is a document and must carry a hash`
       ).toMatch(/^[0-9a-f]{64}$/);
     }
+  });
+});
+
+/**
+ * The instruments whose figures have not been read yet.
+ *
+ * Capturing a source is not the same as knowing what it says. These packs name
+ * what a reviewer must read; they hold no values, and the database will not let
+ * a payroll near them until someone has read the instrument and approved them.
+ */
+describe("source-capture packs", () => {
+  it("registers the employment-law and PCB instruments without approving them", async () => {
+    const rows = await db.execute<{
+      id: string;
+      layer: string;
+      status: string;
+    }>(
+      sql`SELECT id, layer::text AS layer, status::text AS status
+          FROM rule_packs WHERE status = 'SOURCE_CAPTURED' ORDER BY id`
+    );
+    expect(rows.rows.map((r) => r.id)).toEqual([
+      "MY-EMPLOYMENT-LAW-2026",
+      "MY-PCB-2026",
+    ]);
+  });
+
+  it("holds no employment-law values yet", async () => {
+    const rows = await db.execute<{ count: string }>(
+      sql`SELECT count(*)::text AS count FROM employment_law_rules`
+    );
+    expect(Number(rows.rows[0]?.count)).toBe(0);
+  });
+
+  it("names the instruments a reviewer has to read", async () => {
+    const rows = await db.execute<{ ref: string; title: string }>(
+      sql`SELECT ref, title FROM rule_sources
+          WHERE rule_pack_id = 'MY-EMPLOYMENT-LAW-2026' ORDER BY ref`
+    );
+    expect(rows.rows.map((r) => r.ref)).toEqual([
+      "L-EA265",
+      "L-MWO2024",
+      "L-OT1980",
+    ]);
+  });
+
+  it("marks none of them as verified", async () => {
+    const rows = await db.execute<{ count: string }>(
+      sql`SELECT count(*)::text AS count FROM rule_sources
+          WHERE rule_pack_id IN ('MY-EMPLOYMENT-LAW-2026', 'MY-PCB-2026')
+            AND verification_method IS NOT NULL`
+    );
+    expect(Number(rows.rows[0]?.count)).toBe(0);
+  });
+
+  it("keeps them out of any payroll", async () => {
+    await db.execute(sql`
+      INSERT INTO companies (id, code, name)
+      VALUES ('cccccccc-0000-4000-8000-000000000001', 'SRCCO', 'Source Test')
+      ON CONFLICT DO NOTHING`);
+    await expectRejected(
+      db.execute(sql`
+        INSERT INTO pay_runs (id, company_id, year, month, period_start, period_end,
+                              working_days, rule_pack_id)
+        VALUES ('SRC-2026-07', 'cccccccc-0000-4000-8000-000000000001', 2026, 7,
+                '2026-07-01', '2026-07-31', 26, 'MY-EMPLOYMENT-LAW-2026')`),
+      /is SOURCE_CAPTURED: only an approved rule pack may produce a payroll/
+    );
   });
 });
 
