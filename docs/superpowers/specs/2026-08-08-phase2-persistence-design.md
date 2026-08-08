@@ -107,6 +107,27 @@ member without a migration fails.
 - `rule_settings` — `rule_pack_id pk`, `settings jsonb`, parsed through a Zod schema
   mirroring `RuleSettings` at the repository boundary. jsonb rather than 18 columns
   because the shape is versioned with the pack and read whole.
+
+  The settings object carries a **`statutoryLimits`** block alongside the
+  contribution parameters:
+
+  ```
+  statutoryLimits: {
+    otMaxHoursMonth, maxWeeklyHours, minWageSen,
+    otMultiplierFloors: { workday, restDay, publicHoliday },
+    eaEntitlementWageCeilingSen
+  }
+  ```
+
+  **Data only in this phase** — no trigger reads it, no engine change, no findings
+  logic. It is versioned pack data that the findings engine consumes in a later
+  phase. Each figure gets a `rule_sources` row naming the instrument it comes from,
+  and **every value must be verified against the current gazetted source before the
+  seed JSON is written** — the OT Regulations 1980 monthly cap, EA 1955 s.60A weekly
+  hours as amended, the current Minimum Wages Order, the s.60A(3)/s.60(3)/s.60D
+  multipliers, and the EA First Schedule wage ceiling. Remembered values are not
+  acceptable. Coverage comes free: the block is inside the content-hashed seed file
+  and inside the Zod parse test.
 - `epf_bands` — `(rule_pack_id, part, from_sen, to_sen, er_sen, ee_sen)`, part ∈ A/C/E.
 - `socso_bands` — `(rule_pack_id, from_sen, to_sen, cat1_er_sen, cat1_ee_core_sen,
   cat1_ee_skbbk_sen, cat2_er_sen, cat2_ee_skbbk_sen)`.
@@ -177,6 +198,13 @@ creation), the `LineInputs` scalars (`working_days`, `paid_days`, `hours_worked`
   class, rejected at the database.
 - `net_sen` and `deductions_total_sen` are **nullable**: PCB absent means net is
   unknown, never zero.
+- **`hours_worked` carries no upper-bound check, deliberately.** Statutory-limit
+  breaches — overtime past the monthly cap, hours past the weekly maximum — are
+  *recordable facts*, not impossible ones: they happen, and a payroll system that
+  refuses to record them cannot report them. The findings engine flags them in a
+  later phase by reading `statutoryLimits` off the rule pack. This gets a schema
+  comment in the Drizzle module so a future reader does not "fix" it into a hard
+  reject.
 
 **`pay_line_items`** — `id uuid pk`, `line_id`, `pay_item_id` (nullable FK, for
 provenance only), and the frozen snapshot: `item_code_snap`, `kind_snap`,
@@ -218,10 +246,15 @@ Declarative constraints as above, plus five plpgsql triggers:
    spec's §1.2 atomic edit requires. Every other transition raises.
 3. **`enforce_pay_item_identity`** on `pay_items` — rejects any change to `code` or
    `kind`, rejects DELETE outright, and rejects deactivating an `is_system` row.
-4. **`enforce_employment_item_rate_shape`** on `employment_pay_items` — looks up
-   `pay_items.rate_basis` and requires `rate_sen` for quantity bases,
-   `amount_sen` for `AMOUNT`/`FIXED_MONTHLY`. A trigger rather than a CHECK because
-   the discriminator lives in the parent row.
+4. **`enforce_employment_item_compatibility`** on `employment_pay_items` — two checks,
+   both needing a join, which is why this is a trigger and not a CHECK:
+   - **Rate shape.** Looks up `pay_items.rate_basis`; requires `rate_sen` for
+     quantity bases and `amount_sen` for `AMOUNT`/`FIXED_MONTHLY`.
+   - **Pay-basis compatibility.** Joins `employments.pay_basis` and **rejects** an
+     item whose `rate_basis` is `FIXED_MONTHLY` on a `DAILY` employment. Every other
+     combination passes — `MONTHLY` employments carry any basis. An allowance that
+     exists in both worlds gets two catalog rows (`ALW_MEAL` / `ALW_MEAL_D`), not a
+     weakened trigger.
 5. **`audit_events_append_only`** — rejects UPDATE and DELETE on `audit_events`.
 
 Triggers live in hand-written migration files alongside the drizzle-kit generated
@@ -267,7 +300,28 @@ It belongs with the findings and gate engine that consume it.
   asserted: `paid_days > working_days` rejected; a second REGULAR run for the same
   company-period rejected; an APPROVED run's line rejected on update; an illegal
   status transition rejected; `pay_items.code` change rejected; `audit_events` update
-  rejected; the quantity/basis check rejected in both directions.
+  rejected; the quantity/basis check rejected in both directions; a `FIXED_MONTHLY`
+  item on a `DAILY` employment raises with the expected message, the same item on a
+  `MONTHLY` employment succeeds, and a `PER_DAY` item on a `DAILY` employment
+  succeeds.
+
+### 7.1 What the golden fixture does and does not prove
+
+Checked against `tests/golden/july-2026.json` before writing this:
+
+- **No employment in the fixture is `DAILY`.** `payBasis` is absent from all 37
+  rows, so every one is `MONTHLY` via the test helper's default. Amendment 1's
+  fallback — add a daily catalog variant and reassign — **does not arise**. The
+  pay-basis trigger is proved by `constraints.test.ts` alone, on rows built for it.
+- **The fixture contains no overtime whatsoever.** Every employee passes
+  `otHours: 0`, no employee carries an OT field, and no OT line item is constructed.
+  So the OT-multiplier assumption cannot be confirmed from the fixture — there is
+  nothing there to confirm, and parity is entirely unaffected by OT semantics.
+  `golden-parity.test.ts` records this explicitly rather than documenting an
+  assumption the fixture never exercises: **the only quantity item the golden run
+  uses is `MEAL`, as `mealDays × mealRateSen` (`PER_DAY`), 27 of 37 employees.**
+  When the OT-multiplier domain change lands, it supersedes nothing that this test
+  covers, and the golden master cannot detect a regression in it.
 
 ---
 
