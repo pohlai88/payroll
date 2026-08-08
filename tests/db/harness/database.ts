@@ -8,13 +8,16 @@
  */
 
 import { sql } from "drizzle-orm";
-import type { Pool } from "pg";
+import { Client, type Pool } from "pg";
 import {
   createDatabase,
   createPool,
   type Database,
   LOCAL_DEV_DATABASE_URL,
 } from "@/db/client";
+
+/** Anything that can run a parameterized query — `Client` or `Pool`. */
+export type LockConnection = Pick<Client, "query">;
 
 /**
  * Hosts this harness is willing to truncate.
@@ -51,6 +54,66 @@ export function resolveTestDatabaseUrl(): string {
     );
   }
   return url;
+}
+
+/**
+ * Advisory-lock key claimed by `global-setup.ts` for the whole test session.
+ *
+ * A second, independent `vitest` invocation (another terminal, a stray
+ * process, a concurrent agent) against the same Postgres has no way to know
+ * the first one is mid-run: `maxWorkers`/`fileParallelism` only serialize
+ * files *inside* one process. Both processes' `beforeEach` would then
+ * truncate and reseed the same hardcoded fixture rows out of turn, producing
+ * exactly the kind of "wrong trigger fired" / "fixture missing" failures an
+ * un-contended run never reproduces. Held for one session key, checked once,
+ * so the second process fails fast with a clear message instead of racing.
+ *
+ * The lock MUST be held on a dedicated `Client`, not a `Pool`. node-pg's
+ * default `idleTimeoutMillis` (10s) closes idle pooled backends, which
+ * silently releases a session advisory lock mid-suite and lets a second
+ * vitest in — the exact race this guard exists to prevent.
+ */
+export const TEST_SESSION_LOCK_KEY = 875_321_001;
+
+/** Attempts to take a Postgres session-level advisory lock; never blocks. */
+export async function tryAcquireExclusiveLock(
+  connection: LockConnection,
+  key: number
+): Promise<boolean> {
+  const result = await connection.query<{ locked: boolean }>(
+    "select pg_try_advisory_lock($1) as locked",
+    [key]
+  );
+  return result.rows[0]?.locked === true;
+}
+
+/** Releases a lock taken by {@link tryAcquireExclusiveLock} on the same connection. */
+export async function releaseExclusiveLock(
+  connection: LockConnection,
+  key: number
+): Promise<void> {
+  await connection.query("select pg_advisory_unlock($1)", [key]);
+}
+
+/**
+ * Opens a dedicated client for holding the session advisory lock.
+ *
+ * Prefer this over a `Pool` for any lock that must survive idle periods —
+ * see {@link TEST_SESSION_LOCK_KEY}.
+ *
+ * Attaches an `'error'` listener so a backend restart during a long suite
+ * cannot crash the Vitest process via an unhandled Client `'error'` event
+ * (the same footgun `createPool` already covers for pooled clients).
+ */
+export async function openLockClient(
+  connectionString: string = resolveTestDatabaseUrl()
+): Promise<Client> {
+  const client = new Client({ connectionString });
+  client.on("error", (error) => {
+    console.error("pg lock client: connection error", error);
+  });
+  await client.connect();
+  return client;
 }
 
 export interface TestDatabase {
@@ -191,8 +254,18 @@ export const ALL_TABLES = [
   "pay_lines",
   "pay_runs",
   "employment_pay_items",
+  "employment_pcb_ytd",
+  "employment_prior_ytd",
+  "employment_tax_profiles",
+  "employment_profiles",
+  "employee_custom_field_defs",
+  "transfers",
   "employments",
   "persons",
+  "user_role_assignments",
+  "role_permissions",
+  "roles",
+  "users",
   "companies",
   "pay_items",
   "epf_bands",

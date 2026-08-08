@@ -36,6 +36,76 @@
       "when": 1786179999000,
       "tag": "0004_authority_governance",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786182000000,
+      "tag": "0005_rule_pack_overlap_exclusion",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786185886277,
+      "tag": "0006_add_pay_line_overrides_non_negative_check",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1786186000000,
+      "tag": "0007_rule_pack_overlap_jurisdiction",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1786186733288,
+      "tag": "0008_add_pay_runs_linked_run_fk",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1786187000000,
+      "tag": "0009_band_overlap_exclusion",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1786187100000,
+      "tag": "0010_employment_pay_basis_change_compatibility",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1786188000000,
+      "tag": "0011_pcb_tax_profile_ytd",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1786188523669,
+      "tag": "0012_rbac_users_roles_permissions",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1786189943055,
+      "tag": "0013_internal_group_transfer",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1786190569443,
+      "tag": "0014_employee_profile",
+      "breakpoints": true
     }
   ]
 }

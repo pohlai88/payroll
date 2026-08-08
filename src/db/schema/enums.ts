@@ -112,3 +112,76 @@ export const overrideField = pgEnum("override_field", [
   "SOCSO_WAGES",
   "EIS_WAGES",
 ]);
+
+/** PCB tax residence for offline MTD compute. */
+export const pcbResidence = pgEnum("pcb_residence", [
+  "RESIDENT",
+  "NON_RESIDENT",
+]);
+
+/** LHDN MTD employee category 1 / 2 / 3. */
+export const pcbCategory = pgEnum("pcb_category", ["1", "2", "3"]);
+
+/** Computerized MTD formula regime (resident). */
+export const pcbFormulaRegime = pgEnum("pcb_formula_regime", [
+  "NORMAL",
+  "REP",
+  "KNOWLEDGE_WORKER",
+  "C_SUITE",
+]);
+
+/** Why an employment ended. */
+export const terminationReason = pgEnum("termination_reason", [
+  "RESIGNATION",
+  "DISMISSAL",
+  "CONTRACT_END",
+  "INTERNAL_GROUP_TRANSFER",
+  "RETIREMENT",
+  "OTHER",
+]);
+
+/** Whether a transferred person's group tenure clock carries over or restarts. */
+export const groupServiceContinuity = pgEnum("group_service_continuity", [
+  "CONTINUOUS",
+  "RESET",
+]);
+
+/** Whether a login account may authenticate. */
+export const userStatus = pgEnum("user_status", ["ACTIVE", "DISABLED"]);
+
+/**
+ * How far a role's grants reach.
+ *
+ * GLOBAL applies system-wide (System Admin, cross-company operators).
+ * COMPANY applies only within a specific company assignment.
+ */
+export const roleScope = pgEnum("role_scope", ["GLOBAL", "COMPANY"]);
+
+/** Row of the permission matrix — a payroll domain module. */
+export const permissionResource = pgEnum("permission_resource", [
+  "COMPANY",
+  "EMPLOYMENT",
+  "PAY_RUN",
+  "PAY_ITEM",
+  "RULE_PACK",
+  "REPORT",
+]);
+
+/** Column of the permission matrix — a CRUD verb. */
+export const permissionAction = pgEnum("permission_action", [
+  "CREATE",
+  "READ",
+  "UPDATE",
+  "DELETE",
+]);
+
+/**
+ * `CustomFieldDef["dataType"]` — deliberately has no monetary member. Any
+ * amount an admin wants to capture belongs in `pay_items`/`employments`
+ * through `domain/money.ts`, never in a custom field. See MY-STAT-S02 and
+ * docs/superpowers/specs/2026-08-08-employee-master-import-design.md.
+ */
+export const employeeCustomFieldDataType = pgEnum(
+  "employee_custom_field_data_type",
+  ["TEXT", "NUMBER", "DATE", "BOOLEAN"]
+);
