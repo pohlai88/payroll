@@ -1,6 +1,6 @@
 # Phase 4C — Vite Straits / shadcn design-system foundation
 
-**Date:** 2026-08-08 · **Status:** ACCEPTED / FROZEN · **Scope:** Tailwind v4 + Studio-selected shadcn primitives + Straits token projection on the existing Vite SPA
+**Date:** 2026-08-08 · **Status:** Implemented · **Scope:** Tailwind v4 + Studio-selected shadcn primitives + Straits token projection on the existing Vite SPA
 
 Wires the Straits colour contract and shadcn primitives into the Phase 4A/4B
 shell without product chrome, new workflows, or auth/import behaviour changes.

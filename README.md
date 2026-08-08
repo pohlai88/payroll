@@ -13,7 +13,7 @@ Rebuilt from scratch. Documentation roles:
 |---|---|---|
 | Authoritative doctrine / current architecture | `docs/architecture/` (`payroll-architecture.md`, `presentation-facade.md`, payslip docs) | What exists in `src/` / `db/` and what the UI may rely on |
 | Living implementation / status | this README; approved specs under `docs/superpowers/specs/` for shipped slices | Phase table, how to run, feature contracts |
-| Active plans | recent `docs/superpowers/plans/` for unfinished work (e.g. employee master import) | Implementation task lists still in flight |
+| Active plans | recent `docs/superpowers/plans/` for unfinished work | Implementation task lists still in flight (Phase 2 closeout + employee master import plans are complete) |
 | Historical / archive | Plan1 control-foundation plans & handoff; `c:\JackProject\_payroll-v1-backup` | Prior SQLite/Next rebuild — not current authority |
 | Design system (Phase 4+) | `docs/palette/` | Colour, grid, print contracts — not runtime truth for Phase 3 |
 
@@ -23,10 +23,10 @@ Rebuilt from scratch. Documentation roles:
 | 1 · Derivation graph engine | done |
 | 2 · Neon Postgres schema, plpgsql triggers, seed, Docker | done |
 | 3 · Hono API + Neon Auth (auth platform) | done |
-| 4 · Vite SPA shell (shadcn-studio + Straits palette) | pending |
+| 4 · Vite SPA shell | 4A auth + 4B import + 4C design-system foundation done; product chrome / Phase 5 payroll UI pending |
 | 5 · Payroll UI + derivation drawer | pending |
-| 6 · Findings, gates, approval | pending |
-| 7 · Release, payments, closure, R2 artifacts | pending |
+| 6 · Findings, gates, approval | control layer landed — see `phase6-findings-gates-approval-design` |
+| 7 · Release, payments, closure, R2 artifacts | backend done (R2 + Hono; SPA wiring later) |
 | 8 · Import, reports, bilingual payslip, run diff | pending |
 | 9 · Vercel deploy | pending |
 
@@ -37,11 +37,19 @@ create-only employee master import. See
 `docs/superpowers/specs/2026-08-08-phase2-persistence-design.md` and
 `docs/superpowers/plans/2026-08-08-phase2-persistence.md`.
 
+Transfer / statutory follow-ups (artifacts evidence, §8.6 transfer findings,
+S06 wage treatments + PCB Y1/Yt class):
+`docs/superpowers/specs/2026-08-08-transfer-statutory-followups-design.md`.
+
 Phase 3 auth platform is built: Hono verifies Neon Auth Bearer JWTs, invite-only
 links `users.auth_subject`, exposes `/health`, `/v1/me*`, and SYSTEM_ADMIN
-`/v1/admin/users*`. Payroll business HTTP routes are not part of this slice.
-Design: `docs/superpowers/specs/2026-08-08-hono-neon-auth-design.md`.
+`/v1/admin/users*`. Design:
+`docs/superpowers/specs/2026-08-08-hono-neon-auth-design.md`.
 `dev:api` and `invite-user` load `.env.local` when present (see `.env.example`).
+
+Pay-run business HTTP (Neon Auth + `PAY_RUN`): `POST /v1/pay-runs` (create) and
+`POST /v1/pay-runs/:runId/recompute`. No SPA client in this slice. Spec:
+`docs/superpowers/specs/2026-08-08-pay-run-http-api-design.md`.
 
 ```bash
 # API (DATABASE_URL + NEON_AUTH_* from .env.local or the environment)
@@ -49,7 +57,20 @@ npm run dev:api
 
 # Bootstrap first System Admin (no JWT)
 npx tsx scripts/invite-user.ts --email you@example.com --name "You" --system-admin
+
+# Phase 4A auth-consuming shell (needs VITE_NEON_AUTH_URL + VITE_API_BASE)
+npm run dev
 ```
+
+Phase 4A design:
+`docs/superpowers/specs/2026-08-08-phase4a-auth-shell-design.md`.
+Boring shell under `src/web/`: Neon Auth → Bearer → `/v1/me` + permissions +
+conditional read-only admin users. Not the Straits/shadcn product UI.
+
+Phase 4B: auth-gated create-only employee import —
+`GET/POST /v1/employee-import*` (`EMPLOYMENT`/`CREATE`) and a thin SPA panel.
+Spec: `docs/superpowers/specs/2026-08-08-phase4b-employee-import-api-design.md`.
+CLI import/template scripts remain available.
 
 ## The golden master
 
