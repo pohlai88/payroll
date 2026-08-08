@@ -238,6 +238,11 @@ export function parseEmployeeRow(
       field: "Base Rate RM",
       reason: `not a valid RM amount: ${JSON.stringify(baseRateRaw)}`,
     });
+  } else if (baseRateSen < 0) {
+    errors.push({
+      field: "Base Rate RM",
+      reason: "base rate must be non-negative",
+    });
   }
 
   const booleans: Record<string, boolean> = {};

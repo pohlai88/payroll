@@ -100,6 +100,19 @@ describe("parseEmployeeRow", () => {
     expect(result.errors.some((e) => e.field === "Base Rate RM")).toBe(true);
   });
 
+  it("rejects a negative Base Rate RM", () => {
+    const row = baseRow();
+    row["Base Rate RM"] = "-100.00";
+    const result = parseEmployeeRow(row, []);
+    if (!("errors" in result)) {
+      throw new Error("expected errors");
+    }
+    expect(result.errors).toContainEqual({
+      field: "Base Rate RM",
+      reason: "base rate must be non-negative",
+    });
+  });
+
   it("rejects an unrecognized column", () => {
     const row = { ...baseRow(), "Mystery Column": "x" };
     const result = parseEmployeeRow(row, []);
