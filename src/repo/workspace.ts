@@ -6,11 +6,9 @@
  * facade: every figure it returns was already computed and stored by the
  * engine (`payLines`) or the findings scan (`anomalyFindings`). The only
  * arithmetic performed here is summing already-computed `sen` integers for
- * the totals tiles — read-model aggregation, not payroll calculation.
- *
- * Prior-run comparison (`previousRoots`, `EmployeeVarianceDto`, tile
- * `variance`/`history`) is out of scope for this task — see Task 3, which
- * adds the `linkedRunId`/prior-period join.
+ * the totals tiles, and diffing this run's roots against the `linkedRunId`
+ * prior run's roots for `previousRoots`/`variance` — read-model aggregation
+ * and comparison, not payroll calculation.
  */
 
 import { eq } from "drizzle-orm";
@@ -164,7 +162,39 @@ function buildRootsFromLine(line: PayLineRow): Record<RootKey, RootValue> {
   };
 }
 
-function buildAggregateTiles(lines: EmployeeLineDto[]): AggregateTile[] {
+function sumRoot(
+  roots: readonly Record<RootKey, RootValue>[],
+  rootKey: RootKey
+): number {
+  return roots.reduce((acc, r) => {
+    const value = r[rootKey]?.sen;
+    return value == null ? acc : acc + value;
+  }, 0);
+}
+
+function directionOf(deltaSen: number): "UP" | "DOWN" | "SAME" {
+  if (deltaSen > 0) {
+    return "UP";
+  }
+  return deltaSen < 0 ? "DOWN" : "SAME";
+}
+
+function computeTileVariance(
+  currentSen: number,
+  previousRoots: readonly Record<RootKey, RootValue>[],
+  rootKey: RootKey
+): VarianceDto {
+  const previousSen = sumRoot(previousRoots, rootKey);
+  const deltaSen = currentSen - previousSen;
+  const deltaBps =
+    previousSen === 0 ? null : Math.round((deltaSen / previousSen) * 10_000);
+  return { previousSen, deltaSen, deltaBps, direction: directionOf(deltaSen) };
+}
+
+function buildAggregateTiles(
+  lines: EmployeeLineDto[],
+  previousRoots: readonly Record<RootKey, RootValue>[] | null
+): AggregateTile[] {
   return AGGREGATE_TILE_DEFS.map(({ key, label, rootKey }) => {
     const currentSen = lines.reduce((acc, line) => {
       const value = line.roots[rootKey]?.sen;
@@ -175,10 +205,38 @@ function buildAggregateTiles(lines: EmployeeLineDto[]): AggregateTile[] {
       key,
       label,
       currentSen,
-      variance: NO_PRIOR_VARIANCE,
+      variance:
+        previousRoots === null
+          ? NO_PRIOR_VARIANCE
+          : computeTileVariance(currentSen, previousRoots, rootKey),
       history: [],
     };
   });
+}
+
+/**
+ * Diffs one employee's current roots against the same employee's roots on
+ * the prior (`linkedRunId`) run. `net` is the direction proxy — the single
+ * figure the payslip actually pays out — but `changedRootKeys` reports every
+ * root that moved, not just net.
+ */
+function computeEmployeeVariance(
+  current: Record<RootKey, RootValue>,
+  previous: Record<RootKey, RootValue>
+): EmployeeVarianceDto {
+  const changedRootKeys: string[] = [];
+  for (const key of ROOT_KEYS) {
+    if (current[key]?.sen !== previous[key]?.sen) {
+      changedRootKeys.push(key);
+    }
+  }
+  const curNet = current.net?.sen ?? 0;
+  const prevNet = previous.net?.sen ?? 0;
+  return {
+    hasChanges: changedRootKeys.length > 0,
+    changedRootKeys,
+    direction: directionOf(curNet - prevNet),
+  };
 }
 
 function actionAvailabilityFor(status: string): ActionAvailability {
@@ -258,6 +316,7 @@ export async function loadWorkspaceView(
       year: payRuns.year,
       month: payRuns.month,
       status: payRuns.status,
+      linkedRunId: payRuns.linkedRunId,
     })
     .from(payRuns)
     .innerJoin(companies, eq(payRuns.companyId, companies.id))
@@ -275,7 +334,7 @@ export async function loadWorkspaceView(
 
   const lineIds = lineRows.map((line) => line.id);
 
-  const [findingsCountByLine, findingsRows] = await Promise.all([
+  const [findingsCountByLine, findingsRows, prevLineRows] = await Promise.all([
     loadOpenFindingsCountByLine(db, runId),
     lineIds.length === 0
       ? Promise.resolve([])
@@ -286,20 +345,40 @@ export async function loadWorkspaceView(
           })
           .from(anomalyFindings)
           .where(eq(anomalyFindings.runId, runId)),
+    run.linkedRunId === null
+      ? Promise.resolve(null)
+      : db.select().from(payLines).where(eq(payLines.runId, run.linkedRunId)),
   ]);
+
+  const prevRootsByEmployment = new Map<string, Record<RootKey, RootValue>>();
+  if (prevLineRows !== null) {
+    for (const prevLine of prevLineRows) {
+      prevRootsByEmployment.set(
+        prevLine.employmentId,
+        buildRootsFromLine(prevLine)
+      );
+    }
+  }
+  const previousRunRoots =
+    prevLineRows === null ? null : prevLineRows.map(buildRootsFromLine);
 
   const employeeLines: EmployeeLineDto[] = lineRows.map((line) => {
     const snapshot = line.employeeSnapshot as {
       id?: string;
       name?: string;
     };
+    const roots = buildRootsFromLine(line);
+    const previousRoots = prevRootsByEmployment.get(line.employmentId) ?? null;
     return {
       employeeId: line.employmentId,
       employeeCode: snapshot.id ?? line.employmentId,
       employeeName: snapshot.name ?? "Unknown",
-      roots: buildRootsFromLine(line),
-      previousRoots: null,
-      variance: null,
+      roots,
+      previousRoots,
+      variance:
+        previousRoots === null
+          ? null
+          : computeEmployeeVariance(roots, previousRoots),
       findingsCount: findingsCountByLine.get(line.id) ?? 0,
     };
   });
@@ -314,7 +393,7 @@ export async function loadWorkspaceView(
       label: run.id,
     },
     actionAvailability: actionAvailabilityFor(run.status),
-    totals: buildAggregateTiles(employeeLines),
+    totals: buildAggregateTiles(employeeLines, previousRunRoots),
     findingsSummary: summarizeFindings(findingsRows),
     lines: employeeLines,
   };

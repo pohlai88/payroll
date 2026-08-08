@@ -20,6 +20,7 @@ const COMPANY_ID = "dddddddd-0000-4000-8000-000000000001";
 const PERSON_ID = "dddddddd-0000-4000-8000-000000000002";
 const EMPLOYMENT_ID = "dddddddd-0000-4000-8000-000000000003";
 const RUN_ID = "API-WORKSPACE-2026-07";
+const PREV_RUN_ID = "API-WORKSPACE-2026-06";
 const ADMIN_EMAIL = "workspace-admin@example.com";
 
 let rulePackId = "";
@@ -131,6 +132,58 @@ async function createAndRecomputeRun(
   }
   const recomputeBody = await recompute.json();
   return { calcRevision: recomputeBody.run.calcRevision as string };
+}
+
+async function createAndRecomputeRunWithParams(
+  app: ReturnType<typeof createApp>,
+  params: {
+    runId: string;
+    year: number;
+    month: number;
+    periodStart: string;
+    periodEnd: string;
+  }
+): Promise<{ calcRevision: string }> {
+  const create = await app.request("/v1/pay-runs", {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer admin",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      runId: params.runId,
+      companyId: COMPANY_ID,
+      rulePackId,
+      year: params.year,
+      month: params.month,
+      periodStart: params.periodStart,
+      periodEnd: params.periodEnd,
+      workingDays: 22,
+      paidDays: 22,
+    }),
+  });
+  if (create.status !== 201) {
+    throw new Error(`setup: create failed with ${create.status}`);
+  }
+
+  const recompute = await app.request(
+    `/v1/pay-runs/${params.runId}/recompute`,
+    {
+      method: "POST",
+      headers: { Authorization: "Bearer admin" },
+    }
+  );
+  if (recompute.status !== 200) {
+    throw new Error(`setup: recompute failed with ${recompute.status}`);
+  }
+  const recomputeBody = await recompute.json();
+  return { calcRevision: recomputeBody.run.calcRevision as string };
+}
+
+/** Test-only: the create-run API has no field for it, so link runs directly. */
+async function linkRunToPrior(childRunId: string, priorRunId: string) {
+  await db.execute(sql`
+    UPDATE pay_runs SET linked_run_id = ${priorRunId} WHERE id = ${childRunId}`);
 }
 
 describe("GET /v1/pay-runs/:runId/workspace", () => {
@@ -247,6 +300,75 @@ describe("GET /v1/pay-runs/:runId/workspace", () => {
       canReview: false,
       canApprove: true,
       canClose: false,
+    });
+  });
+
+  it("variance is NO_PRIOR when no prior run is linked", async () => {
+    await makeAdmin(ADMIN_EMAIL);
+    const app = adminApp();
+    await createAndRecomputeRun(app);
+
+    const res = await app.request(`/v1/pay-runs/${RUN_ID}/workspace`, {
+      headers: { Authorization: "Bearer admin" },
+    });
+    const body = await res.json();
+
+    for (const tile of body.totals) {
+      expect(tile.variance.direction).toBe("NO_PRIOR");
+    }
+    for (const line of body.lines) {
+      expect(line.previousRoots).toBeNull();
+      expect(line.variance).toBeNull();
+    }
+  });
+
+  it("computes previousRoots and variance against the linked prior run", async () => {
+    await makeAdmin(ADMIN_EMAIL);
+    const app = adminApp();
+
+    await createAndRecomputeRunWithParams(app, {
+      runId: PREV_RUN_ID,
+      year: 2026,
+      month: 6,
+      periodStart: "2026-06-01",
+      periodEnd: "2026-06-30",
+    });
+    await createAndRecomputeRunWithParams(app, {
+      runId: RUN_ID,
+      year: 2026,
+      month: 7,
+      periodStart: "2026-07-01",
+      periodEnd: "2026-07-31",
+    });
+    await linkRunToPrior(RUN_ID, PREV_RUN_ID);
+
+    const prevRes = await app.request(`/v1/pay-runs/${PREV_RUN_ID}/workspace`, {
+      headers: { Authorization: "Bearer admin" },
+    });
+    const prevBody = await prevRes.json();
+    const [prevLine] = prevBody.lines;
+
+    const res = await app.request(`/v1/pay-runs/${RUN_ID}/workspace`, {
+      headers: { Authorization: "Bearer admin" },
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+
+    const [line] = body.lines;
+    expect(line.previousRoots).toEqual(prevLine.roots);
+    expect(line.variance).toMatchObject({
+      hasChanges: false,
+      changedRootKeys: [],
+      direction: "SAME",
+    });
+
+    const grossTile = body.totals.find(
+      (t: { key: string }) => t.key === "gross_pay"
+    );
+    expect(grossTile.variance).toMatchObject({
+      previousSen: prevLine.roots.gross.sen,
+      deltaSen: 0,
+      direction: "SAME",
     });
   });
 });
