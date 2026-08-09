@@ -71,6 +71,7 @@ function BatchDrawer({
 
   useEffect(() => {
     if (open && batchId !== null) {
+      setData(null);
       load();
     }
   }, [open, batchId, load]);
