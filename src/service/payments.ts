@@ -92,10 +92,20 @@ export async function createReadyPaymentsForRun(
 }
 
 /**
- * Current state of one line's payment. Part of the public payments API: callers
- * that need a single line (closure assertions, control checks) go through this
- * rather than reading `line_payments.state` directly — bulk readers still select
- * the column in their own query.
+ * Current state of one line's payment.
+ *
+ * Named in the approved Plan-1 control-foundation contract as part of this
+ * module's public surface, alongside `holdLine` / `unholdLine` / `withdrawLine`
+ * (`docs/superpowers/plans/2026-08-08-plan1-control-foundation.md` §4.3).
+ * Callers needing a single line — closure assertions, control checks — go
+ * through this rather than reading `line_payments.state` directly; bulk readers
+ * still select the column in their own query.
+ *
+ * Exported deliberately and currently without a runtime caller. The `@public`
+ * tag is the machine-verifiable record of that intent (see `knip.json`), so an
+ * absent consumer is not mistaken for dead code.
+ *
+ * @public
  */
 export async function getPaymentState(
   db: DbOrTx,
