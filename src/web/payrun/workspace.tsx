@@ -10,14 +10,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "wouter";
 import { isRunStatus } from "@/components/payroll/status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { useAsyncLoad } from "@/hooks/use-async-load";
 import { formatApiError } from "@/web/api/format-error";
 import type {
-  ArtifactRow,
   ChecklistItem,
   EmployeeLineDto,
   GateKind,
   GateResult,
-  LinePaymentRow,
   LinePaymentState,
   PayRunWorkspaceView,
 } from "@/web/api/payroll-api";
@@ -68,17 +67,41 @@ function WorkspacePage() {
   const [activeBatchId, setActiveBatchId] = useState<string | null>(null);
   const [batchDrawerOpen, setBatchDrawerOpen] = useState(false);
 
-  const [artifacts, setArtifacts] = useState<readonly ArtifactRow[]>([]);
-  const [artifactsLoading, setArtifactsLoading] = useState(false);
-  const [artifactsError, setArtifactsError] = useState<string | null>(null);
-
   const [recomputeError, setRecomputeError] = useState<string | null>(null);
 
-  // Single source of truth for payments — shared by PaymentsPanel (display)
-  // and the grid's payment-state badge column (derived map below).
-  const [payments, setPayments] = useState<readonly LinePaymentRow[]>([]);
-  const [paymentsLoading, setPaymentsLoading] = useState(false);
-  const [paymentsError, setPaymentsError] = useState<string | null>(null);
+  const fetchArtifacts = useCallback(async () => {
+    if (runId === undefined) {
+      return [];
+    }
+    const res = await payrollApi.getArtifacts(runId);
+    return res.artifacts;
+  }, [runId]);
+
+  const {
+    data: artifactsData,
+    loading: artifactsLoading,
+    error: artifactsError,
+    reload: loadArtifacts,
+  } = useAsyncLoad(fetchArtifacts, "Failed to load artifacts");
+
+  const artifacts = artifactsData ?? [];
+
+  const fetchPayments = useCallback(async () => {
+    if (runId === undefined) {
+      return [];
+    }
+    const res = await payrollApi.getPayments(runId);
+    return res.payments;
+  }, [runId]);
+
+  const {
+    data: paymentsData,
+    loading: paymentsLoading,
+    error: paymentsError,
+    reload: loadPayments,
+  } = useAsyncLoad(fetchPayments, "Failed to load payments");
+
+  const payments = paymentsData ?? [];
 
   // Derived from the single payments list — no separate fetch needed.
   const paymentStateByEmployeeId = useMemo<
@@ -107,38 +130,6 @@ function WorkspacePage() {
       setError("Failed to load workspace");
     } finally {
       setLoading(false);
-    }
-  }, [runId]);
-
-  const loadArtifacts = useCallback(async () => {
-    if (runId === undefined) {
-      return;
-    }
-    setArtifactsLoading(true);
-    setArtifactsError(null);
-    try {
-      const res = await payrollApi.getArtifacts(runId);
-      setArtifacts(res.artifacts);
-    } catch (err) {
-      setArtifactsError(formatApiError(err, "Failed to load artifacts"));
-    } finally {
-      setArtifactsLoading(false);
-    }
-  }, [runId]);
-
-  const loadPayments = useCallback(async () => {
-    if (runId === undefined) {
-      return;
-    }
-    setPaymentsLoading(true);
-    setPaymentsError(null);
-    try {
-      const res = await payrollApi.getPayments(runId);
-      setPayments(res.payments);
-    } catch (err) {
-      setPaymentsError(formatApiError(err, "Failed to load payments"));
-    } finally {
-      setPaymentsLoading(false);
     }
   }, [runId]);
 

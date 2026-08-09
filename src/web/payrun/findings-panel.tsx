@@ -6,6 +6,7 @@
 
 import { ChevronDownIcon, ShieldAlertIcon } from "lucide-react";
 import { type ChangeEvent, useCallback, useEffect, useState } from "react";
+import { severityBadgeClass } from "@/components/payroll/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,13 +15,10 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
+import { useAsyncLoad } from "@/hooks/use-async-load";
 import { cn } from "@/lib/utils";
 import { formatApiError } from "@/web/api/format-error";
-import type {
-  FindingRow,
-  FindingSeverity,
-  FindingsSummary,
-} from "@/web/api/payroll-api";
+import type { FindingRow, FindingsSummary } from "@/web/api/payroll-api";
 import { payrollApi } from "@/web/api/payroll-api";
 
 interface FindingsPanelProps {
@@ -28,16 +26,6 @@ interface FindingsPanelProps {
   readonly findingsSummary: FindingsSummary | null;
   /** Called after scan or acknowledge so the workspace can refetch. */
   readonly onChanged: () => void;
-}
-
-function severityBadgeClass(severity: FindingSeverity): string {
-  if (severity === "BLOCKING") {
-    return "border-0 bg-[var(--status-bad-fill)] text-[var(--status-bad-ink)]";
-  }
-  if (severity === "WARNING") {
-    return "border-[var(--status-warn-border)] bg-[var(--status-warn-fill)] text-[var(--status-warn-ink)]";
-  }
-  return "border-border bg-muted text-muted-foreground";
 }
 
 function FindingRowView({
@@ -147,23 +135,22 @@ function FindingsPanel({
 }: FindingsPanelProps) {
   const hasSummary = findingsSummary !== null;
   const [open, setOpen] = useState(hasSummary);
-  const [findings, setFindings] = useState<readonly FindingRow[]>([]);
-  const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [scanError, setScanError] = useState<string | null>(null);
 
-  const loadFindings = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await payrollApi.getFindings(runId);
-      setFindings(res.findings);
-    } catch (err) {
-      setError(formatApiError(err, "Failed to load findings"));
-    } finally {
-      setLoading(false);
-    }
+  const fetchFindings = useCallback(async () => {
+    const res = await payrollApi.getFindings(runId);
+    return res.findings;
   }, [runId]);
+
+  const {
+    data: findingsData,
+    loading,
+    error,
+    reload: loadFindings,
+  } = useAsyncLoad(fetchFindings, "Failed to load findings");
+
+  const findings = findingsData ?? [];
 
   useEffect(() => {
     if (open) {
@@ -179,14 +166,14 @@ function FindingsPanel({
 
   const handleScan = useCallback(async () => {
     setScanning(true);
-    setError(null);
+    setScanError(null);
     try {
       await payrollApi.scanFindings(runId);
       setOpen(true);
       await loadFindings();
       onChanged();
     } catch (err) {
-      setError(formatApiError(err, "Scan failed"));
+      setScanError(formatApiError(err, "Scan failed"));
     } finally {
       setScanning(false);
     }
@@ -229,11 +216,11 @@ function FindingsPanel({
           </Button>
         </div>
         <CollapsibleContent>
-          {error === null ? null : (
+          {error !== null || scanError !== null ? (
             <p className="border-t px-3 py-2 text-destructive text-sm">
-              {error}
+              {error ?? scanError}
             </p>
-          )}
+          ) : null}
           {loading && findings.length === 0 ? (
             <p className="border-t px-3 py-4 text-muted-foreground text-sm">
               Loading findings…

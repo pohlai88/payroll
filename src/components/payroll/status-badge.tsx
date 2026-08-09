@@ -45,5 +45,23 @@ function isRunStatus(status: string): status is RunStatus {
   );
 }
 
+/**
+ * Shared severity → className for finding/exception badge coloring.
+ * Covers BLOCKING (bad), WARNING (warn), REVIEW (info), and a muted fallback
+ * for INFO or any unknown severity.
+ */
+function severityBadgeClass(severity: string): string {
+  if (severity === "BLOCKING") {
+    return "border-0 bg-[var(--status-bad-fill)] text-[var(--status-bad-ink)]";
+  }
+  if (severity === "WARNING") {
+    return "border-[var(--status-warn-border)] bg-[var(--status-warn-fill)] text-[var(--status-warn-ink)]";
+  }
+  if (severity === "REVIEW") {
+    return "border-0 bg-[var(--status-info-fill)] text-[var(--status-info-ink)]";
+  }
+  return "border-border bg-muted text-muted-foreground";
+}
+
 export type { RunStatus, StatusBadgeProps };
-export { isRunStatus, StatusBadge };
+export { isRunStatus, StatusBadge, severityBadgeClass };

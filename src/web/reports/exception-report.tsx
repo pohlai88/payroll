@@ -1,12 +1,5 @@
+import { severityBadgeClass } from "@/components/payroll/status-badge";
 import type { ExceptionReportDto } from "@/web/api/payroll-api";
-
-// Reuse the severity colour pattern from findings-panel.tsx
-const SEVERITY_CLASS: Record<string, string> = {
-  BLOCKING: "bg-destructive/10 text-destructive border-destructive/20",
-  WARNING: "bg-[hsl(var(--status-warn-fill))] text-[hsl(var(--status-warn-ink))] border-[hsl(var(--status-warn-fill))]/20",
-  REVIEW: "bg-[hsl(var(--status-info-fill))] text-[hsl(var(--status-info-ink))] border-[hsl(var(--status-info-fill))]/20",
-  INFO: "bg-muted text-muted-foreground border-border",
-};
 
 interface ExceptionReportProps {
   readonly data: ExceptionReportDto;
@@ -30,7 +23,7 @@ function ExceptionReport({ data }: ExceptionReportProps) {
       <div className="space-y-2">
         {data.findings.map((f) => (
           <div
-            className={`rounded border p-3 text-sm ${SEVERITY_CLASS[f.severity] ?? SEVERITY_CLASS.INFO}`}
+            className={`rounded border p-3 text-sm ${severityBadgeClass(f.severity)}`}
             key={f.id}
           >
             <div className="flex items-center justify-between gap-2">

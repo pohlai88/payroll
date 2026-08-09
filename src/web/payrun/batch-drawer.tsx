@@ -25,12 +25,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { useAsyncLoad } from "@/hooks/use-async-load";
 import { formatApiError } from "@/web/api/format-error";
-import type {
-  ArtifactRow,
-  GetBatchResponse,
-  PaymentAttempt,
-} from "@/web/api/payroll-api";
+import type { ArtifactRow, PaymentAttempt } from "@/web/api/payroll-api";
 import { payrollApi } from "@/web/api/payroll-api";
 
 interface BatchDrawerProps {
@@ -50,29 +47,22 @@ function BatchDrawer({
   onClose,
   onChanged,
 }: BatchDrawerProps) {
-  const [data, setData] = useState<GetBatchResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
+  const fetchBatch = useCallback(async () => {
     if (batchId === null) {
-      return;
+      return null;
     }
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await payrollApi.getBatch(runId, batchId);
-      setData(res);
-    } catch (err) {
-      setError(formatApiError(err, "Failed to load batch"));
-    } finally {
-      setLoading(false);
-    }
+    return await payrollApi.getBatch(runId, batchId);
   }, [batchId, runId]);
+
+  const {
+    data,
+    loading,
+    error,
+    reload: load,
+  } = useAsyncLoad(fetchBatch, "Failed to load batch");
 
   useEffect(() => {
     if (open && batchId !== null) {
-      setData(null);
       load();
     }
   }, [open, batchId, load]);
@@ -102,7 +92,7 @@ function BatchDrawer({
           <p className="px-4 text-destructive text-sm">{error}</p>
         )}
 
-        {loading && data === null ? (
+        {loading ? (
           <p className="px-4 text-muted-foreground text-sm">Loading batch…</p>
         ) : null}
 
