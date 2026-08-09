@@ -271,6 +271,34 @@ describe("importEmployeeRows", () => {
     }
   });
 
+  it("throws when a header slugifies to an empty string with --auto-register", async () => {
+    // "!!!" → slugify strips all non-alphanumeric chars → "_" → strip leading/trailing → ""
+    const tempSeedPath = path.join(
+      os.tmpdir(),
+      `employee-custom-fields-${process.pid}-${Date.now()}.json`
+    );
+    fs.writeFileSync(
+      tempSeedPath,
+      `${JSON.stringify({ fields: [] }, null, 2)}\n`,
+      "utf8"
+    );
+
+    try {
+      await expect(
+        importEmployeeRows(db, [sampleRow({ "!!!": "value" })], {
+          autoRegister: true,
+          customFieldsSeedPath: tempSeedPath,
+        })
+      ).rejects.toThrow(
+        'Cannot auto-register column "!!!": slugified field key is empty'
+      );
+    } finally {
+      if (fs.existsSync(tempSeedPath)) {
+        fs.unlinkSync(tempSeedPath);
+      }
+    }
+  });
+
   it("leaves repo employee-custom-fields.json unchanged", () => {
     expect(fs.readFileSync(REPO_CUSTOM_FIELDS_SEED, "utf8")).toBe(
       PRISTINE_SEED_CONTENT
