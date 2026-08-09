@@ -35,7 +35,7 @@ function AnnualRemunerationSummary({ data }: AnnualRemunerationSummaryProps) {
       </div>
 
       {/* Limitation notice — must be shown, per spec Rule 4 */}
-      <div className="rounded border border-yellow-200 bg-yellow-50 p-3 text-xs text-yellow-800">
+      <div className="rounded border border-[hsl(var(--status-warn-fill))]/20 bg-[hsl(var(--status-warn-fill))] p-3 text-xs text-[hsl(var(--status-warn-ink))]">
         <p className="mb-1 font-semibold">
           Important: Payroll-system summary only
         </p>

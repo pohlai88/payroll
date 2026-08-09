@@ -49,8 +49,8 @@ function ValueRow({ row }: { row: NodeDiffRow }) {
           <span
             className={
               row.deltaSen > 0
-                ? "font-medium text-emerald-600"
-                : "font-medium text-red-600"
+                ? "font-medium text-[hsl(var(--status-ok-ink))]"
+                : "font-medium text-destructive"
             }
           >
             ({deltaLabel(row.deltaSen)})

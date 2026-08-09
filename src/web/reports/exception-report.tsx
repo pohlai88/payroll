@@ -3,8 +3,8 @@ import type { ExceptionReportDto } from "@/web/api/payroll-api";
 // Reuse the severity colour pattern from findings-panel.tsx
 const SEVERITY_CLASS: Record<string, string> = {
   BLOCKING: "bg-destructive/10 text-destructive border-destructive/20",
-  WARNING: "bg-yellow-50 text-yellow-800 border-yellow-200",
-  REVIEW: "bg-blue-50 text-blue-800 border-blue-200",
+  WARNING: "bg-[hsl(var(--status-warn-fill))] text-[hsl(var(--status-warn-ink))] border-[hsl(var(--status-warn-fill))]/20",
+  REVIEW: "bg-[hsl(var(--status-info-fill))] text-[hsl(var(--status-info-ink))] border-[hsl(var(--status-info-fill))]/20",
   INFO: "bg-muted text-muted-foreground border-border",
 };
 
