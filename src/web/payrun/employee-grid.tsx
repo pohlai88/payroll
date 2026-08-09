@@ -120,7 +120,10 @@ function EmployeeGrid({
   paymentStateByEmployeeId,
 }: EmployeeGridProps) {
   const [page, setPage] = useState(0);
-  const showPaymentColumn = paymentStateByEmployeeId !== undefined;
+  // Only show the Payment column when the map exists AND has at least one entry,
+  // so header and body always agree on column count.
+  const showPaymentColumn =
+    paymentStateByEmployeeId !== undefined && paymentStateByEmployeeId.size > 0;
 
   const totalPages = Math.max(1, Math.ceil(lines.length / PAGE_SIZE));
   const pageLines = lines.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -181,6 +184,7 @@ function EmployeeGrid({
                 onViewDerivation={onViewDerivation}
                 onViewFindings={onViewFindings}
                 paymentState={paymentStateByEmployeeId?.get(line.employeeId)}
+                showPaymentColumn={showPaymentColumn}
               />
             ))}
           </TableBody>
@@ -223,6 +227,7 @@ interface EmployeeRowProps {
   readonly onViewDerivation?: (employeeId: string) => void;
   readonly onViewFindings?: (employeeId: string) => void;
   readonly paymentState?: LinePaymentState;
+  readonly showPaymentColumn: boolean;
 }
 
 function EmployeeRow({
@@ -232,6 +237,7 @@ function EmployeeRow({
   onViewDerivation,
   onViewFindings,
   paymentState,
+  showPaymentColumn,
 }: EmployeeRowProps) {
   const { employeeId } = line;
   const hasChanges = line.variance?.hasChanges ?? false;
@@ -289,13 +295,17 @@ function EmployeeRow({
           </TableCell>
         );
       })}
-      {paymentState === undefined ? null : (
+      {showPaymentColumn ? (
         <TableCell className="text-center">
-          <Badge className="border-border bg-muted text-muted-foreground text-xs">
-            {paymentState}
-          </Badge>
+          {paymentState === undefined ? (
+            <span className="text-muted-foreground text-xs">—</span>
+          ) : (
+            <Badge className="border-border bg-muted text-muted-foreground text-xs">
+              {paymentState}
+            </Badge>
+          )}
         </TableCell>
-      )}
+      ) : null}
       <TableCell onClick={stopPropagation}>
         <RowActionsMenu
           employeeId={employeeId}

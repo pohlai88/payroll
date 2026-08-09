@@ -7,15 +7,13 @@
  * BatchDrawer). The checkbox column (READY/FAILED_RETURNED only) feeds
  * ReleasePanel's selection. When `readOnly`, the panel renders with no
  * checkboxes and no action buttons.
+ *
+ * This component is presentational: `payments`/`loading`/`error` are provided
+ * by the parent (workspace.tsx) from its single shared fetch; every mutation
+ * calls `onChanged()` so the parent can refresh from the single source of truth.
  */
 
-import {
-  type ChangeEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { type ChangeEvent, useCallback, useMemo, useState } from "react";
 import { MoneyCell } from "@/components/payroll/money-cell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -60,7 +58,11 @@ interface PaymentsPanelProps {
   readonly readOnly: boolean;
   readonly selectedLineIds: readonly string[];
   readonly onSelectionChange: (ids: readonly string[]) => void;
-  readonly refreshKey: number;
+  readonly payments: readonly LinePaymentRow[];
+  readonly loading: boolean;
+  readonly error: string | null;
+  readonly onChanged: () => void;
+  readonly onViewBatch: (batchId: string) => void;
 }
 
 const WITHDRAWAL_REASONS: readonly {
@@ -103,11 +105,12 @@ function PaymentsPanel({
   readOnly,
   selectedLineIds,
   onSelectionChange,
-  refreshKey,
+  payments,
+  loading,
+  error,
+  onChanged,
+  onViewBatch,
 }: PaymentsPanelProps) {
-  const [payments, setPayments] = useState<readonly LinePaymentRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [dialog, setDialog] = useState<ActionDialog | null>(null);
   const [busyLineId, setBusyLineId] = useState<string | null>(null);
 
@@ -118,26 +121,6 @@ function PaymentsPanel({
     }
     return map;
   }, [lines]);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await payrollApi.getPayments(runId);
-      setPayments(res.payments);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load payments");
-    } finally {
-      setLoading(false);
-    }
-  }, [runId]);
-
-  // refreshKey is a refetch trigger prop from the parent — bumping it forces
-  // a reload without changing `load` itself.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: refreshKey is a refetch trigger, not a read dependency
-  useEffect(() => {
-    load();
-  }, [load, refreshKey]);
 
   const selectedSet = useMemo(
     () => new Set(selectedLineIds),
@@ -164,17 +147,16 @@ function PaymentsPanel({
   const handleUnhold = useCallback(
     async (lineId: string) => {
       setBusyLineId(lineId);
-      setError(null);
       try {
         await payrollApi.unholdLine(runId, lineId);
-        await load();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Unhold failed");
+        onChanged();
+      } catch {
+        // error surfaces through the parent's error state on next load
       } finally {
         setBusyLineId(null);
       }
     },
-    [load, runId]
+    [onChanged, runId]
   );
 
   return (
@@ -203,9 +185,7 @@ function PaymentsPanel({
                 <TableHead>Employee</TableHead>
                 <TableHead>State</TableHead>
                 <TableHead className="text-right">Net</TableHead>
-                {readOnly ? null : (
-                  <TableHead className="w-56">Actions</TableHead>
-                )}
+                <TableHead className="w-56">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -217,6 +197,7 @@ function PaymentsPanel({
                   onOpenDialog={setDialog}
                   onToggle={handleToggle}
                   onUnhold={handleUnhold}
+                  onViewBatch={onViewBatch}
                   payment={payment}
                   readOnly={readOnly}
                   selected={selectedSet.has(payment.lineId)}
@@ -229,19 +210,19 @@ function PaymentsPanel({
 
       <HoldDialog
         onClose={closeDialog}
-        onDone={load}
+        onDone={onChanged}
         runId={runId}
         target={dialog?.type === "hold" ? dialog.lineId : null}
       />
       <WithdrawDialog
         onClose={closeDialog}
-        onDone={load}
+        onDone={onChanged}
         runId={runId}
         target={dialog?.type === "withdraw" ? dialog.lineId : null}
       />
       <DistributeDialog
         onClose={closeDialog}
-        onDone={load}
+        onDone={onChanged}
         runId={runId}
         target={dialog?.type === "distribute" ? dialog.lineId : null}
       />
@@ -258,29 +239,38 @@ interface PaymentRowProps {
   readonly onToggle: (lineId: string, checked: boolean) => void;
   readonly onUnhold: (lineId: string) => void;
   readonly onOpenDialog: (dialog: ActionDialog) => void;
+  readonly onViewBatch: (batchId: string) => void;
 }
 
 interface RowActionsProps {
   readonly state: LinePaymentState;
+  readonly releaseBatchId: string | null;
   readonly busy: boolean;
   readonly onHold: () => void;
   readonly onUnhold: () => void;
   readonly onWithdraw: () => void;
   readonly onDistribute: () => void;
+  readonly onViewBatch: () => void;
 }
 
 function RowActions({
   state,
+  releaseBatchId,
   busy,
   onHold,
   onUnhold,
   onWithdraw,
   onDistribute,
+  onViewBatch,
 }: RowActionsProps) {
   const canWithdraw =
     state === "READY" || state === "HOLD" || state === "FAILED_RETURNED";
   const canDistribute = state === "PAID" || state === "RECONCILED";
-  if (!(canWithdraw || canDistribute)) {
+  const canViewBatch =
+    (state === "RELEASED" || state === "PAID" || state === "RECONCILED") &&
+    releaseBatchId !== null;
+
+  if (!(canWithdraw || canDistribute || canViewBatch)) {
     return null;
   }
   return (
@@ -315,6 +305,11 @@ function RowActions({
           Record distribution
         </Button>
       ) : null}
+      {canViewBatch ? (
+        <Button onClick={onViewBatch} size="sm" variant="outline">
+          View batch
+        </Button>
+      ) : null}
     </div>
   );
 }
@@ -328,8 +323,9 @@ function PaymentRow({
   onToggle,
   onUnhold,
   onOpenDialog,
+  onViewBatch,
 }: PaymentRowProps) {
-  const { state, lineId } = payment;
+  const { state, lineId, releaseBatchId } = payment;
   const checkable = state === "READY" || state === "FAILED_RETURNED";
 
   const handleToggle = useCallback(
@@ -349,6 +345,11 @@ function PaymentRow({
     [lineId, onOpenDialog]
   );
   const handleUnhold = useCallback(() => onUnhold(lineId), [lineId, onUnhold]);
+  const handleViewBatch = useCallback(() => {
+    if (releaseBatchId !== null) {
+      onViewBatch(releaseBatchId);
+    }
+  }, [releaseBatchId, onViewBatch]);
 
   return (
     <TableRow>
@@ -386,18 +387,27 @@ function PaymentRow({
       <TableCell className="text-right">
         <MoneyCell sen={payment.netSen} />
       </TableCell>
-      {readOnly ? null : (
-        <TableCell>
+      <TableCell>
+        {readOnly ? null : (
           <RowActions
             busy={busy}
             onDistribute={handleDistribute}
             onHold={handleHold}
             onUnhold={handleUnhold}
+            onViewBatch={handleViewBatch}
             onWithdraw={handleWithdraw}
+            releaseBatchId={releaseBatchId}
             state={state}
           />
-        </TableCell>
-      )}
+        )}
+        {readOnly &&
+        releaseBatchId !== null &&
+        (state === "RELEASED" || state === "PAID" || state === "RECONCILED") ? (
+          <Button onClick={handleViewBatch} size="sm" variant="outline">
+            View batch
+          </Button>
+        ) : null}
+      </TableCell>
     </TableRow>
   );
 }

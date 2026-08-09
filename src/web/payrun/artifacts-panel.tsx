@@ -26,6 +26,8 @@ interface ArtifactsPanelProps {
   readonly loading: boolean;
   readonly error: string | null;
   readonly onUploaded: () => void;
+  /** When true, hides the upload section (run is CLOSED — read-only mode). */
+  readonly readOnly?: boolean;
 }
 
 const MANUAL_TYPES: readonly {
@@ -78,6 +80,7 @@ function ArtifactsPanel({
   loading,
   error,
   onUploaded,
+  readOnly = false,
 }: ArtifactsPanelProps) {
   const [file, setFile] = useState<File | null>(null);
   const [type, setType] = useState<ArtifactType>("EVIDENCE");
@@ -117,10 +120,17 @@ function ArtifactsPanel({
   const handleGetLink = useCallback(
     async (artifactId: string) => {
       setLinkError(null);
+      // Open the tab synchronously inside the click handler so browsers
+      // (Safari/Firefox) don't block it as a popup — the user gesture context
+      // is lost once the async fetch resolves.
+      const tab = window.open("", "_blank", "noopener,noreferrer");
       try {
         const res = await payrollApi.getArtifactUrl(runId, artifactId);
-        window.open(res.url, "_blank", "noopener,noreferrer");
+        if (tab !== null) {
+          tab.location.href = res.url;
+        }
       } catch (err) {
+        tab?.close();
         setLinkError(err instanceof Error ? err.message : "Link failed");
       }
     },
@@ -164,32 +174,34 @@ function ArtifactsPanel({
         </ul>
       ) : null}
 
-      <div className="flex flex-col gap-2 border-t p-3">
-        <span className="font-medium text-sm">Attach evidence</span>
-        <Select onValueChange={handleTypeChange} value={type}>
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {MANUAL_TYPES.map((t) => (
-              <SelectItem key={t.value} value={t.value}>
-                {t.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <UploadDropZone file={file} onChange={setFile} />
-        {uploadError === null ? null : (
-          <p className="text-destructive text-xs">{uploadError}</p>
-        )}
-        <Button
-          disabled={file === null || uploading}
-          onClick={handleUpload}
-          size="sm"
-        >
-          {uploading ? "Uploading…" : "Upload"}
-        </Button>
-      </div>
+      {readOnly ? null : (
+        <div className="flex flex-col gap-2 border-t p-3">
+          <span className="font-medium text-sm">Attach evidence</span>
+          <Select onValueChange={handleTypeChange} value={type}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {MANUAL_TYPES.map((t) => (
+                <SelectItem key={t.value} value={t.value}>
+                  {t.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <UploadDropZone file={file} onChange={setFile} />
+          {uploadError === null ? null : (
+            <p className="text-destructive text-xs">{uploadError}</p>
+          )}
+          <Button
+            disabled={file === null || uploading}
+            onClick={handleUpload}
+            size="sm"
+          >
+            {uploading ? "Uploading…" : "Upload"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

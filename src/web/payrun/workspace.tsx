@@ -6,7 +6,7 @@
  */
 
 import { ReceiptTextIcon } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "wouter";
 import type { RunStatus } from "@/components/payroll/status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -16,6 +16,7 @@ import type {
   EmployeeLineDto,
   GateKind,
   GateResult,
+  LinePaymentRow,
   LinePaymentState,
   PayRunWorkspaceView,
 } from "@/web/api/payroll-api";
@@ -79,9 +80,25 @@ function WorkspacePage() {
   const [artifactsLoading, setArtifactsLoading] = useState(false);
   const [artifactsError, setArtifactsError] = useState<string | null>(null);
 
-  const [paymentStateByEmployeeId, setPaymentStateByEmployeeId] = useState<
+  // Single source of truth for payments — shared by PaymentsPanel (display)
+  // and the grid's payment-state badge column (derived map below).
+  const [payments, setPayments] = useState<readonly LinePaymentRow[]>([]);
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
+  const [paymentsError, setPaymentsError] = useState<string | null>(null);
+
+  // Derived from the single payments list — no separate fetch needed.
+  const paymentStateByEmployeeId = useMemo<
     ReadonlyMap<string, LinePaymentState> | undefined
-  >(undefined);
+  >(() => {
+    if (payments.length === 0) {
+      return;
+    }
+    const map = new Map<string, LinePaymentState>();
+    for (const row of payments) {
+      map.set(row.employmentId, row.state);
+    }
+    return map;
+  }, [payments]);
 
   const reload = useCallback(async () => {
     if (runId === undefined) {
@@ -117,6 +134,24 @@ function WorkspacePage() {
     }
   }, [runId]);
 
+  const loadPayments = useCallback(async () => {
+    if (runId === undefined) {
+      return;
+    }
+    setPaymentsLoading(true);
+    setPaymentsError(null);
+    try {
+      const res = await payrollApi.getPayments(runId);
+      setPayments(res.payments);
+    } catch (err) {
+      setPaymentsError(
+        err instanceof Error ? err.message : "Failed to load payments"
+      );
+    } finally {
+      setPaymentsLoading(false);
+    }
+  }, [runId]);
+
   useEffect(() => {
     reload();
   }, [reload]);
@@ -141,14 +176,8 @@ function WorkspacePage() {
     ) {
       return;
     }
-    payrollApi.getPayments(runId).then((res) => {
-      const map = new Map<string, LinePaymentState>();
-      for (const row of res.payments) {
-        map.set(row.employmentId, row.state);
-      }
-      setPaymentStateByEmployeeId(map);
-    });
-  }, [runId, view, paymentsRefreshKey]);
+    loadPayments();
+  }, [runId, view, paymentsRefreshKey, loadPayments]);
 
   const openSlideOver = useCallback(
     (employeeId: string, tab: "line" | "payslip" | "derivation") => {
@@ -182,13 +211,31 @@ function WorkspacePage() {
     payrollApi.recompute(runId).then(reload);
   }, [runId, reload]);
 
-  const handleReleased = useCallback((batchId: string) => {
+  /** Opens the batch drawer for a given batchId — used both after a fresh
+   * release commit (via ReleasePanel's onReleased) and for re-entry from
+   * PaymentsPanel's "View batch" action on RELEASED/PAID lines. */
+  const openBatchDrawer = useCallback((batchId: string) => {
     setActiveBatchId(batchId);
     setBatchDrawerOpen(true);
   }, []);
 
+  const handleReleased = useCallback(
+    (batchId: string) => {
+      openBatchDrawer(batchId);
+      // Refresh both payments (lines now RELEASED) and artifacts
+      // (PAYMENT_REGISTER artifact just created by the server).
+      setPaymentsRefreshKey((k) => k + 1);
+      loadArtifacts();
+    },
+    [openBatchDrawer, loadArtifacts]
+  );
+
   const handleClearSelection = useCallback(() => {
     setPaymentsSelection([]);
+  }, []);
+
+  const handlePaymentsChanged = useCallback(() => {
+    setPaymentsRefreshKey((k) => k + 1);
   }, []);
 
   const handleBatchChanged = useCallback(() => {
@@ -371,10 +418,14 @@ function WorkspacePage() {
 
         {view.run.status === "APPROVED" || view.run.status === "CLOSED" ? (
           <PaymentsPanel
+            error={paymentsError}
             lines={view.lines}
+            loading={paymentsLoading}
+            onChanged={handlePaymentsChanged}
             onSelectionChange={setPaymentsSelection}
+            onViewBatch={openBatchDrawer}
+            payments={payments}
             readOnly={view.run.status === "CLOSED"}
-            refreshKey={paymentsRefreshKey}
             runId={runId}
             selectedLineIds={paymentsSelection}
           />
@@ -395,6 +446,7 @@ function WorkspacePage() {
             error={artifactsError}
             loading={artifactsLoading}
             onUploaded={loadArtifacts}
+            readOnly={view.run.status === "CLOSED"}
             runId={runId}
           />
         ) : null}
