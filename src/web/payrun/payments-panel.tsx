@@ -13,7 +13,13 @@
  * calls `onChanged()` so the parent can refresh from the single source of truth.
  */
 
-import { type ChangeEvent, useCallback, useMemo, useState } from "react";
+import {
+  type ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { MoneyCell } from "@/components/payroll/money-cell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -113,6 +119,13 @@ function PaymentsPanel({
 }: PaymentsPanelProps) {
   const [dialog, setDialog] = useState<ActionDialog | null>(null);
   const [busyLineId, setBusyLineId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (error !== null) {
+      setActionError(null);
+    }
+  }, [error]);
 
   const employeeByEmploymentId = useMemo(() => {
     const map = new Map<string, EmployeeLineDto>();
@@ -146,12 +159,13 @@ function PaymentsPanel({
 
   const handleUnhold = useCallback(
     async (lineId: string) => {
+      setActionError(null);
       setBusyLineId(lineId);
       try {
         await payrollApi.unholdLine(runId, lineId);
         onChanged();
-      } catch {
-        // error surfaces through the parent's error state on next load
+      } catch (err) {
+        setActionError(err instanceof Error ? err.message : "Unhold failed");
       } finally {
         setBusyLineId(null);
       }
@@ -168,8 +182,15 @@ function PaymentsPanel({
         </span>
       </div>
 
-      {error === null ? null : (
-        <p className="px-3 py-2 text-destructive text-sm">{error}</p>
+      {error === null && actionError === null ? null : (
+        <div className="space-y-1 px-3 py-2">
+          {error === null ? null : (
+            <p className="text-destructive text-sm">{error}</p>
+          )}
+          {actionError === null ? null : (
+            <p className="text-destructive text-sm">{actionError}</p>
+          )}
+        </div>
       )}
 
       {loading && payments.length === 0 ? (
