@@ -265,9 +265,9 @@ function EmployeeRow({
             {line.employeeCode}
           </span>
           <span className="text-foreground text-sm">{line.employeeName}</span>
-          {line.rootVariances?.net == null ? null : (
+          {line.variance?.hasChanges && line.rootVariances?.net != null ? (
             <DeltaBadge variance={line.rootVariances.net} />
-          )}
+          ) : null}
           {line.findingsCount > 0 ? (
             <Badge variant="outline">{line.findingsCount}</Badge>
           ) : null}

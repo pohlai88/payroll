@@ -467,4 +467,72 @@ describe("GET /v1/pay-runs/:runId/workspace", () => {
       expect(l.rootVariances).toBeNull();
     }
   });
+
+  it("rootVariances carries correct negative deltaSen and direction DOWN when current is less than prior", async () => {
+    await makeAdmin(ADMIN_EMAIL);
+    const app = adminApp();
+
+    // Create and compute both runs with identical params.
+    await createAndRecomputeRunWithParams(app, {
+      runId: PREV_RUN_ID,
+      year: 2026,
+      month: 6,
+      periodStart: "2026-06-01",
+      periodEnd: "2026-06-30",
+    });
+    await createAndRecomputeRunWithParams(app, {
+      runId: RUN_ID,
+      year: 2026,
+      month: 7,
+      periodStart: "2026-07-01",
+      periodEnd: "2026-07-31",
+    });
+    await linkRunToPrior(RUN_ID, PREV_RUN_ID);
+
+    // Read the current run's gross value to use as the baseline.
+    const currentRes = await app.request(`/v1/pay-runs/${RUN_ID}/workspace`, {
+      headers: { Authorization: "Bearer admin" },
+    });
+    const currentBody = await currentRes.json();
+    const [currentLine] = currentBody.lines;
+    const currentGrossSen: number = currentLine.roots.gross.sen as number;
+
+    // Mutate the CURRENT run's pay line to simulate a lower gross in the
+    // current period — this makes RUN_ID's gross appear as a DOWN movement
+    // compared to the prior run (which keeps the original computed value).
+    const newCurrentGrossSen = currentGrossSen - 50000; // 500 RM less now
+    await db.execute(sql`
+      UPDATE pay_lines
+      SET gross_sen = ${newCurrentGrossSen},
+          net_sen   = ${newCurrentGrossSen}
+      WHERE run_id = ${RUN_ID} AND employment_id = ${EMPLOYMENT_ID}`);
+
+    const res = await app.request(`/v1/pay-runs/${RUN_ID}/workspace`, {
+      headers: { Authorization: "Bearer admin" },
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const [line] = body.lines;
+
+    // gross: DOWN (current < previous)
+    const grossVariance = line.rootVariances?.gross;
+    expect(grossVariance).toBeDefined();
+    expect(grossVariance.deltaSen).toBe(newCurrentGrossSen - currentGrossSen); // -50000
+    expect(grossVariance.deltaSen).toBeLessThan(0);
+    expect(grossVariance.direction).toBe("DOWN");
+    expect(grossVariance.deltaBps).not.toBeNull();
+    expect(grossVariance.deltaBps).toBeLessThan(0);
+
+    // net: DOWN (same mutation applied to net_sen)
+    const netVariance = line.rootVariances?.net;
+    expect(netVariance).toBeDefined();
+    expect(netVariance.direction).toBe("DOWN");
+    expect(netVariance.deltaSen).toBeLessThan(0);
+
+    // A root that was NOT mutated (e.g. epfEe) should be SAME with deltaSen 0.
+    const epfEeVariance = line.rootVariances?.epfEe;
+    expect(epfEeVariance).toBeDefined();
+    expect(epfEeVariance.deltaSen).toBe(0);
+    expect(epfEeVariance.direction).toBe("SAME");
+  });
 });
