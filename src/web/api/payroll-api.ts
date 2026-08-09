@@ -3,6 +3,10 @@
  */
 
 import { acquireAccessToken } from "@/web/auth/client";
+import type {
+  PayslipDocumentDto,
+  PayslipIndexRow,
+} from "@/web/payrun/payslip-document/types";
 import type { GetEmployeesParams, GetPayRunsParams } from "./client";
 import { createApiClient } from "./client";
 import type { GateKind, ReleaseMethod } from "./types";
@@ -150,3 +154,16 @@ export const payrollApi = {
     getPayrollApi().getClosureChecklist(runId),
   closeRun: (runId: string) => getPayrollApi().closeRun(runId),
 };
+
+export function fetchPayslip(
+  runId: string,
+  lineId: string
+): Promise<PayslipDocumentDto> {
+  return getPayrollApi().getPayslip(runId, lineId);
+}
+
+export function fetchPayslipIndex(
+  runId: string
+): Promise<{ payslips: PayslipIndexRow[] }> {
+  return getPayrollApi().getPayslipIndex(runId);
+}

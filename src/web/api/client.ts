@@ -6,6 +6,10 @@
  * SessionExpiredError.
  */
 
+import type {
+  PayslipDocumentDto,
+  PayslipIndexRow,
+} from "@/web/payrun/payslip-document/types";
 import {
   type AdminUsersResponse,
   ApiClientError,
@@ -315,6 +319,14 @@ export function createApiClient(deps: ApiClientDeps) {
       requestJson<CloseRunResponse>(`/v1/pay-runs/${runId}/close`, {
         method: "POST",
       }),
+    getPayslip: (runId: string, lineId: string) =>
+      requestJson<PayslipDocumentDto>(
+        `/v1/pay-runs/${runId}/lines/${lineId}/payslip`
+      ),
+    getPayslipIndex: (runId: string) =>
+      requestJson<{ payslips: PayslipIndexRow[] }>(
+        `/v1/pay-runs/${runId}/payslips`
+      ),
   };
 }
 

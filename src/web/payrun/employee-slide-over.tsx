@@ -28,6 +28,7 @@ interface EmployeeSlideOverProps {
   readonly open: boolean;
   readonly onClose: () => void;
   readonly line: EmployeeLineDto | null;
+  readonly runId: string;
   readonly runStatus: RunStatus;
   readonly initialTab?: "line" | "payslip" | "derivation";
 }
@@ -108,6 +109,7 @@ function EmployeeSlideOver({
   open,
   onClose,
   line,
+  runId,
   runStatus,
   initialTab = "line",
 }: EmployeeSlideOverProps) {
@@ -157,6 +159,14 @@ function EmployeeSlideOver({
 
           <TabsContent className="mt-4" value="payslip">
             <PayslipPreview line={line} onPrint={handlePrint} />
+            <div className="flex justify-end px-4 pt-2 pb-1">
+              <a
+                className="text-muted-foreground text-xs underline-offset-2 hover:underline"
+                href={`/pay-runs/${runId}/payslip/${line.employeeId}`}
+              >
+                Open full payslip →
+              </a>
+            </div>
           </TabsContent>
 
           <TabsContent className="mt-4" value="derivation">

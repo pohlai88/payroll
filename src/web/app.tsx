@@ -29,6 +29,7 @@ import { ScopeProvider } from "@/web/context/scope-context";
 import { ControlPage } from "@/web/control/control-page";
 import { EmployeesPage } from "@/web/employees/employees-page";
 import { PayRunListPage } from "@/web/payrun/pay-run-list";
+import { PayslipPage } from "@/web/payrun/payslip-page";
 import { WorkspacePage } from "@/web/payrun/workspace";
 import { ReportsPage } from "@/web/reports/reports-page";
 import { ShellLayout } from "@/web/shell/layout";
@@ -160,6 +161,10 @@ export function App() {
               <Redirect to="/pay-runs" />
             </Route>
             <Route component={PayRunListPage} path="/pay-runs" />
+            <Route
+              component={PayslipPage}
+              path="/pay-runs/:runId/payslip/:lineId"
+            />
             <Route component={WorkspacePage} path="/pay-runs/:runId" />
             <Route component={EmployeesPage} path="/employees" />
             <Route component={ReportsPage} path="/reports" />

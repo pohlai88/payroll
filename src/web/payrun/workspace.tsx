@@ -240,6 +240,7 @@ function WorkspacePage() {
         line={selectedLine}
         onClose={closeSlideOver}
         open={selectedLine !== null}
+        runId={runId ?? ""}
         runStatus={isRunStatus(view.run.status) ? view.run.status : "DRAFT"}
       />
 
