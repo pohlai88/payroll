@@ -423,3 +423,26 @@ export interface SignedArtifactUrlResponse {
   readonly url: string;
   readonly filename: string;
 }
+
+/**
+ * `GET /v1/pay-runs/:runId/lines/:lineId/diff` row — see
+ * `src/server/routes/pay-run-diff.ts` `NodeDiffRow`.
+ */
+export interface NodeDiffRow {
+  readonly d: "ADDED" | "REMOVED" | "VALUE" | "STRUCTURE" | "CITATION";
+  readonly id: string;
+  readonly label: string;
+  readonly fromValue: string | null;
+  readonly toValue: string | null;
+  readonly deltaSen: number | null;
+  readonly addedRefs: readonly string[];
+  readonly removedRefs: readonly string[];
+}
+
+export interface RunLineDiffDto {
+  readonly runId: string;
+  readonly lineId: string;
+  readonly employmentId: string;
+  readonly priorRunId: string | null;
+  readonly diffs: readonly NodeDiffRow[];
+}

@@ -33,6 +33,7 @@ import {
   type ReleaseCommitResponse,
   type ReleaseMethod,
   type ReleasePreviewResponse,
+  type RunLineDiffDto,
   SessionExpiredError,
   type SignedArtifactUrlResponse,
   type StoreArtifactResponse,
@@ -327,6 +328,8 @@ export function createApiClient(deps: ApiClientDeps) {
       requestJson<{ payslips: PayslipIndexRow[] }>(
         `/v1/pay-runs/${runId}/payslips`
       ),
+    getLineDiff: (runId: string, lineId: string) =>
+      requestJson<RunLineDiffDto>(`/v1/pay-runs/${runId}/lines/${lineId}/diff`),
   };
 }
 

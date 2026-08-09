@@ -9,7 +9,7 @@ import type {
 } from "@/web/payrun/payslip-document/types";
 import type { GetEmployeesParams, GetPayRunsParams } from "./client";
 import { createApiClient } from "./client";
-import type { GateKind, ReleaseMethod } from "./types";
+import type { GateKind, ReleaseMethod, RunLineDiffDto } from "./types";
 
 export type { GetEmployeesParams, GetPayRunsParams } from "./client";
 export type {
@@ -38,6 +38,7 @@ export type {
   LinePaymentState,
   MeCompany,
   MeResponse,
+  NodeDiffRow,
   PaymentAttempt,
   PaymentAttemptStatus,
   PaymentsListResponse,
@@ -52,6 +53,7 @@ export type {
   ReleaseMethod,
   ReleasePreviewResponse,
   RootValue,
+  RunLineDiffDto,
   RunSummary,
   SignedArtifactUrlResponse,
   SparkPoint,
@@ -166,4 +168,11 @@ export function fetchPayslipIndex(
   runId: string
 ): Promise<{ payslips: PayslipIndexRow[] }> {
   return getPayrollApi().getPayslipIndex(runId);
+}
+
+export function fetchLineDiff(
+  runId: string,
+  lineId: string
+): Promise<RunLineDiffDto> {
+  return getPayrollApi().getLineDiff(runId, lineId);
 }
