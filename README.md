@@ -13,7 +13,7 @@ Rebuilt from scratch. Documentation roles:
 |---|---|---|
 | Authoritative doctrine / current architecture | `docs/architecture/` (`payroll-architecture.md`, `presentation-facade.md`, payslip docs) | What exists in `src/` / `db/` and what the UI may rely on |
 | Living implementation / status | this README; approved specs under `docs/superpowers/specs/` for shipped slices | Phase table, how to run, feature contracts |
-| Active plans | recent `docs/superpowers/plans/` for unfinished work | Phase 5 payroll UI / Phase 8 presentation still open; 4C and 6–7 control backend plans are complete |
+| Active plans | recent `docs/superpowers/plans/` for unfinished work | Phase 8 reports / bilingual payslip / run-diff UI and Phase 9 Vercel deploy are open; 4C, 5B, and 6–7 plans are complete |
 | Historical / archive | Plan1 control-foundation plans & handoff; `c:\JackProject\_payroll-v1-backup` | Prior SQLite/Next rebuild — not current authority |
 | Design system (Phase 4+) | `docs/palette/` + `src/web/styles.css` | Straits colour/grid/print contracts; 4C projects tokens into the Vite SPA |
 
@@ -23,11 +23,11 @@ Rebuilt from scratch. Documentation roles:
 | 1 · Derivation graph engine | done |
 | 2 · Neon Postgres schema, plpgsql triggers, seed, Docker | done |
 | 3 · Hono API + Neon Auth (auth platform) | done |
-| 4 · Vite SPA shell | 4A auth + 4B import + 4C design-system foundation done; product chrome / Phase 5 payroll UI pending |
-| 5 · Payroll UI + derivation drawer | 5A mutation envelope frozen; workspace UI / drawer (5B) later |
-| 6 · Findings, gates, approval | done (API/service; no SPA) |
+| 4 · Vite SPA shell | 4A auth + 4B import + 4C design-system foundation done |
+| 5 · Payroll UI + derivation drawer | 5A mutation envelope done; **5B payroll workspace SPA done** — company scope shell, pay-run list, workspace (totals strip, employee grid, slide-over, print preview), employees page, read-facade routes |
+| 6 · Findings, gates, approval | done (API/service; SPA wiring Phase 6+) |
 | 7 · Release, payments, closure, R2 artifacts | done (backend + Hono; SPA wiring later) |
-| 8 · Import, reports, bilingual payslip, run diff | create-only import done (2/4B); reports / bilingual payslip / run-diff UI pending |
+| 8 · Import, reports, bilingual payslip, run diff | create-only import done (4B); reports / bilingual payslip / run-diff UI pending |
 | 9 · Vercel deploy | pending |
 
 Phase 2 closed: Docker/Neon Postgres via one `pg` driver, Drizzle schema and
@@ -79,6 +79,21 @@ Tailwind v4, Studio-selected primitives under `src/components/ui`, Straits
 tokens in `src/web/styles.css`, restyled 4A/4B surfaces only. No product chrome
 or Phase 5 payroll UI. Spec:
 `docs/superpowers/specs/2026-08-08-phase4c-straits-shadcn-design.md`.
+
+Phase 5B: full payroll workspace SPA. Preflight plan added the missing server
+read-facade routes (`GET /v1/pay-runs`, `GET /v1/pay-runs/:id/workspace`,
+`GET /v1/employees`, `GET /v1/me` extended with `companies[]`). SPA plan built
+the complete product UI: company-first scope shell (sidebar + top bar +
+⌘K command palette), pay-run list, workspace screen (totals strip with
+server-computed variance, employee grid with Earning/Deduction/Employer/Summary
+section tints, employee slide-over with Line / Derivation / Payslip-preview
+tabs), and the employees roster page with import panel. All money flows through
+`MoneyCell`; variance through server-owned `VarianceDto` rendered by `DeltaBadge`
+with neutral directional ink; action buttons gated by server-returned
+`actionAvailability`; PCB read-only. Specs:
+`docs/superpowers/specs/2026-08-08-phase5b-payroll-ui-shell-workspace-design.md`,
+`docs/superpowers/plans/2026-08-08-phase5b-preflight.md`,
+`docs/superpowers/plans/2026-08-08-phase5b-spa.md`.
 
 Phase 6: findings, gates, and `DRAFT → REVIEWED → APPROVED` control layer
 (API/service only). Spec:
