@@ -1,4 +1,5 @@
 import path from "node:path";
+import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 const alias = {
@@ -6,11 +7,14 @@ const alias = {
 };
 
 /**
- * Two projects, because they have different prerequisites.
+ * Three projects, because they have different prerequisites.
  *
  * `domain` is the pure engine and its golden master: no database, no setup, and
  * it must stay runnable on its own — `vitest --project domain` is the fast loop
  * and the proof that the engine has no infrastructure dependency.
+ *
+ * `web` renders React components (jsdom) — payslip document token and render
+ * assertions. No database, no server; component tree must render without errors.
  *
  * `db` needs the Docker Postgres and migrates once per session. It fails loudly
  * when the database is absent rather than skipping, because a silently skipped
@@ -27,6 +31,7 @@ export default defineConfig({
           environment: "node",
           globals: true,
           include: ["tests/domain/**/*.test.ts", "tests/golden/**/*.test.ts"],
+          exclude: ["tests/domain/payslip-tokens.test.ts"],
           /**
            * Pure modules with no shared mutable process state. Isolating each
            * file into a fresh fork re-paid Vite transform/import on every file
@@ -37,6 +42,18 @@ export default defineConfig({
           // Must match the `db` project's worker count: Vitest 4 refuses to run
           // two projects with different `maxWorkers` under the same (default)
           // `sequence.groupOrder`.
+          maxWorkers: 1,
+        },
+      },
+      {
+        resolve: { alias },
+        plugins: [react()],
+        test: {
+          name: "web",
+          environment: "jsdom",
+          globals: true,
+          include: ["tests/domain/payslip-tokens.test.tsx"],
+          isolate: false,
           maxWorkers: 1,
         },
       },
