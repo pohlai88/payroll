@@ -17,7 +17,10 @@ function maskNric(ic: string | null | undefined): string | null {
     return null;
   }
   const digits = ic.replace(/\D/g, "");
-  return digits.length >= 4 ? `****-**-${digits.slice(-4)}` : null;
+  if (digits.length !== 12) {
+    return "****-**-????"; // non-standard format, fully redact
+  }
+  return `****-**-${digits.slice(-4)}`;
 }
 
 function maskBankAccount(acct: string | null | undefined): string | null {

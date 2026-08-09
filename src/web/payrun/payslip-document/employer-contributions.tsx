@@ -1,6 +1,6 @@
 // Section 5C — employer contributions (labelled as not-from-salary)
-import { MoneyCell } from "@/components/payroll/money-cell";
 import type { Lang } from "@/domain/derive/i18n/render";
+import { DocRow } from "./doc-row";
 import type { PayslipDocumentDto } from "./types";
 
 interface EmployerContributionsProps {
@@ -56,20 +56,11 @@ function EmployerContributions({ dto, lang }: EmployerContributionsProps) {
           return null;
         }
         return (
-          <div
+          <DocRow
             key={root}
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              padding: "0.375rem 2rem",
-              borderBottom: "1px solid var(--doc-rule-hairline)",
-            }}
-          >
-            <span style={{ color: "var(--doc-ink)", fontSize: "0.875rem" }}>
-              {String(lang === "en" ? keyEn : keyMs)}
-            </span>
-            <MoneyCell sen={rootValue?.sen ?? null} />
-          </div>
+            label={String(lang === "en" ? keyEn : keyMs)}
+            sen={rootValue?.sen ?? null}
+          />
         );
       })}
     </div>

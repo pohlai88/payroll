@@ -79,7 +79,9 @@ function PayEquation({ dto, lang }: PayEquationProps) {
         }}
       >
         <span style={{ color: "var(--doc-ink-heading)" }}>{L.net}</span>
-        <MoneyCell className="font-bold" sen={netSen} />
+        <span style={{ fontWeight: 700 }}>
+          <MoneyCell sen={netSen} />
+        </span>
       </div>
     </div>
   );

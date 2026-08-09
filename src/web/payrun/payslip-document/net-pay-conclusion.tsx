@@ -44,10 +44,9 @@ function NetPayConclusion({ dto, lang }: NetPayConclusionProps) {
         >
           {L.heading}
         </span>
-        <MoneyCell
-          className="font-bold text-base"
-          sen={dto.roots.net?.sen ?? null}
-        />
+        <span style={{ fontWeight: 700, fontSize: "1rem" }}>
+          <MoneyCell sen={dto.roots.net?.sen ?? null} />
+        </span>
       </div>
       {!!dto.payment.method && (
         <div

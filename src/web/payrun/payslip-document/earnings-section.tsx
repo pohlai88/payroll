@@ -1,6 +1,6 @@
 // Section 5A — Earning line items from payLineItems
-import { MoneyCell } from "@/components/payroll/money-cell";
 import type { Lang } from "@/domain/derive/i18n/render";
+import { DocRow } from "./doc-row";
 import type { PayslipDocumentDto } from "./types";
 
 interface EarningsSectionProps {
@@ -31,19 +31,10 @@ function EarningsSection({ dto, lang }: EarningsSectionProps) {
         >
           {HEADING[lang]}
         </div>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            padding: "0.375rem 2rem",
-            borderBottom: "1px solid var(--doc-rule-hairline)",
-          }}
-        >
-          <span style={{ color: "var(--doc-ink)", fontSize: "0.875rem" }}>
-            {lang === "en" ? "Gross Pay" : "Gaji Kasar"}
-          </span>
-          <MoneyCell sen={dto.roots.gross?.sen ?? null} />
-        </div>
+        <DocRow
+          label={lang === "en" ? "Gross Pay" : "Gaji Kasar"}
+          sen={dto.roots.gross?.sen ?? null}
+        />
       </div>
     );
   }
@@ -63,20 +54,11 @@ function EarningsSection({ dto, lang }: EarningsSectionProps) {
         {HEADING[lang]}
       </div>
       {earnings.map((item) => (
-        <div
+        <DocRow
           key={item.codeSnap}
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            padding: "0.375rem 2rem",
-            borderBottom: "1px solid var(--doc-rule-hairline)",
-          }}
-        >
-          <span style={{ color: "var(--doc-ink)", fontSize: "0.875rem" }}>
-            {String(lang === "en" ? item.nameEnSnap : item.nameMsSnap)}
-          </span>
-          <MoneyCell sen={item.resolvedAmountSen} />
-        </div>
+          label={String(lang === "en" ? item.nameEnSnap : item.nameMsSnap)}
+          sen={item.resolvedAmountSen}
+        />
       ))}
     </div>
   );
