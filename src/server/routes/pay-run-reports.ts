@@ -1,8 +1,17 @@
 /**
- * Phase 8 — run-scoped report read facades.
- * GET /v1/pay-runs/:runId/reports/payment-register
- * GET /v1/pay-runs/:runId/reports/statutory-summary
- * GET /v1/pay-runs/:runId/reports/exception-report
+ * @feature reports
+ * @layer route
+ * @surface GET /v1/pay-runs/:runId/reports/payment-register|statutory-summary|exception-report
+ * @chain
+ *   ui:      src/web/reports/reports-page.tsx; payment-register.tsx; statutory-summary.tsx; exception-report.tsx
+ *   client:  getPaymentRegister, getStatutorySummary, getExceptionReport
+ *   route:   src/server/routes/pay-run-reports.ts
+ *   service: (none — fat route + drizzle)
+ *   repo:    (none — SQL in route)
+ *   schema:  src/db/schema/run.ts; control.ts; findings.ts; parties.ts
+ *   spine:   app.ts → payRunReportRoutes; app.tsx + app-nav /reports
+ *
+ * Run-scoped report facades (fat-route; extract service when touching).
  */
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";

@@ -1,4 +1,7 @@
 /**
+ * @feature auth
+ * @layer route
+ *
  * Bearer JWT → invite-resolved app user on the Hono context.
  */
 

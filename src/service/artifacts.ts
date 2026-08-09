@@ -1,4 +1,8 @@
 /**
+ * @feature artifacts
+ * @layer service
+ * @hub src/server/routes/pay-run-control.ts
+ *
  * Store hashed artifacts in R2 (or injectable store) and persist metadata.
  * Run-scoped HTTP entrypoints use *ForActor (PAY_RUN RBAC). Internal writers
  * (release/close/timestamp) call storeArtifact without AuthZ.
@@ -23,8 +27,6 @@ import {
 } from "@/repo/artifacts";
 import { requirePayRunPermission } from "@/service/payrun";
 import { ControlError } from "./control-errors";
-
-export { ARTIFACT_MAX_BODY_BYTES } from "@/domain/artifacts/store";
 
 export type ArtifactType =
   | "EVIDENCE"
@@ -99,7 +101,7 @@ export function setArtifactStore(store: ArtifactStore): void {
   defaultStore = store;
 }
 
-export function getArtifactStore(): ArtifactStore {
+function getArtifactStore(): ArtifactStore {
   if (defaultStore === null) {
     // Local FS until R2 is configured / tests inject MemoryArtifactStore.
     defaultStore = new LocalFsArtifactStore();
@@ -107,7 +109,7 @@ export function getArtifactStore(): ArtifactStore {
   return defaultStore;
 }
 
-export function artifactObjectKey(
+function artifactObjectKey(
   runId: string,
   artifactId: string,
   filename: string
@@ -150,6 +152,10 @@ async function putThenInsert(
     try {
       await store.delete(relativePath);
     } catch (cleanupError) {
+      // `cause` IS supplied below: it is the 4th argument (ErrorOptions), which
+      // ControlError forwards via `super(message, options)`. The rule only
+      // recognises the 2-arg `new Error(msg, { cause })` shape.
+      // biome-ignore lint/style/useErrorCause: cause is passed via ErrorOptions
       throw new ControlError(
         "CONFLICT",
         `artifact metadata insert failed and byte cleanup failed: ${relativePath}`,
@@ -192,7 +198,7 @@ export async function storeArtifact(
   return { id, sha256, relativePath };
 }
 
-export async function listRunArtifacts(
+async function listRunArtifacts(
   db: Database,
   runId: string
 ): Promise<ArtifactListItem[]> {
@@ -201,7 +207,7 @@ export async function listRunArtifacts(
 }
 
 /** Load an artifact that belongs to `runId`, or NOT_FOUND (no cross-run leak). */
-export async function requireRunArtifact(
+async function requireRunArtifact(
   db: Database,
   runId: string,
   artifactId: string

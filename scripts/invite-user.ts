@@ -1,4 +1,7 @@
 /**
+ * @feature admin-users
+ * @layer spine
+ *
  * Bootstrap / invite an app user (no Neon Auth JWT required).
  *
  * Usage:

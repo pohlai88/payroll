@@ -1,4 +1,8 @@
 /**
+ * @feature pay-run
+ * @layer repo
+ * @hub src/server/routes/pay-run.ts
+ *
  * Resolves the single approved statutory rule in force for a scheme, a rule
  * code and a date.
  *

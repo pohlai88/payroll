@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer test
+ *
+ * Shared test helpers.
+ */
+
 import fs from "node:fs";
 import path from "node:path";
 import type {

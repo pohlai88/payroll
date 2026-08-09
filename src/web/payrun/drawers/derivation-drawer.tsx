@@ -1,4 +1,8 @@
 /**
+ * @feature derivation
+ * @layer ui
+ * @hub src/server/routes/pay-run-derivation.ts
+ *
  * Derivation tab — fetches `GET /v1/pay-runs/:runId/lines/:lineId/derivation`
  * and renders the `NodePanel` tree for the selected root.
  */

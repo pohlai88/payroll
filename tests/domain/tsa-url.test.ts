@@ -1,4 +1,7 @@
 /**
+ * @feature control
+ * @layer test
+ *
  * Where the Time Stamp Authority comes from.
  *
  * Absent means off. A test suite or a developer's machine must never reach a

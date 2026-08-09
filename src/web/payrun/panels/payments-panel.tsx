@@ -1,4 +1,8 @@
 /**
+ * @feature control
+ * @layer ui
+ * @hub src/server/routes/pay-run-control.ts
+ *
  * Workspace payments panel — one row per pay line's `line_payments` state.
  * Row actions mirror `PAY_TRANSITIONS` in `src/service/payments.ts` exactly:
  * Hold/Withdraw on READY, Unhold/Withdraw on HOLD, Withdraw on FAILED_RETURNED,

@@ -1,4 +1,7 @@
 /**
+ * @feature transfer
+ * @layer test
+ *
  * Persist §8.6 findings after transfer commit + APPROVAL soft gate.
  */
 

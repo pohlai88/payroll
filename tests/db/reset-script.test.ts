@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer test
+ *
  * `scripts/reset.ts` must rebuild schema + seed against a real Postgres.
  *
  * The production path is DROP SCHEMA public/drizzle CASCADE → migrate → seed. This

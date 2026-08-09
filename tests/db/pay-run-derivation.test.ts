@@ -1,4 +1,7 @@
 /**
+ * @feature derivation
+ * @layer test
+ *
  * GET /v1/pay-runs/:runId/lines/:lineId/derivation — compute-on-read graph.
  * Uses createRun + recompute so employeeSnapshot matches the Zod wall.
  */

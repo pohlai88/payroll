@@ -128,6 +128,30 @@ Independent of `commitTransfer` — this data is typically entered after
 Company A issues its final payslip, not atomically with the transfer commit.
 Upserts one `employment_prior_ytd` row.
 
+## Transfer-finding authority doctrine
+
+A transfer finding that evaluates facts across the source and destination
+employments is governed by **both** employment scopes.
+
+Acknowledgement of such a finding requires `EMPLOYMENT UPDATE` authority for
+**both** the source company and the destination company. Duplicate company
+scopes are evaluated once, so an intra-company transfer requires the permission
+a single time.
+
+This governs the two commit-time findings produced by
+`collectTransferCommitFindings` — `TRANSFER_OVERLAP_DATES` and
+`SERVICE_DATES_INCONSISTENT` — each of which compares Employment A's dates
+against Employment B's and therefore belongs to neither company alone.
+
+Run-scoped findings (those carrying `runId`) are **not** covered by this rule.
+They remain governed by `PAY_RUN UPDATE` via `acknowledgeRunFinding`, and the
+transfer surface must reject them.
+
+Enforced by `acknowledgeTransferFindingForActor` in `src/service/findings.ts`,
+exposed as `POST /v1/transfers/findings/:findingId/acknowledge`. The executable
+statement of this policy is the source-only and destination-only 403 cases in
+`tests/db/transfer-finding-acknowledge.test.ts`.
+
 ## What does not change
 
 Run membership already selects by employment-period overlap

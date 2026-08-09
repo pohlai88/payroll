@@ -1,4 +1,7 @@
 /**
+ * @feature findings
+ * @layer test
+ *
  * P0B — acknowledgement is revision-bound for gate-relevant findings.
  * Spec: docs/superpowers/specs/2026-08-09-code-quality-findings-assurance-design.md §0B
  *

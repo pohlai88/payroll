@@ -1,3 +1,10 @@
+/**
+ * @feature findings
+ * @layer domain
+ *
+ * Finding rules / detect (no I/O).
+ */
+
 import { createHash } from "node:crypto";
 
 /** Stable short fingerprint of evidence JSON (sorted keys). */

@@ -1,3 +1,11 @@
+/**
+ * @feature reports
+ * @layer ui
+ * @hub src/server/routes/pay-run-reports.ts
+ *
+ * Payment register report view.
+ */
+
 import { MoneyCell } from "@/components/payroll/money-cell";
 import { Button } from "@/components/ui/button";
 import {

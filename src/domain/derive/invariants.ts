@@ -1,4 +1,7 @@
 /**
+ * @feature derivation
+ * @layer domain
+ *
  * The properties that make the graph trustworthy, expressed as assertions.
  *
  * These are what turn the product promise into something a test can fail on.

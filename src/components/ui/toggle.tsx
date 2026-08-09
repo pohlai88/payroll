@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * shadcn UI primitive (shared).
+ */
+
 import { Toggle as TogglePrimitive } from "@base-ui/react/toggle";
 import { cva, type VariantProps } from "class-variance-authority";
 

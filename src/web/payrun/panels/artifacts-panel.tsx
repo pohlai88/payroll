@@ -1,4 +1,8 @@
 /**
+ * @feature artifacts
+ * @layer ui
+ * @hub src/server/routes/pay-run-control.ts
+ *
  * Artifacts panel — lists run artifacts and attaches manual evidence.
  * Manual upload types are EVIDENCE / EXCEPTION_REPORT only; other types
  * (PAYMENT_REGISTER, MANIFEST, TIMESTAMP_TOKEN, …) are server-produced.

@@ -1,3 +1,10 @@
+/**
+ * @feature marketing
+ * @layer ui
+ *
+ * Brand / social SVG asset.
+ */
+
 import type { SVGAttributes } from "react";
 
 const LinkedinIcon = (props: SVGAttributes<SVGElement>) => (

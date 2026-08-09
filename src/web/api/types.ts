@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer client
+ *
+ * Shared FE DTOs — per-feature section banners below. Keep in sync with producers.
+ */
+
 import type { PermissionAction, PermissionResource } from "@/domain/rbac/types";
 
 export interface ApiErrorBody {
@@ -24,6 +31,7 @@ export class SessionExpiredError extends Error {
   }
 }
 
+// --- @feature me @layer client ---
 export interface MeCompany {
   readonly id: string;
   readonly code: string;
@@ -45,6 +53,7 @@ export interface PermissionsResponse {
   >;
 }
 
+// --- @feature admin-users @layer client ---
 export interface AdminUserRow {
   readonly id: string;
   readonly email: string;
@@ -57,6 +66,7 @@ export interface AdminUsersResponse {
   readonly users: readonly AdminUserRow[];
 }
 
+// --- @feature companies @layer client ---
 /**
  * Keep in sync with `CompanyDirectoryRow` in `src/service/admin-companies.ts`
  * (`GET|POST /v1/admin/companies`, `PATCH /v1/admin/companies/:companyId`).
@@ -98,6 +108,7 @@ export interface UpdateAdminCompanyBody {
   readonly hrdfLevyPct?: string;
 }
 
+// --- @feature employee-import @layer client ---
 export interface ImportRowError {
   readonly field: string;
   readonly reason: string;
@@ -132,6 +143,7 @@ export interface ImportReportResponse {
 /**
  * `GET /v1/pay-runs` row — Keep in sync with `src/repo/pay-run.ts` `PayRunSummary`.
  */
+// --- @feature pay-run @layer client ---
 export interface PayRunSummary {
   readonly id: string;
   readonly companyId: string;
@@ -147,6 +159,7 @@ export interface PayRunSummary {
 /**
  * `GET /v1/employees` row — Keep in sync with `src/repo/employees.ts` `EmployeeSummary`.
  */
+// --- @feature employees @layer client ---
 export interface EmployeeSummary {
   readonly id: string;
   readonly code: string;
@@ -159,6 +172,7 @@ export interface EmployeeSummary {
  * The workspace read model — Keep in sync with `src/repo/workspace.ts`
  * `PayRunWorkspaceView` and nested DTOs.
  */
+// --- @feature workspace @layer client ---
 export interface VarianceDto {
   readonly previousSen: number | null;
   readonly deltaSen: number | null;
@@ -191,6 +205,7 @@ export interface RunSummary {
   readonly calcRevision: string | null;
 }
 
+// --- @feature findings @layer client ---
 export type FindingSeverity = "INFO" | "REVIEW" | "WARNING" | "BLOCKING";
 export type FindingStatus = "OPEN" | "ACKNOWLEDGED" | "RESOLVED";
 export type GateKind = "REVIEW" | "APPROVAL" | "RELEASE" | "CLOSE";
@@ -283,6 +298,7 @@ export interface PayRunWorkspaceView {
   readonly lines: readonly EmployeeLineDto[];
 }
 
+// --- @feature control @layer client ---
 export type LinePaymentState =
   | "READY"
   | "HOLD"
@@ -488,6 +504,7 @@ export type DistributionChannel =
   | "HANDED"
   | "PRINTED";
 
+// --- @feature artifacts @layer client ---
 export type ArtifactType =
   | "EVIDENCE"
   | "PAYMENT_REGISTER"
@@ -542,6 +559,7 @@ export interface StoreArtifactResponse {
  * `GET /v1/pay-runs/:runId/lines/:lineId/diff` row — see
  * `src/server/routes/pay-run-diff.ts` `NodeDiffRow`.
  */
+// --- @feature diff @layer client ---
 export interface NodeDiffRow {
   readonly d: "ADDED" | "REMOVED" | "VALUE" | "STRUCTURE" | "CITATION";
   readonly id: string;
@@ -566,6 +584,7 @@ export interface RunLineDiffDto {
  * Keep in sync with `src/service/line-derivation.ts` `DerivedNodeDto` /
  * `LineDerivationDto` and `src/components/payroll/node-panel.tsx` `DerivedNode`.
  */
+// --- @feature derivation @layer client ---
 export interface DerivedNodeDto {
   readonly key: string;
   readonly kind:
@@ -602,6 +621,7 @@ export interface LineDerivationDto {
   readonly node: DerivedNodeDto | null;
 }
 
+// --- @feature reports @layer client ---
 export interface ReportMeta {
   readonly companyId: string;
   readonly companyName: string;
@@ -666,6 +686,7 @@ export interface ExceptionReportDto {
 }
 
 /** Keep in sync with `src/server/routes/employee-remuneration.ts`. */
+// --- @feature remuneration @layer client ---
 export interface AnnualRemunerationSummaryDto {
   readonly reportMeta: ReportMeta;
   readonly year: number;
@@ -697,6 +718,7 @@ export interface OkResponse {
  * Unified success payload for pay-run mutations.
  * Keep in sync with `src/service/pay-run-mutation-envelope.ts`.
  */
+// --- @feature pay-run @layer client ---
 export type PayRunMutationKind =
   | {
       readonly kind: "CREATE";
@@ -788,6 +810,7 @@ export interface AdminUserRoleBody {
 }
 
 /** Keep in sync with commit body Zod in `src/server/routes/transfers.ts`. */
+// --- @feature transfer @layer client ---
 export interface CommitTransferBody {
   readonly personId: string;
   readonly fromEmploymentId: string;
@@ -826,7 +849,16 @@ export interface CommitTransferResponse {
   readonly toEmploymentId: string;
 }
 
+/**
+ * Keep in sync with `POST /v1/transfers/findings/:findingId/acknowledge` in
+ * `src/server/routes/transfers.ts`.
+ */
+export interface AcknowledgeTransferFindingResponse {
+  readonly ok: boolean;
+}
+
 /** Keep in sync with wage departure Zod in `src/server/routes/treatments.ts`. */
+// --- @feature treatments @layer client ---
 export interface WageTreatmentDepartureBody {
   readonly scheme: "EPF" | "SOCSO" | "EIS" | "HRD";
   readonly subject: boolean;

@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * shadcn UI primitive (shared).
+ */
+
 import {
   type ComponentProps,
   type ComponentType,

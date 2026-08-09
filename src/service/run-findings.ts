@@ -1,4 +1,8 @@
 /**
+ * @feature findings
+ * @layer service
+ * @hub src/server/routes/pay-run.ts
+ *
  * Pay-run findings scan + acknowledgement.
  * Spec: docs/superpowers/specs/2026-08-08-phase6-findings-gates-approval-design.md
  */

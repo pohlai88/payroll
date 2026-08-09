@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * shadcn UI primitive (shared).
+ */
+
 "use client";
 
 import { Toggle as TogglePrimitive } from "@base-ui/react/toggle";

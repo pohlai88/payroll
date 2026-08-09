@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer test
+ *
  * Every constraint and trigger, provoked and asserted.
  *
  * A guard that exists but does not fire is worse than no guard, because it is

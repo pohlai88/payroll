@@ -1,4 +1,7 @@
 /**
+ * @feature auth
+ * @layer test
+ *
  * Invite-only resolveAppUser against a real database.
  */
 

@@ -1,4 +1,8 @@
 /**
+ * @feature findings
+ * @layer ui
+ * @hub src/server/routes/pay-run.ts
+ *
  * Workspace findings panel — scan trigger, severity-tagged list, and
  * acknowledge flow for OPEN warnings. BLOCKING findings cannot be
  * acknowledged (server rule); they must be fixed and re-scanned.

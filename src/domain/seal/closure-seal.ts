@@ -1,4 +1,7 @@
 /**
+ * @feature control
+ * @layer domain
+ *
  * The closure seal — this project's own attestation that a run was closed
  * over a particular set of bytes, chained to the previous closure in the same
  * company.

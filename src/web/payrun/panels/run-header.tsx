@@ -1,4 +1,8 @@
 /**
+ * @feature workspace
+ * @layer ui
+ * @hub src/server/routes/pay-run-workspace.ts
+ *
  * Workspace run header — company/period/status metadata plus the
  * Recompute/Review/Approve action buttons. Button visibility is driven
  * entirely by the server's `actionAvailability`; status is never

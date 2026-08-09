@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer test
+ *
  * MY-STAT-S03 — overlapping approved packs are refused at the database.
  *
  * resolveRule() still reports ambiguity if such rows ever exist (defence in

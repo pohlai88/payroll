@@ -1,4 +1,7 @@
 /**
+ * @feature derivation
+ * @layer domain
+ *
  * Proves the graph and the engine agree.
  *
  * The graph is emitted alongside `computeLine` rather than replacing its

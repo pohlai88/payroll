@@ -1,6 +1,17 @@
 /**
- * GET /v1/pay-runs/:runId/lines/:lineId/derivation?root=pcbNet
- * Compute-on-read derivation tree for the workspace derivation drawer.
+ * @feature derivation
+ * @layer route
+ * @surface GET /v1/pay-runs/:runId/lines/:lineId/derivation
+ * @chain
+ *   ui:      src/web/payrun/drawers/derivation-drawer.tsx
+ *   client:  getLineDerivation
+ *   route:   src/server/routes/pay-run-derivation.ts
+ *   service: src/service/line-derivation.ts
+ *   repo:    src/repo/pay-run.ts; rule-pack.ts
+ *   schema:  src/db/schema/run.ts; rule-pack.ts; catalog.ts
+ *   spine:   app.ts → payRunDerivationRoutes; workspace derivation drawer
+ *
+ * Compute-on-read derivation tree for NodePanel.
  */
 
 import { Hono } from "hono";

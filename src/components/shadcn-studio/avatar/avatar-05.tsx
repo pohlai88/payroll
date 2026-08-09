@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Shell avatar block.
+ */
+
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const AvatarFallbackDemo = () => (

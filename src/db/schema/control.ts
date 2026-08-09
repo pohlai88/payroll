@@ -1,4 +1,7 @@
 /**
+ * @feature control
+ * @layer schema
+ *
  * Pay-run control tables — certifications, payment obligation projection,
  * and Phase 7 payment/release structures (schema present; Phase 6 services
  * only write READY line_payments + gate_certifications).

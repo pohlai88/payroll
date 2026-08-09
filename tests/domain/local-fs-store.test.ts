@@ -1,4 +1,7 @@
 /**
+ * @feature artifacts
+ * @layer test
+ *
  * LocalFs + key normalisation — path safety and put/get/delete round-trip.
  */
 

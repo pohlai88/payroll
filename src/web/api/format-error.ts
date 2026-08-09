@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer client
+ *
  * Single presentation formatter for API / auth client errors.
  */
 

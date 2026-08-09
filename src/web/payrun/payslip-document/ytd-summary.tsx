@@ -1,3 +1,11 @@
+/**
+ * @feature payslip
+ * @layer ui
+ * @hub src/server/routes/pay-run-payslip.ts
+ *
+ * Payslip document section.
+ */
+
 // YTD table — current employer scoped; PROVISIONAL label when isProvisional
 import { MoneyCell } from "@/components/payroll/money-cell";
 import type { Lang } from "@/domain/derive/i18n/render";

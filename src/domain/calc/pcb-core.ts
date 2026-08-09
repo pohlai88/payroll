@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer domain
+ *
  * Shared PCB computerized-calculation primitives (YA 2026).
  * Authority: LHDN MTD Computerized Calculation Spec 2026 (`P-SPEC-2026`).
  */

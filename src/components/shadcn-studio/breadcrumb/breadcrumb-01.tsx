@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer ui
+ *
  * breadcrumb-01 demo — shell uses `ShellBreadcrumb` with app-nav data.
  */
 

@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Top products widget.
+ */
+
 import { EllipsisVerticalIcon } from "lucide-react";
 import type { ReactElement } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";

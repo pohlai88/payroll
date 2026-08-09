@@ -1,4 +1,8 @@
 /**
+ * @feature control
+ * @layer ui
+ * @hub src/server/routes/pay-run-control.ts
+ *
  * Closure checklist dialog — pure renderer of the server's mechanical
  * `closureChecklist` (`src/service/close.ts`). Confirm is enabled only when
  * every item is `ok`; the dialog never computes its own close eligibility.

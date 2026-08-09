@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Statistics category card.
+ */
+
 import {
   Card,
   CardContent,

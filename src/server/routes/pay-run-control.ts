@@ -1,6 +1,17 @@
 /**
- * Phase 7 control routes — payments, release, close, artifacts.
- * Phase 6 findings/review/approve live in pay-run.ts.
+ * @feature control
+ * @layer route
+ * @surface POST …/close; GET …/closure-checklist|seal|closure-chain|payments; POST …/hold|unhold|withdraw|release*|settle|reconcile|cancel|distributions; GET|POST …/artifacts*
+ * @chain
+ *   ui:      src/web/control/control-page.tsx; payrun panels payments/release/closure-seal/artifacts; batch-drawer; closure-checklist-dialog
+ *   client:  getPayments, holdLine, unholdLine, withdrawLine, previewRelease, commitRelease, getBatch, settleAttempt, reconcileAttempt, cancelRelease, recordDistribution, getClosureChecklist, closeRun, getRunSeal, getClosureChain, getArtifacts, uploadArtifact, downloadArtifact
+ *   route:   src/server/routes/pay-run-control.ts
+ *   service: payments.ts; release.ts; close.ts; closure-seal.ts; artifacts.ts; manifest-timestamp.ts
+ *   repo:    src/repo/artifacts.ts (artifacts HTTP); payments/release/close mostly service→schema
+ *   schema:  src/db/schema/control.ts; run.ts; artifacts.ts; seal.ts
+ *   spine:   app.ts → payRunControlRoutes; app.tsx + app-nav /control; workspace panels under /pay-runs/:runId
+ *
+ * Control-plane HTTP (close/seal/payments/release). Artifacts HTTP co-located — lean @feature artifacts on artifacts leaf files.
  */
 
 import { eq } from "drizzle-orm";
@@ -9,8 +20,8 @@ import { z } from "zod";
 import type { Database } from "@/db/client";
 import { linePayments } from "@/db/schema/control";
 import { payLines, payRuns } from "@/db/schema/run";
+import { ARTIFACT_MAX_BODY_BYTES } from "@/domain/artifacts/store";
 import {
-  ARTIFACT_MAX_BODY_BYTES,
   listRunArtifactsForActor,
   readRunArtifactContentForActor,
   storeArtifactForActor,

@@ -1,4 +1,7 @@
 /**
+ * @feature auth
+ * @layer route
+ *
  * Auth-platform failures with stable `code` values for the HTTP error map.
  */
 

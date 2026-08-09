@@ -1,4 +1,8 @@
 /**
+ * @feature pay-run
+ * @layer service
+ * @hub src/server/routes/pay-run.ts
+ *
  * Unified success payload for pay-run mutations — run snapshot + counters.
  * No per-line sen roots (Phase 5B). Spec: phase5a-mutation-envelope-design.
  */

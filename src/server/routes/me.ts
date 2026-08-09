@@ -1,3 +1,19 @@
+/**
+ * @feature me
+ * @layer route
+ * @surface GET /v1/me; GET /v1/me/permissions
+ * @chain
+ *   ui:      src/web/context/auth-context.tsx (session bootstrap; no dedicated page)
+ *   client:  getMe, getPermissions
+ *   route:   src/server/routes/me.ts
+ *   service: src/service/rbac.ts (listAccessibleCompanies, listEffectivePermissions)
+ *   repo:    src/repo/rbac.ts; src/repo/companies.ts
+ *   schema:  src/db/schema/rbac.ts; src/db/schema/parties.ts (companies)
+ *   spine:   app.ts → meRoutes; auth-context on signed-in shell
+ *
+ * Current user profile + permission matrix under /v1/me.
+ */
+
 import { Hono } from "hono";
 import type { Database } from "@/db/client";
 import {

@@ -1,4 +1,7 @@
 /**
+ * @feature marketing
+ * @layer test
+ *
  * Gates 1 and 3, as assertions against the source tree.
  *
  * Gate 1: nothing is advertised that does not exist in `src/`. An earlier draft

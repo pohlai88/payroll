@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer schema
+ *
  * The pay run and its lines.
  *
  * A line freezes what it was calculated from — the employee snapshot, the item

@@ -1,3 +1,10 @@
+/**
+ * @feature control
+ * @layer ui
+ *
+ * Statistics card used on control/companies.
+ */
+
 import { ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";

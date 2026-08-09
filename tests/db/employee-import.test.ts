@@ -1,4 +1,7 @@
 /**
+ * @feature employee-import
+ * @layer test
+ *
  * Proves the two guarantees that matter most: create-only re-import
  * idempotency, and that a manually mutated profile field survives a
  * re-import untouched (no-clobber).

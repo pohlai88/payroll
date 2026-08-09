@@ -1,4 +1,7 @@
 /**
+ * @feature findings
+ * @layer domain
+ *
  * Anomaly rule pack — workspace §4.3 catalog (code-owned constants).
  */
 

@@ -1,4 +1,8 @@
 /**
+ * @feature companies
+ * @layer ui
+ * @hub src/server/routes/admin-companies.ts
+ *
  * Company form — form-layout-01 structure customized for Clarity payroll
  * company party fields (code, name, statutory numbers, HRDF).
  */

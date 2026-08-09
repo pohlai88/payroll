@@ -1,3 +1,8 @@
+/**
+ * @feature pay-run
+ * @layer test
+ */
+
 import { describe, expect, it } from "vitest";
 import { sumNullableSen } from "@/domain/sum-nullable-sen";
 

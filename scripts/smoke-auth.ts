@@ -1,4 +1,7 @@
 /**
+ * @feature auth
+ * @layer spine
+ *
  * One-shot local auth smoke: Neon Auth sign-in → JWT → GET /v1/me.
  * Usage: npx tsx scripts/smoke-auth.ts
  */

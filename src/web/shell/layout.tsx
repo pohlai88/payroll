@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer ui
+ *
  * `ShellLayout` — application-shell-05 chrome: floating sidebar + primary
  * band header + scrollable content. Wraps every signed-in route.
  */

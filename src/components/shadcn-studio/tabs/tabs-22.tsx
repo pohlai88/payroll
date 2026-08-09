@@ -1,4 +1,8 @@
 /**
+ * @feature reports
+ * @layer ui
+ * @hub src/server/routes/pay-run-reports.ts
+ *
  * Studio tabs-22 demo — vertical tabs with icons.
  * Adapted for Vite: lucide-react + `@/components/ui/tabs` (base-nova).
  */

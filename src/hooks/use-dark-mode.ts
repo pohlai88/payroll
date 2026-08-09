@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer ui
+ *
  * Shared dark-mode toggle — persists to localStorage and syncs via a window event
  * so sidebar footer and top-bar profile menus stay in lockstep.
  */

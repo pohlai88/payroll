@@ -1,3 +1,11 @@
+/**
+ * @feature payslip
+ * @layer ui
+ * @hub src/server/routes/pay-run-payslip.ts
+ *
+ * Payslip document section.
+ */
+
 // PREVIEW — NOT ISSUED watermark shown for DRAFT_PREVIEW documents.
 import type { Lang } from "@/domain/derive/i18n/render";
 

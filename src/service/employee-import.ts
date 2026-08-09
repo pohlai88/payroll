@@ -1,4 +1,8 @@
 /**
+ * @feature employee-import
+ * @layer service
+ * @hub src/server/routes/employee-import.ts
+ *
  * Orchestrates the employee bulk importer: parse → check existing → create.
  * Create-only — see docs/superpowers/specs/2026-08-08-employee-master-import-design.md.
  */

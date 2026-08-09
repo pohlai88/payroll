@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * shadcn UI primitive (shared).
+ */
+
 "use client";
 
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover";

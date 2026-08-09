@@ -1,4 +1,8 @@
 /**
+ * @feature control
+ * @layer service
+ * @hub src/server/routes/pay-run-control.ts
+ *
  * RFC 3161 timestamping of a closed run's manifest.
  *
  * The manifest already carries the sha256 of every artifact in the run, so one

@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * shadcn UI primitive (shared).
+ */
+
 "use client";
 
 import { cva, type VariantProps } from "class-variance-authority";

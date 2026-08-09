@@ -1,3 +1,10 @@
+/**
+ * @feature pay-run
+ * @layer domain
+ *
+ * Pure statutory calc (no I/O).
+ */
+
 import type { Band5, TraceStep } from "./types";
 
 export interface EisResult {

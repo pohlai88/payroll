@@ -1,4 +1,7 @@
 /**
+ * @feature artifacts
+ * @layer domain
+ *
  * Local filesystem ArtifactStore — used when R2 is not configured.
  * Bytes under `data/artifacts/<key>`; never trust caller paths.
  */

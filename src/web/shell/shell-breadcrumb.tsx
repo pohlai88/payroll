@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer ui
+ *
  * Shell location breadcrumb — breadcrumb-01 structure wired to app-nav.
  */
 

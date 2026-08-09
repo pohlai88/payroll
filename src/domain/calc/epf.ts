@@ -1,3 +1,10 @@
+/**
+ * @feature pay-run
+ * @layer domain
+ *
+ * Pure statutory calc (no I/O).
+ */
+
 import { pctRoundUpToRinggitSen } from "../money";
 import type { Band5, EpfPart, RuleSettings, TraceStep } from "./types";
 

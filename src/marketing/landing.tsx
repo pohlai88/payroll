@@ -1,3 +1,18 @@
+/**
+ * @feature marketing
+ * @layer ui
+ * @chain
+ *   ui:      src/marketing/landing.tsx (+ sections/*)
+ *   client:  (none — static marketing; no /v1)
+ *   route:   (none)
+ *   service: (none)
+ *   repo:    (none)
+ *   schema:  (none)
+ *   spine:   landing.html → src/marketing/main.tsx
+ *
+ * Marketing landing composition (SPA-only hub). Isolated from product shell.
+ */
+
 import { AuthorityEvidence } from "@/marketing/sections/authority-evidence";
 import { Closing } from "@/marketing/sections/closing";
 import { ControlFailure } from "@/marketing/sections/control-failure";

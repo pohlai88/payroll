@@ -1,3 +1,10 @@
+/**
+ * @feature marketing
+ * @layer ui
+ *
+ * Marketing landing surface.
+ */
+
 import { CONTROL_FAILURE } from "@/marketing/content";
 import { SectionIntro } from "@/marketing/section-intro";
 

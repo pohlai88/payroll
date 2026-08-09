@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * shadcn UI primitive (shared).
+ */
+
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 

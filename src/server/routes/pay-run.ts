@@ -1,6 +1,18 @@
 /**
- * Pay-run HTTP: create, recompute, findings, gates, review, approve.
- * Mutation success bodies use Phase 5A PayRunMutationEnvelope.
+ * @feature pay-run
+ * @layer route
+ * @surface GET|POST /v1/pay-runs; POST …/recompute|review|approve|demote; GET|POST …/findings*; GET|POST …/gates/:gate*
+ * @chain
+ *   ui:      src/web/payrun/pay-run-list.tsx; workspace.tsx; panels/findings-panel.tsx; dialogs/gate-check-dialog.tsx; control-page.tsx
+ *   client:  getPayRuns, createPayRun, recompute, review, approve, demotePayRun, getFindings, scanFindings, acknowledgeFinding, evaluateGate
+ *   route:   src/server/routes/pay-run.ts
+ *   service: src/service/payrun.ts; run-findings.ts; gates.ts; pay-run-mutation-envelope.ts
+ *   repo:    src/repo/pay-run.ts; rule-pack.ts; rule-resolution.ts
+ *   schema:  src/db/schema/run.ts; findings.ts; control.ts; rule-pack.ts; catalog.ts; parties.ts
+ *   spine:   app.ts → payRunRoutes; app.tsx /pay-runs + /pay-runs/:runId; app-nav /pay-runs
+ *
+ * Pay-run CRUD/lifecycle hub. Findings + gates HTTP also live here (lean tags on leaf files use findings/gates).
+ * POST …/gates/:gate/evaluate is orphan — FE uses GET evaluateGate only.
  */
 
 import { Hono } from "hono";

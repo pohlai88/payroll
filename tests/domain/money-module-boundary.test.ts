@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer test
+ *
  * Architectural fence for MY-STAT-S02: money is settled only in `money.ts`.
  *
  * A later slice that "helpfully" does `Math.round(qty * rateSen)` in a calc or

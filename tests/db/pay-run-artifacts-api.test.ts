@@ -1,4 +1,7 @@
 /**
+ * @feature artifacts
+ * @layer test
+ *
  * Pay-run artifact HTTP surface: list, signed URL, content stream, run scoping.
  */
 

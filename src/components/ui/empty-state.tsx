@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer ui
+ *
  * EmptyState — dashed card with icon, message, optional badge and action.
  * Inspired by Studio empty-state-01 pattern; tokens from Straits contract.
  */

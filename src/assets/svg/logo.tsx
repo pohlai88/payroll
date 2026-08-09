@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Brand / social SVG asset.
+ */
+
 import type { SVGAttributes } from "react";
 
 const Logo = (props: SVGAttributes<SVGElement>) => (

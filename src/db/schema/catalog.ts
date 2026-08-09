@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer schema
+ *
  * The pay item catalog and its per-employment defaults.
  *
  * Fixed kinds, free catalog: users create and edit items, but only within the

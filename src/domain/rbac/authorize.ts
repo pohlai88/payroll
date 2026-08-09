@@ -1,4 +1,7 @@
 /**
+ * @feature rbac
+ * @layer domain
+ *
  * Pure authorization evaluation — no database, no I/O.
  *
  * The service layer loads a user's assignments and grants, then hands them

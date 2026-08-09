@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer test
+ *
  * MY-STAT-S07 hardening: PCB Table 1 must have exactly one source of truth.
  *
  * `pcb-tables.ts` used to hand-duplicate every row of `db/seed/pcb-table1-2026.json`

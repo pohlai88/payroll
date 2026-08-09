@@ -1,3 +1,10 @@
+/**
+ * @feature pay-run
+ * @layer domain
+ *
+ * Pure statutory calc (no I/O).
+ */
+
 import { mulDivSen, quantityAmountSen } from "../money";
 import type { PayBasis, TraceStep } from "./types";
 

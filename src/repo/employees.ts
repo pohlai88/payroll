@@ -1,7 +1,11 @@
 /**
- * Employee list read model — `GET /v1/employees`.
+ * @feature employees
+ * @layer repo
+ * @hub src/server/routes/employees.ts
  *
+ * Employee list read model — `GET /v1/employees`.
  * Always called with an already-scoped company id set (RBAC happens in service).
+ * Full stack map: open `@hub` target for the wired path list.
  */
 
 import { and, eq, ilike, inArray, or, sql } from "drizzle-orm";

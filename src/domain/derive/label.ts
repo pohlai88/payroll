@@ -1,4 +1,7 @@
 /**
+ * @feature derivation
+ * @layer domain
+ *
  * Nodes never store prose.
  *
  * They store a message key plus typed parameters, and the sentence is rendered

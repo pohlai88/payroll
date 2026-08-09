@@ -1,5 +1,9 @@
 /**
+ * @feature shell
+ * @layer spine
+ *
  * App root — Neon Auth session guard, then the routed product shell.
+ * Per-route `<Route>` lines carry their own `@feature … @layer spine` banners.
  *
  * The session-loading state machine (checking for a session, showing the
  * sign-in form) stays outside `AuthProvider`, same as the Phase 4A shell it
@@ -208,17 +212,25 @@ export function App() {
         <ScopeProvider>
           <ShellLayout>
             <Switch>
+              {/* --- @feature pay-run @layer spine --- */}
               <Route component={DashboardPage} path="/" />
               <Route component={PayRunListPage} path="/pay-runs" />
+              {/* --- @feature payslip @layer spine --- */}
               <Route
                 component={PayslipPage}
                 path="/pay-runs/:runId/payslip/:lineId"
               />
+              {/* --- @feature workspace @layer spine --- */}
               <Route component={WorkspacePage} path="/pay-runs/:runId" />
+              {/* --- @feature employees @layer spine --- */}
               <Route component={EmployeesPage} path="/employees" />
+              {/* --- @feature reports @layer spine --- */}
               <Route component={ReportsPage} path="/reports" />
+              {/* --- @feature control @layer spine --- */}
               <Route component={ControlPage} path="/control" />
+              {/* --- @feature companies @layer spine --- */}
               <Route component={CompaniesPage} path="/companies" />
+              {/* --- @feature admin-users @layer spine --- */}
               <Route component={AdminPage} path="/admin" />
               <Route>
                 <main className="p-6 text-muted-foreground text-sm">

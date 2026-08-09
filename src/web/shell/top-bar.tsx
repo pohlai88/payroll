@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer ui
+ *
  * Top bar — MenuTrigger (application-shell-05) + scope / reporting month /
  * ⌘K search (dashboard-header-04 patterns) + user menu.
  */

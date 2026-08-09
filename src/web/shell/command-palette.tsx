@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer ui
+ *
  * ⌘K command palette — navigation only in Phase 5B (see design doc §3.3).
  * Destinations come from `app-nav` via ShellNavProvider (not a second list).
  */

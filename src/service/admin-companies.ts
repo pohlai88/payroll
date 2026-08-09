@@ -1,4 +1,8 @@
 /**
+ * @feature companies
+ * @layer service
+ * @hub src/server/routes/admin-companies.ts
+ *
  * System-admin company directory — list / create / update party rows used by
  * multicompany scope, import matching, and pay-run ownership.
  */

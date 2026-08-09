@@ -1,4 +1,7 @@
 /**
+ * @feature employees
+ * @layer test
+ *
  * Auth-gated employees HTTP route — real DB, injected Neon Auth JWT verifier.
  */
 

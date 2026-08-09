@@ -1,4 +1,8 @@
 /**
+ * @feature employees
+ * @layer ui
+ * @hub src/server/routes/employees.ts
+ *
  * Employee roster datatable — adapted from shadcn-studio
  * `@ss-blocks/datatable-component-01` for Clarity payroll directory rows.
  * Presentational only; I/O stays in `employees-page.tsx`.

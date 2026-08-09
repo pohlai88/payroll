@@ -1,3 +1,10 @@
+/**
+ * @feature pay-run
+ * @layer domain
+ *
+ * Pure statutory calc (no I/O).
+ */
+
 import type { PayItemDef, ResolvedLineItem } from "./types";
 
 export interface WageBases {

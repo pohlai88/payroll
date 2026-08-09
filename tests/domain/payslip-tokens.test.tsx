@@ -1,3 +1,10 @@
+/**
+ * @feature payslip
+ * @layer test
+ *
+ * Payslip token / style gates.
+ */
+
 // tests/domain/payslip-tokens.test.ts
 // Asserts that the payslip document renders no hardcoded hex colours,
 // uses only var(--doc-*) tokens, and the PREVIEW watermark appears for DRAFT_PREVIEW.

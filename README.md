@@ -92,6 +92,22 @@ existed before it was stamped. Moving to one is a `TSA_URL` change.
 
 ## Development
 
+### Finding a feature slice (file headers)
+
+Feature-owned files carry greppable `@feature` / `@layer` tags; API hubs add `@chain`. Spec: [`docs/superpowers/specs/2026-08-09-file-header-surface-envelope-design.md`](docs/superpowers/specs/2026-08-09-file-header-surface-envelope-design.md). Agent guide: [`.cursor/skills/vite-fullstack/references/file-headers.md`](.cursor/skills/vite-fullstack/references/file-headers.md).
+
+```bash
+rg "@feature companies" src tests   # vertical slice
+rg "@feature marketing" src         # landing (hub: src/marketing/landing.tsx)
+rg "@layer route" src/server/routes
+rg "@chain" src                     # API hubs + marketing landing hub
+
+# find files still missing tags (should be empty under src/tests/scripts)
+rg -L --glob '*.ts' --glob '*.tsx' --glob '!**/vite-env.d.ts' '@feature ' src tests scripts
+```
+
+Inventory / orphans still live in the vite-fullstack [feature-surface-map](.cursor/skills/vite-fullstack/references/feature-surface-map.md).
+
 ### Developer Login
 
 For quick access during development, the login page includes a "Developer Login" button

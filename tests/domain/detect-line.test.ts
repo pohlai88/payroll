@@ -1,4 +1,7 @@
 /**
+ * @feature findings
+ * @layer test
+ *
  * Pure detector unit tests — P2 independently testable line findings.
  */
 

@@ -1,5 +1,9 @@
 /**
+ * @feature pay-run
+ * @layer route
+ *
  * Shared pay-run company lookup + PAY_RUN permission check for route handlers.
+ * Not a registered route module — helper only (not a hub).
  */
 
 import type { Database } from "@/db/client";

@@ -1,4 +1,8 @@
 /**
+ * @feature pay-run
+ * @layer repo
+ * @hub src/server/routes/pay-run.ts
+ *
  * The Zod boundary for rule-pack settings.
  *
  * `rule_settings.settings` is jsonb, so the database cannot vouch for its shape.
@@ -41,8 +45,6 @@ const statutoryLimits = z.object({
   /** Employment Act 1955 First Schedule wage ceiling, in sen. */
   eaEntitlementWageCeilingSen: senAmount,
 });
-
-type StatutoryLimits = z.infer<typeof statutoryLimits>;
 
 const ruleSettingsSchema = z.object({
   epfTableCeilingSen: senAmount,

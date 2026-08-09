@@ -1,4 +1,7 @@
 /**
+ * @feature artifacts
+ * @layer test
+ *
  * Evidence artifacts: hashed store + transfer FK.
  */
 

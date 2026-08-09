@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * shadcn UI primitive (shared).
+ */
+
 "use client";
 
 import { Combobox as ComboboxPrimitive } from "@base-ui/react";

@@ -1,4 +1,7 @@
 /**
+ * @feature derivation
+ * @layer domain
+ *
  * The Malay dictionary.
  *
  * Typed as a total map over `MessageKey`, so omitting a key that `en.ts` defines

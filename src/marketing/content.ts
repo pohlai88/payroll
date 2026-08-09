@@ -1,4 +1,7 @@
 /**
+ * @feature marketing
+ * @layer ui
+ *
  * Marketing copy and figures.
  *
  * Every statutory number below is read from the shipped rule pack

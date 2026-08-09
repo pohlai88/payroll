@@ -1,3 +1,10 @@
+/**
+ * @feature pay-run
+ * @layer domain
+ *
+ * Pure statutory calc (no I/O).
+ */
+
 import { computePcbAdditional } from "./pcb-additional";
 import { splitRemunerationSen } from "./pcb-context";
 import type { PcbComputeResult } from "./pcb-core";

@@ -1,4 +1,8 @@
 /**
+ * @feature pay-run
+ * @layer ui
+ * @hub src/server/routes/pay-run.ts
+ *
  * Home dashboard — Studio analytics blocks wired to getPayRuns:
  * statistics-category-card (18), chart-total-orders (03), widget-payment-history (14).
  */

@@ -1,3 +1,11 @@
+/**
+ * @feature remuneration
+ * @layer ui
+ * @hub src/server/routes/employee-remuneration.ts
+ *
+ * Annual remuneration summary view.
+ */
+
 import { MoneyCell } from "@/components/payroll/money-cell";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import type { AnnualRemunerationSummaryDto } from "@/web/api/payroll-api";

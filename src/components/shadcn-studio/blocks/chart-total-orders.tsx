@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Orders chart block.
+ */
+
 import { EllipsisVerticalIcon } from "lucide-react";
 import { type ReactNode, useCallback } from "react";
 import { Label, Pie, PieChart } from "recharts";

@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer spine
+ *
  * Process env for the Hono API. Missing required vars fail at startup.
  */
 

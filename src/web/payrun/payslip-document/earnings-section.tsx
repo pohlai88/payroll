@@ -1,3 +1,11 @@
+/**
+ * @feature payslip
+ * @layer ui
+ * @hub src/server/routes/pay-run-payslip.ts
+ *
+ * Payslip document section.
+ */
+
 // Section 5A — Earning line items from payLineItems
 import type { Lang } from "@/domain/derive/i18n/render";
 import { DocRow } from "./doc-row";

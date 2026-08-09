@@ -1,4 +1,7 @@
 /**
+ * @feature auth
+ * @layer route
+ *
  * Neon Auth JWT verification and claim parsing.
  *
  * The API accepts Bearer tokens only — session cookies stay with Neon Auth /

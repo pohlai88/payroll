@@ -1,4 +1,8 @@
 /**
+ * @feature derivation
+ * @layer service
+ * @hub src/server/routes/pay-run-derivation.ts
+ *
  * Compute-on-read derivation graph for one pay line.
  * Loads the same inputs as recompute, emits `deriveLine`, maps to the FE
  * `DerivedNode` tree shape consumed by `NodePanel`.

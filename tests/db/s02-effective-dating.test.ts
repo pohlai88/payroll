@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer test
+ *
  * S02 Effective Dating Tests
  *
  * These tests prove that statutory rules resolve using the relevant

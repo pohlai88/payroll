@@ -1,7 +1,17 @@
 /**
- * Phase 8 — payslip read facade.
- * GET /v1/pay-runs/:runId/payslips         → index of lines for this run
- * GET /v1/pay-runs/:runId/lines/:lineId/payslip → full PayslipDocumentDto
+ * @feature payslip
+ * @layer route
+ * @surface GET /v1/pay-runs/:runId/payslips; GET /v1/pay-runs/:runId/lines/:lineId/payslip
+ * @chain
+ *   ui:      src/web/payrun/payslip-page.tsx; src/web/payrun/payslip-document/*
+ *   client:  getPayslip, getPayslipIndex
+ *   route:   src/server/routes/pay-run-payslip.ts
+ *   service: (none — route → repo)
+ *   repo:    src/repo/payslip.ts
+ *   schema:  src/db/schema/run.ts; parties.ts
+ *   spine:   app.ts → payRunPayslipRoutes; app.tsx /pay-runs/:runId/payslip/:lineId
+ *
+ * Payslip index + document read facade. FE DTO twin: payrun/payslip-document/types.ts (not types.ts).
  */
 
 import { Hono } from "hono";

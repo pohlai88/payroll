@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer domain
+ *
  * PCB month-context builders: `n`, YTD merge, remuneration split from line items.
  */
 

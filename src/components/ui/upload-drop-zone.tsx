@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer ui
+ *
  * UploadDropZone — file-drop target with progress feedback.
  * Inspired by Studio file-upload pattern; no external deps beyond existing primitives.
  */

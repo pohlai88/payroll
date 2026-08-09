@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Shell workspace/company switcher.
+ */
+
 "use client";
 
 import { ChevronRightIcon, PlusIcon } from "lucide-react";

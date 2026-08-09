@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * shadcn UI primitive (shared).
+ */
+
 "use client";
 
 import { Switch as SwitchPrimitive } from "@base-ui/react/switch";

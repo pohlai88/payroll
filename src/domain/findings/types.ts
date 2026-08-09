@@ -1,4 +1,9 @@
-/** Detected finding before persistence. */
+/**
+ * @feature findings
+ * @layer domain
+ *
+ * Detected finding shapes before persistence.
+ */
 
 export type FindingSeverity = "INFO" | "REVIEW" | "WARNING" | "BLOCKING";
 

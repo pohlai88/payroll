@@ -1,3 +1,8 @@
+/**
+ * @feature pay-run
+ * @layer test
+ */
+
 import { describe, expect, it } from "vitest";
 import { computePcb, computePcbAdditional } from "@/domain/calc/pcb";
 import type { PcbMonthContext, PcbTaxProfile } from "@/domain/calc/types";

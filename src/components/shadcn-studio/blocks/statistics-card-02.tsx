@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Statistics card variant.
+ */
+
 import {
   CheckIcon,
   ChevronDownIcon,

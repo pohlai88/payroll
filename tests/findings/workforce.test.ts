@@ -1,4 +1,7 @@
 /**
+ * @feature findings
+ * @layer test
+ *
  * P0C — NEW_EMPLOYEE policy and EMPLOYEE_OMITTED period applicability.
  */
 

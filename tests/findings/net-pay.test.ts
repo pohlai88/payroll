@@ -1,4 +1,7 @@
 /**
+ * @feature findings
+ * @layer test
+ *
  * P0D — NET_ZERO / NET_NEGATIVE detection + evidence.
  */
 

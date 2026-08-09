@@ -1,4 +1,8 @@
 /**
+ * @feature control
+ * @layer service
+ * @hub src/server/routes/pay-run-control.ts
+ *
  * Distributions, reconciliation helpers, closure checklist + sealed manifest.
  */
 

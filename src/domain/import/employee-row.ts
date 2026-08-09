@@ -1,4 +1,7 @@
 /**
+ * @feature employee-import
+ * @layer domain
+ *
  * Pure mapping/validation from a raw spreadsheet row (string-keyed,
  * string-valued) to a typed row ready for `repo/employee-profile.ts`.
  *

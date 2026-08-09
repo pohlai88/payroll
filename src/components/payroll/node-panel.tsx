@@ -1,3 +1,11 @@
+/**
+ * @feature derivation
+ * @layer ui
+ * @hub src/server/routes/pay-run-derivation.ts
+ *
+ * Derivation node panel.
+ */
+
 import {
   AlertCircleIcon,
   ArrowRightIcon,

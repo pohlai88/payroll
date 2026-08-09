@@ -1,4 +1,7 @@
 /**
+ * @feature artifacts
+ * @layer domain
+ *
  * Artifact byte store — R2 in production, LocalFs when unset, Memory in tests.
  *
  * DB rows own metadata + sha256; this interface owns only the bytes.

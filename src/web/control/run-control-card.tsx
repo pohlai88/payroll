@@ -1,4 +1,8 @@
 /**
+ * @feature control
+ * @layer ui
+ * @hub src/server/routes/pay-run-control.ts
+ *
  * Per-run control card — status, finding counts, gate pill, and a
  * context-appropriate action that navigates into the workspace.
  */

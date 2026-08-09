@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer spine
+ *
+ * Drizzle Kit config — schema glob + migrations out.
+ */
+
 import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({

@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer domain
+ *
  * Table 1 (M / R / B) and YA-2026 compulsory relief constants from
  * LHDN Specification for MTD Computerized Calculation 2026 (`P-SPEC-2026`).
  *

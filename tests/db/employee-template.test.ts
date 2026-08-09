@@ -1,4 +1,7 @@
 /**
+ * @feature employee-import
+ * @layer test
+ *
  * `scripts/employee-template.ts` must emit a header row that stays in sync
  * with `FIXED_HEADERS` and active custom field defs — the same column names
  * `parseEmployeeRow` expects on import.

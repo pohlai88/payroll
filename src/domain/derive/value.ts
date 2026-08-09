@@ -1,4 +1,7 @@
 /**
+ * @feature derivation
+ * @layer domain
+ *
  * Values a derivation node can carry.
  *
  * The distinction that matters most here is between `SEN` (a settled money

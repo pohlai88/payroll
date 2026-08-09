@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer test
+ *
  * The July 2026 run, out of Postgres, to the sen.
  *
  * The golden master proves the engine. This proves the database feeds it the

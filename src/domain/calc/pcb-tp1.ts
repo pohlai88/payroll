@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer domain
+ *
  * TP1 / Form TP1 allowable deduction catalog (YA 2026).
  *
  * Callers accumulate claims into `∑LP` / `LP1`. This module caps each claim at

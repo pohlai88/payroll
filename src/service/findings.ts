@@ -1,9 +1,13 @@
 /**
+ * @feature findings
+ * @layer service
+ * @hub src/server/routes/pay-run.ts
+ *
  * Transfer findings engine: upsert / acknowledge / list + APPROVAL soft gate.
  * §8.6: scanTransferFindings on commit; scanRunTransferFindings from pay-run scan.
  */
 
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Database } from "@/db/client";
 import { anomalyFindings, findingEvents } from "@/db/schema/findings";
 import { employments, persons } from "@/db/schema/parties";
@@ -19,6 +23,7 @@ import {
   type TransferLinkFacts,
 } from "@/domain/findings/transfer-rules";
 import type { DetectedFinding } from "@/domain/findings/types";
+import { requirePermission } from "@/service/rbac";
 import { ControlError } from "./control-errors";
 
 type Tx = Parameters<Parameters<Database["transaction"]>[0]>[0];
@@ -184,6 +189,76 @@ async function acknowledgeFinding(
     kind: "ACKNOWLEDGED",
     evidence: { note: opts.note ?? null, fingerprint: row.fingerprint },
     actor: opts.actor,
+  });
+}
+
+/**
+ * Acknowledge a transfer-scoped finding on behalf of an actor.
+ *
+ * Doctrine (transfer-finding authority, see
+ * `docs/superpowers/specs/2026-08-08-internal-group-transfer-design.md`):
+ * a transfer finding that evaluates facts across the source and destination
+ * employments is governed by both employment scopes. Acknowledgement requires
+ * `EMPLOYMENT UPDATE` authority for both the source and destination companies.
+ * Duplicate company scopes are evaluated once.
+ *
+ * The findings reachable here are the two from `collectTransferCommitFindings`
+ * — TRANSFER_OVERLAP_DATES and SERVICE_DATES_INCONSISTENT — each comparing
+ * Employment A's dates against Employment B's.
+ *
+ * Run-scoped findings are excluded by doctrine and by construction: the inner
+ * join on `transferId` is null for them, so they resolve to NOT_FOUND before
+ * `acknowledgeFinding`'s own run-scoped guard is reached.
+ */
+export async function acknowledgeTransferFindingForActor(
+  db: Database,
+  actor: { readonly userId: string; readonly email: string },
+  findingId: string,
+  opts: { readonly note?: string | null } = {}
+): Promise<void> {
+  const [link] = await db
+    .select({
+      fromEmploymentId: transfers.fromEmploymentId,
+      toEmploymentId: transfers.toEmploymentId,
+    })
+    .from(anomalyFindings)
+    .innerJoin(transfers, eq(transfers.id, anomalyFindings.transferId))
+    .where(eq(anomalyFindings.id, findingId))
+    .limit(1);
+  if (link === undefined) {
+    throw new ControlError(
+      "NOT_FOUND",
+      `no such transfer finding: ${findingId}`
+    );
+  }
+
+  const sides = await db
+    .select({ companyId: employments.companyId })
+    .from(employments)
+    .where(
+      inArray(employments.id, [link.fromEmploymentId, link.toEmploymentId])
+    );
+  if (sides.length === 0) {
+    throw new ControlError(
+      "NOT_FOUND",
+      `transfer finding ${findingId} has no resolvable employments`
+    );
+  }
+
+  // De-duplicated: an intra-company transfer asks for the permission once.
+  for (const companyId of new Set(sides.map((side) => side.companyId))) {
+    await requirePermission(
+      db,
+      actor.userId,
+      "EMPLOYMENT",
+      "UPDATE",
+      companyId
+    );
+  }
+
+  await acknowledgeFinding(db, findingId, {
+    actor: actor.email,
+    note: opts.note,
   });
 }
 

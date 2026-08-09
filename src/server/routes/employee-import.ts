@@ -1,5 +1,17 @@
 /**
- * Auth-gated employee master import — template download + create-only POST.
+ * @feature employee-import
+ * @layer route
+ * @surface GET /v1/employee-import/template; POST /v1/employee-import
+ * @chain
+ *   ui:      src/web/employees/employee-import-panel.tsx
+ *   client:  downloadEmployeeImportTemplate, importEmployees
+ *   route:   src/server/routes/employee-import.ts
+ *   service: src/service/employee-import.ts
+ *   repo:    src/repo/employee-profile.ts
+ *   schema:  src/db/schema/employee-profile.ts; src/db/schema/parties.ts
+ *   spine:   app.ts → employeeImportRoutes; employees page hosts panel
+ *
+ * Create-only employee master CSV import under /v1/employee-import.
  */
 
 import { Hono } from "hono";

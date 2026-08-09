@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer client
+ *
  * Bearer-only business API client.
  *
  * Acquires a JWT via the injected token function (Neon Auth `token()`), never
@@ -12,6 +15,7 @@ import type {
 } from "@/web/payrun/payslip-document/types";
 import { formatApiError } from "./format-error";
 import {
+  type AcknowledgeTransferFindingResponse,
   type AdminCompaniesResponse,
   type AdminCompanyRow,
   type AdminUserRoleBody,
@@ -165,11 +169,13 @@ export function createApiClient(deps: ApiClientDeps) {
   }
 
   return {
+    // --- @feature me @layer client ---
     getMe: () => requestJson<MeResponse>("/v1/me"),
     getPermissions: (companyId?: string | null) =>
       requestJson<PermissionsResponse>(
         `/v1/me/permissions${companyQuery(companyId)}`
       ),
+    // --- @feature admin-users @layer client ---
     getAdminUsers: () => requestJson<AdminUsersResponse>("/v1/admin/users"),
     createAdminUser: (body: InviteAdminUserBody) =>
       requestJson<AdminUserRow>("/v1/admin/users", {
@@ -191,6 +197,7 @@ export function createApiClient(deps: ApiClientDeps) {
         method: "DELETE",
         body: JSON.stringify(body),
       }),
+    // --- @feature companies @layer client ---
     getAdminCompanies: () =>
       requestJson<AdminCompaniesResponse>("/v1/admin/companies"),
     createAdminCompany: (body: CreateAdminCompanyBody) =>
@@ -205,6 +212,7 @@ export function createApiClient(deps: ApiClientDeps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       }),
+    // --- @feature employee-import @layer client ---
     downloadEmployeeImportTemplate: (companyId?: string | null) =>
       requestText(`/v1/employee-import/template${companyQuery(companyId)}`),
     importEmployees: (body: string, contentType: string) =>
@@ -213,6 +221,7 @@ export function createApiClient(deps: ApiClientDeps) {
         headers: { "Content-Type": contentType },
         body,
       }),
+    // --- @feature pay-run @layer client ---
     getPayRuns: (params?: GetPayRunsParams) =>
       requestJson<PayRunSummary[]>(
         `/v1/pay-runs${buildQuery({
@@ -225,6 +234,7 @@ export function createApiClient(deps: ApiClientDeps) {
         method: "POST",
         body: JSON.stringify(body),
       }),
+    // --- @feature workspace @layer client ---
     getWorkspace: (runId: string) =>
       requestJson<PayRunWorkspaceView>(`/v1/pay-runs/${runId}/workspace`),
     recompute: (runId: string) =>
@@ -245,6 +255,7 @@ export function createApiClient(deps: ApiClientDeps) {
       requestJson<PayRunMutationEnvelope>(`/v1/pay-runs/${runId}/demote`, {
         method: "POST",
       }),
+    // --- @feature findings @layer client ---
     getFindings: (runId: string) =>
       requestJson<FindingsListResponse>(`/v1/pay-runs/${runId}/findings`),
     scanFindings: (runId: string) =>
@@ -262,8 +273,10 @@ export function createApiClient(deps: ApiClientDeps) {
           body: JSON.stringify(note === undefined ? {} : { note }),
         }
       ),
+    // --- @feature gates @layer client ---
     evaluateGate: (runId: string, gate: GateKind) =>
       requestJson<GateResult>(`/v1/pay-runs/${runId}/gates/${gate}`),
+    // --- @feature employees @layer client ---
     getEmployees: (params?: GetEmployeesParams) =>
       requestJson<EmployeeSummary[]>(
         `/v1/employees${buildQuery({
@@ -271,6 +284,7 @@ export function createApiClient(deps: ApiClientDeps) {
           search: params?.search,
         })}`
       ),
+    // --- @feature control @layer client ---
     getPayments: (runId: string) =>
       requestJson<PaymentsListResponse>(`/v1/pay-runs/${runId}/payments`),
     holdLine: (runId: string, lineId: string, reason: string) =>
@@ -373,6 +387,7 @@ export function createApiClient(deps: ApiClientDeps) {
           body: JSON.stringify(body),
         }
       ),
+    // --- @feature artifacts @layer client ---
     getArtifacts: (runId: string) =>
       requestJson<ArtifactsListResponse>(`/v1/pay-runs/${runId}/artifacts`),
     uploadArtifact: (
@@ -412,6 +427,7 @@ export function createApiClient(deps: ApiClientDeps) {
       requestJson<RunSealResponse>(`/v1/pay-runs/${runId}/seal`),
     getClosureChain: (runId: string) =>
       requestJson<ClosureChainResponse>(`/v1/pay-runs/${runId}/closure-chain`),
+    // --- @feature payslip @layer client ---
     getPayslip: (runId: string, lineId: string) =>
       requestJson<PayslipDocumentDto>(
         `/v1/pay-runs/${runId}/lines/${lineId}/payslip`
@@ -420,8 +436,10 @@ export function createApiClient(deps: ApiClientDeps) {
       requestJson<{ payslips: PayslipIndexRow[] }>(
         `/v1/pay-runs/${runId}/payslips`
       ),
+    // --- @feature diff @layer client ---
     getLineDiff: (runId: string, lineId: string) =>
       requestJson<RunLineDiffDto>(`/v1/pay-runs/${runId}/lines/${lineId}/diff`),
+    // --- @feature derivation @layer client ---
     getLineDerivation: (runId: string, lineId: string, root?: string) => {
       const qs =
         root === undefined || root === ""
@@ -432,6 +450,7 @@ export function createApiClient(deps: ApiClientDeps) {
       );
     },
     // Report endpoints
+    // --- @feature reports @layer client ---
     getPaymentRegister: (runId: string) =>
       requestJson<PaymentRegisterDto>(
         `/v1/pay-runs/${runId}/reports/payment-register`
@@ -444,15 +463,26 @@ export function createApiClient(deps: ApiClientDeps) {
       requestJson<ExceptionReportDto>(
         `/v1/pay-runs/${runId}/reports/exception-report`
       ),
+    // --- @feature remuneration @layer client ---
     getAnnualRemunerationSummary: (employeeId: string, year: number) =>
       requestJson<AnnualRemunerationSummaryDto>(
         `/v1/employees/${employeeId}/remuneration-summary/${year}`
       ),
+    // --- @feature transfer @layer client ---
     commitTransfer: (body: CommitTransferBody) =>
       requestJson<CommitTransferResponse>("/v1/transfers", {
         method: "POST",
         body: JSON.stringify(body),
       }),
+    acknowledgeTransferFinding: (findingId: string, note?: string) =>
+      requestJson<AcknowledgeTransferFindingResponse>(
+        `/v1/transfers/findings/${findingId}/acknowledge`,
+        {
+          method: "POST",
+          body: JSON.stringify(note === undefined ? {} : { note }),
+        }
+      ),
+    // --- @feature treatments @layer client ---
     recordWageTreatmentDeparture: (
       payItemId: string,
       body: WageTreatmentDepartureBody
@@ -464,10 +494,7 @@ export function createApiClient(deps: ApiClientDeps) {
           body: JSON.stringify(body),
         }
       ),
-    recordPcbClassDeparture: (
-      payItemId: string,
-      body: PcbClassDepartureBody
-    ) =>
+    recordPcbClassDeparture: (payItemId: string, body: PcbClassDepartureBody) =>
       requestJson<DepartureResponse>(
         `/v1/pay-items/${payItemId}/pcb-classes/departures`,
         {

@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Dialog submit busy-state hook.
+ */
+
 import { useCallback, useState } from "react";
 import { formatApiError } from "@/web/api/format-error";
 

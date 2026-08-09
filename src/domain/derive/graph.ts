@@ -1,4 +1,7 @@
 /**
+ * @feature derivation
+ * @layer domain
+ *
  * The derivation graph: a flat map of nodes, a deterministic emit order, and a
  * set of named roots.
  *

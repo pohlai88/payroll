@@ -1,4 +1,8 @@
 /**
+ * @feature workspace
+ * @layer ui
+ * @hub src/server/routes/pay-run-workspace.ts
+ *
  * Run-level diff panel — summarises which employees changed vs the prior run.
  * Uses workspace-loaded data only; no additional fetch. The badge reads
  * `rootVariances.net` from the server, so direction and bps are both real.

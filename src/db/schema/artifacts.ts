@@ -1,4 +1,7 @@
 /**
+ * @feature artifacts
+ * @layer schema
+ *
  * Hashed evidence / generated file store.
  *
  * Bytes live under `data/artifacts/`; the row is the audit fact. Evidence

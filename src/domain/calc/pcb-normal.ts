@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer domain
+ *
  * Normal Remuneration (+ non-resident 30%) PCB engine for YA 2026.
  */
 

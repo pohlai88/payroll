@@ -1,4 +1,7 @@
 /**
+ * @feature control
+ * @layer test
+ *
  * `GET /v1/pay-runs/:runId/payments` — verifies each row carries `employmentId`
  * so the SPA can correlate payment state back to `EmployeeLineDto.employeeId`.
  */

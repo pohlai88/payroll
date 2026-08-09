@@ -1,4 +1,7 @@
 /**
+ * @feature findings
+ * @layer test
+ *
  * P0D — every catalog ruleId must appear in the tested-rule registry.
  * Fails CI when a catalog rule is added without registering assurance coverage.
  */

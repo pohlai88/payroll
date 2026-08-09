@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Share dropdown block.
+ */
+
 import { InfoIcon, LinkIcon, MoreHorizontalIcon } from "lucide-react";
 import type { ReactElement } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

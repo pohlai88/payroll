@@ -1,3 +1,11 @@
+/**
+ * @feature reports
+ * @layer ui
+ * @hub src/server/routes/pay-run-reports.ts
+ *
+ * Exception report view.
+ */
+
 import { severityBadgeVariant } from "@/components/payroll/status-badge";
 import { Badge } from "@/components/ui/badge";
 import type { ExceptionReportDto } from "@/web/api/payroll-api";

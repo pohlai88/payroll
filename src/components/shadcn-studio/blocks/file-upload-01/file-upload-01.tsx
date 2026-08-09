@@ -1,4 +1,8 @@
 /**
+ * @feature employee-import
+ * @layer ui
+ * @hub src/server/routes/employee-import.ts
+ *
  * File upload card — from `@ss-blocks/file-upload-01`, customized for
  * Clarity employee CSV/JSON import. Presentational; parent owns I/O.
  */

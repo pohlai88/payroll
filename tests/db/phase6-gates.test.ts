@@ -1,4 +1,7 @@
 /**
+ * @feature gates
+ * @layer test
+ *
  * Phase 6 control invariants — scan stamp, revision-bound review/approve,
  * frozen findings, READY payment projection.
  */

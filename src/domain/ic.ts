@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer domain
+ *
  * Malaysian NRIC utilities: derive date of birth from the first six digits
  * (YYMMDD) and compute age in completed years at a reference date.
  */

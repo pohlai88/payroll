@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer domain
+ *
  * The version of the calculation engine.
  *
  * Stamped onto every pay run alongside the rule pack's content hash, because

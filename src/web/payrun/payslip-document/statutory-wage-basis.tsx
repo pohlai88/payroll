@@ -1,3 +1,11 @@
+/**
+ * @feature payslip
+ * @layer ui
+ * @hub src/server/routes/pay-run-payslip.ts
+ *
+ * Payslip document section.
+ */
+
 // Section 3 — EPF/SOCSO/EIS statutory wage bases
 import { MoneyCell } from "@/components/payroll/money-cell";
 import type { Lang } from "@/domain/derive/i18n/render";

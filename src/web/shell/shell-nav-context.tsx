@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer ui
+ *
  * Shell navigation context — sits inside SidebarProvider so route changes
  * can close the mobile sheet and share one nav model with the sidebar /
  * command palette / breadcrumb.

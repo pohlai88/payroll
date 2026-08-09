@@ -1,4 +1,8 @@
 /**
+ * @feature control
+ * @layer ui
+ * @hub src/server/routes/pay-run-control.ts
+ *
  * Batch drawer — one release batch's attempts. Settle records the bank
  * outcome per attempt; Reconcile (PAID attempts only) closes the loop with
  * optional evidence; Cancel (OPEN batches only) returns all lines to READY.

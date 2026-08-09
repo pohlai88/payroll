@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Profile dropdown block.
+ */
+
 import {
   CirclePlusIcon,
   CreditCardIcon,

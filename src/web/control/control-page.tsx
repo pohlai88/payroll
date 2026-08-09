@@ -1,4 +1,8 @@
 /**
+ * @feature control
+ * @layer ui
+ * @hub src/server/routes/pay-run-control.ts
+ *
  * Control screen — cross-run findings/gate overview.
  * Studio: empty-state-01 + statistics-card-03 summary strip.
  */

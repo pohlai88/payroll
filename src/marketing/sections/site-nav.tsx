@@ -1,3 +1,10 @@
+/**
+ * @feature marketing
+ * @layer ui
+ *
+ * Marketing landing surface.
+ */
+
 import { Separator } from "@/components/ui/separator";
 import { NAV_LINKS } from "@/marketing/content";
 import { CtaLink } from "@/marketing/cta-link";

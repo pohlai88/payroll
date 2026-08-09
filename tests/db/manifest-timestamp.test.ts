@@ -1,4 +1,7 @@
 /**
+ * @feature control
+ * @layer test
+ *
  * RFC 3161 timestamping of the closure manifest.
  *
  * The authority is stubbed: no test may depend on a third party being up, and

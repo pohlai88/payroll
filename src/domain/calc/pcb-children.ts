@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer domain
+ *
  * Qualifying child units `C` for PCB compulsory relief (YA 2026).
  *
  * Spec EXHIBIT relief notes: a disabled child or higher-education child is

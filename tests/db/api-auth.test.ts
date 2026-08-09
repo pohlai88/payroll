@@ -1,4 +1,7 @@
 /**
+ * @feature auth
+ * @layer test
+ *
  * Hono auth platform routes — real DB, injected JWT verifier (no Neon network).
  */
 

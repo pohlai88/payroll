@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer spine
+ *
  * Local API process — `npm run dev:api`.
  */
 

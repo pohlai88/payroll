@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer domain
+ *
  * Money utilities. All amounts are integer sen. No floats in stored values;
  * floats appear only transiently inside explicit rounding helpers.
  *

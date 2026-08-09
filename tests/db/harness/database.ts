@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer test
+ *
  * The test database harness.
  *
  * Tests run against a real Postgres — the one `docker-compose.yml` defines —

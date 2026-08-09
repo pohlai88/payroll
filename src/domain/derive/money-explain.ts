@@ -1,4 +1,7 @@
 /**
+ * @feature derivation
+ * @layer domain
+ *
  * Rounding, explained without being reimplemented.
  *
  * The settled figure is ALWAYS whatever `money.ts` returns. The exact rational is

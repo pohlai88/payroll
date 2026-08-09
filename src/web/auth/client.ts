@@ -1,4 +1,7 @@
 /**
+ * @feature auth
+ * @layer client
+ *
  * Neon Auth client for the SPA.
  *
  * Auth-endpoint session/cookie behaviour is owned by the SDK against

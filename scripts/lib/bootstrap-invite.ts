@@ -1,4 +1,7 @@
 /**
+ * @feature admin-users
+ * @layer spine
+ *
  * Shared CLI bootstrap: create/invite an app `users` row and optional role.
  * Used by `invite-user.ts` and `setup-dev-user.ts` (no Neon Auth JWT needed).
  */

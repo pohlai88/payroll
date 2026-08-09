@@ -1,4 +1,8 @@
 /**
+ * @feature control
+ * @layer ui
+ * @hub src/server/routes/pay-run-control.ts
+ *
  * Closure seal panel — what this run's closure is worth as evidence.
  *
  * It states three separate things and does not blur them: the seal recomputes,

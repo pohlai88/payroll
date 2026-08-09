@@ -1,4 +1,8 @@
 /**
+ * @feature pay-run
+ * @layer repo
+ * @hub src/server/routes/pay-run.ts
+ *
  * Loads a rule pack out of the database as the engine's own types.
  *
  * Everything the calculators need — band tables, settings, the pay item matrix —

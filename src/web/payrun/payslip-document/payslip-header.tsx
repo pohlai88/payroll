@@ -1,3 +1,11 @@
+/**
+ * @feature payslip
+ * @layer ui
+ * @hub src/server/routes/pay-run-payslip.ts
+ *
+ * Payslip document section.
+ */
+
 // Section 1 — document identity + legal employer
 import type { Lang } from "@/domain/derive/i18n/render";
 import type { PayslipDocumentDto } from "./types";

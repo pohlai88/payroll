@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer route
+ *
  * Map thrown errors to HTTP status + stable JSON body.
  */
 

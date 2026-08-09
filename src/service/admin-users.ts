@@ -1,4 +1,8 @@
 /**
+ * @feature admin-users
+ * @layer service
+ * @hub src/server/routes/admin-users.ts
+ *
  * SYSTEM_ADMIN-only user invite and role management.
  */
 

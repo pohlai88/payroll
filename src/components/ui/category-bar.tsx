@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * shadcn UI primitive (shared).
+ */
+
 import { type HTMLAttributes, type Ref, useMemo } from "react";
 import {
   Tooltip,

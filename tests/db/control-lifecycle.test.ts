@@ -1,4 +1,7 @@
 /**
+ * @feature control
+ * @layer test
+ *
  * Phase 6–7 lean control lifecycle against real Postgres + in-memory artifacts.
  *
  * approve → release (1 hold) → mixed settle → retry → withdraw held →

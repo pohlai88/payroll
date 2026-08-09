@@ -1,4 +1,7 @@
 /**
+ * @feature control
+ * @layer test
+ *
  * TSA client behaviour, against real DigiCert replies served offline.
  *
  * The client's job is not to trust the authority: it must prove the token it

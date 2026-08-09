@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer spine
+ *
+ * SPA Vite entry → App.
+ */
+
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./app";

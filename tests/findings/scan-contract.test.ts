@@ -1,4 +1,7 @@
 /**
+ * @feature findings
+ * @layer test
+ *
  * P0A — scan / calcRevision binding after recompute.
  * Spec: docs/superpowers/specs/2026-08-09-code-quality-findings-assurance-design.md §0A.1
  */

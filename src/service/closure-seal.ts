@@ -1,4 +1,8 @@
 /**
+ * @feature control
+ * @layer service
+ * @hub src/server/routes/pay-run-control.ts
+ *
  * Issuing and verifying closure seals.
  *
  * Issuance happens inside the closing transaction, so a run can never be

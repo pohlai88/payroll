@@ -1,4 +1,7 @@
 /**
+ * @feature transfer
+ * @layer test
+ *
  * Internal group transfer: `commitTransfer` and `recordPriorEmploymentYtd`
  * against a real Postgres, per
  * `docs/superpowers/specs/2026-08-08-internal-group-transfer-design.md`.

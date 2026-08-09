@@ -1,4 +1,8 @@
 /**
+ * @feature companies
+ * @layer ui
+ * @hub src/server/routes/admin-companies.ts
+ *
  * Companies — multicompany directory for SYSTEM_ADMIN.
  * Studio blocks: statistics-component-03, form-layout-01 (company-form),
  * empty-state-01, datatable-company.

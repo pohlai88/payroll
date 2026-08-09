@@ -1,9 +1,17 @@
 /**
- * Graph-level run diff read facade.
- * GET /v1/pay-runs/:runId/lines/:lineId/diff
+ * @feature diff
+ * @layer route
+ * @surface GET /v1/pay-runs/:runId/lines/:lineId/diff
+ * @chain
+ *   ui:      src/web/payrun/employee/employee-diff.tsx
+ *   client:  getLineDiff
+ *   route:   src/server/routes/pay-run-diff.ts
+ *   service: src/service/line-derivation.ts (loadDerivedGraph); domain derive/diff
+ *   repo:    src/repo/pay-run.ts; rule-pack.ts (via line-derivation)
+ *   schema:  src/db/schema/run.ts
+ *   spine:   app.ts → payRunDiffRoutes; workspace employee slide-over
  *
- * Diffs live derivation graphs (compute-on-read). `pay_lines.trace` is a flat
- * TraceStep[] list and must not be parsed as a DerivationGraph.
+ * Compute-on-read line graph diff (do not parse pay_lines.trace as DerivationGraph).
  */
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";

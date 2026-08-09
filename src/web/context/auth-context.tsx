@@ -1,4 +1,7 @@
 /**
+ * @feature me
+ * @layer ui
+ *
  * `AuthContext` — the signed-in user (from `GET /v1/me`, including
  * `companies[]`) plus sign-out. Lifted out of the single-screen shell in
  * `App.tsx` so routed screens can read identity without prop-drilling.

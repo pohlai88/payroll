@@ -1,3 +1,8 @@
+/**
+ * @feature pay-run
+ * @layer test
+ */
+
 import { describe, expect, it } from "vitest";
 import { eis } from "@/domain/calc/eis";
 import { epf } from "@/domain/calc/epf";

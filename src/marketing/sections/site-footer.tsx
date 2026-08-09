@@ -1,3 +1,10 @@
+/**
+ * @feature marketing
+ * @layer ui
+ *
+ * Marketing landing surface.
+ */
+
 import { Separator } from "@/components/ui/separator";
 import { FOOTER_NOTE, RULE_PACK } from "@/marketing/content";
 

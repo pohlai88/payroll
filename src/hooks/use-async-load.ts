@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Async load helper hook.
+ */
+
 import { useCallback, useState } from "react";
 import { formatApiError } from "@/web/api/format-error";
 

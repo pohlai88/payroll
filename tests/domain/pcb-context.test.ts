@@ -1,3 +1,8 @@
+/**
+ * @feature pay-run
+ * @layer test
+ */
+
 import { describe, expect, it } from "vitest";
 import { computeLine } from "@/domain/calc/compose";
 import { qualifyingChildUnits } from "@/domain/calc/pcb-children";

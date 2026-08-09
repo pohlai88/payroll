@@ -1,3 +1,8 @@
+/**
+ * @feature findings
+ * @layer test
+ */
+
 import { describe, expect, it } from "vitest";
 import {
   ANOMALY_PACK_VERSION,

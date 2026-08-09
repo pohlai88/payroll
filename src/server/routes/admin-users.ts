@@ -1,3 +1,19 @@
+/**
+ * @feature admin-users
+ * @layer route
+ * @surface POST|GET /v1/admin/users; PATCH /v1/admin/users/:userId; POST|DELETE /v1/admin/users/:userId/roles
+ * @chain
+ *   ui:      src/web/admin/admin-page.tsx
+ *   client:  getAdminUsers, createAdminUser, updateAdminUser, assignUserRole, revokeUserRole
+ *   route:   src/server/routes/admin-users.ts
+ *   service: src/service/admin-users.ts
+ *   repo:    src/repo/rbac.ts
+ *   schema:  src/db/schema/rbac.ts
+ *   spine:   app.ts → adminUserRoutes; app.tsx + app-nav /admin
+ *
+ * SYSTEM_ADMIN user invite, status, and role assignment under /v1/admin/users.
+ */
+
 import { Hono } from "hono";
 import { z } from "zod";
 import type { Database } from "@/db/client";

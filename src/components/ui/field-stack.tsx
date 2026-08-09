@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer ui
+ *
  * FieldStack — accessible label + input column pair.
  * Composed from existing Label and Input primitives.
  */

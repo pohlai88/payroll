@@ -1,4 +1,8 @@
 /**
+ * @feature companies
+ * @layer ui
+ * @hub src/server/routes/admin-companies.ts
+ *
  * form-layout-01 — Clarity company party fields.
  */
 

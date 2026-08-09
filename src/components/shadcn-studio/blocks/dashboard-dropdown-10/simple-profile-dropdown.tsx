@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer ui
+ *
  * dashboard-dropdown-10 — Clarity header/sidebar profile menu.
  * Circular avatars only (no rounded-lg vs after:rounded-full clash).
  */

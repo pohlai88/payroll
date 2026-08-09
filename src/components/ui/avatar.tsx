@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * shadcn UI primitive (shared).
+ */
+
 import { Avatar as AvatarPrimitive } from "@base-ui/react/avatar";
 import type * as React from "react";
 

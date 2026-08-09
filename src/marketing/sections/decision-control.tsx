@@ -1,3 +1,10 @@
+/**
+ * @feature marketing
+ * @layer ui
+ *
+ * Marketing landing surface.
+ */
+
 import {
   FileSearch,
   ListChecks,

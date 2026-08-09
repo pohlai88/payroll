@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer spine
+ *
+ * Knip unused-export / entry configuration.
+ */
+
 import type { KnipConfig } from "knip";
 
 /**

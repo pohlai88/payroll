@@ -1,3 +1,10 @@
+/**
+ * @feature marketing
+ * @layer ui
+ *
+ * Marketing landing surface.
+ */
+
 interface SectionIntroProps {
   readonly eyebrow: string;
   readonly title: string;

@@ -1,3 +1,11 @@
+/**
+ * @feature payslip
+ * @layer ui
+ * @hub src/server/routes/pay-run-payslip.ts
+ *
+ * Payslip document section.
+ */
+
 import { MoneyCell } from "@/components/payroll/money-cell";
 
 interface DocRowProps {

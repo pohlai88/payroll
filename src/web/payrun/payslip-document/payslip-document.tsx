@@ -1,4 +1,8 @@
 /**
+ * @feature payslip
+ * @layer ui
+ * @hub src/server/routes/pay-run-payslip.ts
+ *
  * AFENDA-PAYSLIP-01 — production bilingual payslip document.
  *
  * Rendering rules:

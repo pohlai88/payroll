@@ -1,3 +1,11 @@
+/**
+ * @feature payslip
+ * @layer ui
+ * @hub src/server/routes/pay-run-payslip.ts
+ *
+ * Payslip document section.
+ */
+
 // Section 6 — net pay grand total + payment method
 import { MoneyCell } from "@/components/payroll/money-cell";
 import type { Lang } from "@/domain/derive/i18n/render";

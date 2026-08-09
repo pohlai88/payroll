@@ -1,4 +1,7 @@
 /**
+ * @feature marketing
+ * @layer test
+ *
  * The marketing doctrine, as assertions.
  *
  * Every check here exists because a real defect got through review without it.

@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer test
+ *
  * Government instruments are the authority; approved rule packs are the
  * executable representation; payroll runs record which representation they used.
  *

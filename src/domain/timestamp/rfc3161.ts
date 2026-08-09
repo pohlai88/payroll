@@ -1,3 +1,10 @@
+/**
+ * @feature control
+ * @layer domain
+ *
+ * RFC3161 timestamp client.
+ */
+
 // biome-ignore-all lint/suspicious/noBitwiseOperators: DER is a bit-level encoding — the masks and shifts below are the specification, not a micro-optimisation.
 
 /**

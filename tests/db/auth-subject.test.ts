@@ -1,4 +1,7 @@
 /**
+ * @feature auth
+ * @layer test
+ *
  * users.auth_subject — Neon Auth subject linking for invite-only identity.
  */
 

@@ -1,4 +1,8 @@
 /**
+ * @feature pay-run
+ * @layer ui
+ * @hub src/server/routes/pay-run.ts
+ *
  * Pay-run list datatable — adapted from shadcn-studio datatable DNA
  * (`datatable-component-01`) for Clarity pay-run summaries.
  * Presentational only; navigation stays in `pay-run-list.tsx`.

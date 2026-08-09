@@ -1,4 +1,7 @@
 /**
+ * @feature derivation
+ * @layer domain
+ *
  * Emits the derivation graph for one payroll line.
  *
  * This runs alongside `computeLine` rather than replacing its arithmetic: every

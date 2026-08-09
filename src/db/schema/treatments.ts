@@ -1,4 +1,7 @@
 /**
+ * @feature treatments
+ * @layer schema
+ *
  * Governed pay-item statutory treatment (MY-STAT-S06) and PCB remuneration class.
  * Overlap exclusion lives in migrations 0018/0019 (GiST EXCLUDE via btree_gist).
  */

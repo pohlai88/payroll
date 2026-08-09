@@ -1,4 +1,7 @@
 /**
+ * @feature employee-import
+ * @layer test
+ *
  * Constraints for the employee bulk-import tables, and the guarantee that
  * `employee_custom_field_data_type` can never express a monetary value.
  */

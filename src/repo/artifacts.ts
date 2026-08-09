@@ -1,4 +1,8 @@
 /**
+ * @feature artifacts
+ * @layer repo
+ * @hub src/server/routes/pay-run-control.ts
+ *
  * Artifact metadata persistence — bytes live in ArtifactStore, not here.
  */
 

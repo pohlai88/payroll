@@ -1,4 +1,7 @@
 /**
+ * @feature findings
+ * @layer domain
+ *
  * Pure pay-run line detectors. Orchestration and DB I/O stay in the service.
  */
 

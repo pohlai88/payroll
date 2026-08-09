@@ -1,4 +1,7 @@
 /**
+ * @feature derivation
+ * @layer domain
+ *
  * The eleven kinds of derivation node.
  *
  * The governing invariant of the whole system: exactly five kinds may be

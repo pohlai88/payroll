@@ -1,4 +1,8 @@
 /**
+ * @feature employee-import
+ * @layer ui
+ * @hub src/server/routes/employee-import.ts
+ *
  * Thin create-only employee import panel — presentation only; API enforces authZ.
  */
 

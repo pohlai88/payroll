@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer spine
+ *
  * Applies pending migrations to the database named by DATABASE_URL.
  *
  * The same script runs against the local Docker Postgres and against Neon; the

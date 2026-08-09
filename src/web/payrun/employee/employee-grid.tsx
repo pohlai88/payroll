@@ -1,4 +1,8 @@
 /**
+ * @feature workspace
+ * @layer ui
+ * @hub src/server/routes/pay-run-workspace.ts
+ *
  * Employee grid — the workspace's paginated `EmployeeLineDto[]` table.
  * Column groups mirror the engine's named sen roots (`src/domain/calc/types.ts`
  * `LineResult`, surfaced by `src/repo/workspace.ts` as `roots`): Earning,

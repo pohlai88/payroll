@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer test
+ *
  * Runs once per test session: claims exclusive use of the test database, then
  * brings the schema up to date.
  *

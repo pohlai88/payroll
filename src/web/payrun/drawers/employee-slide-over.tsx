@@ -1,4 +1,8 @@
 /**
+ * @feature workspace
+ * @layer ui
+ * @hub src/server/routes/pay-run-workspace.ts
+ *
  * Employee slide-over — right-side sheet with Line / Payslip Preview /
  * Derivation tabs, opened from `EmployeeGrid.onSelectEmployee`. Renders the
  * workspace's `EmployeeLineDto` verbatim: every money figure comes from

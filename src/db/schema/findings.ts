@@ -1,4 +1,7 @@
 /**
+ * @feature findings
+ * @layer schema
+ *
  * Findings engine persistence — stable logical identity + event history.
  * Spec: docs/superpowers/specs/2026-08-08-phase6-findings-gates-approval-design.md
  */

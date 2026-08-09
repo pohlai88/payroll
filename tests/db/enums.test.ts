@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer test
+ *
  * Postgres enum members must equal the TypeScript unions, in both directions.
  *
  * The schema writes its enum members out literally rather than deriving them,

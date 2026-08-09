@@ -1,4 +1,7 @@
 /**
+ * @feature rbac
+ * @layer domain
+ *
  * Canonical form for invite matching and unique storage.
  *
  * Neon Auth emails and admin invites must collide on the same address even when

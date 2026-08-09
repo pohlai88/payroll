@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer spine
+ *
  * Loads the verified rule pack and pay item catalog from `db/seed/`.
  *
  * Every file is hashed as it is read and the hash stored in `seed_files`, so an

@@ -1,3 +1,10 @@
+/**
+ * @feature marketing
+ * @layer ui
+ *
+ * Marketing landing surface.
+ */
+
 import { Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { CLOSING } from "@/marketing/content";

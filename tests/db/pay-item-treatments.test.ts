@@ -1,4 +1,7 @@
 /**
+ * @feature treatments
+ * @layer test
+ *
  * S06 cutover: treatments + PCB class exist for seeded pay items.
  */
 

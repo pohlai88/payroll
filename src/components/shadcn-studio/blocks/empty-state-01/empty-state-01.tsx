@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Shared empty-state block.
+ */
+
 import { ChartNoAxesColumnIncreasingIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import {

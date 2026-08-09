@@ -1,4 +1,8 @@
 /**
+ * @feature employees
+ * @layer ui
+ * @hub src/server/routes/employees.ts
+ *
  * Employees — searchable roster (`GET /v1/employees`, scoped by
  * `ScopeContext`) with the create-only import panel underneath.
  * Studio: datatable-employee + empty-state-01 + file-upload-01.

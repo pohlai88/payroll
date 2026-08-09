@@ -7,6 +7,9 @@ const alias = {
 };
 
 /**
+ * @feature shell
+ * @layer spine
+ *
  * Three projects, because they have different prerequisites.
  *
  * `domain` is the pure engine and its golden master: no database, no setup, and

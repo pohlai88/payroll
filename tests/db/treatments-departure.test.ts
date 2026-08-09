@@ -1,4 +1,7 @@
 /**
+ * @feature treatments
+ * @layer test
+ *
  * S06 APPROVED_DEPARTURE: actor ≠ approver, reason required, system items blocked.
  */
 

@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Finance chart block.
+ */
+
 import {
   CreditCardIcon,
   DollarSignIcon,

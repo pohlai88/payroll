@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer spine
+ *
  * Drops and rebuilds the database named by DATABASE_URL, then seeds it.
  *
  * Intended for the disposable Docker database (`docker compose`). Neon and any

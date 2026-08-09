@@ -1,4 +1,10 @@
-/** Shared domain errors for the control layer (gates / payments / release / close). */
+/**
+ * @feature control
+ * @layer service
+ * @hub src/server/routes/pay-run-control.ts
+ *
+ * Shared domain errors for the control layer (gates / payments / release / close).
+ */
 
 export type ControlErrorCode =
   | "NOT_FOUND"

@@ -1,4 +1,7 @@
 /**
+ * @feature control
+ * @layer test
+ *
  * The closure seal hash.
  *
  * This is the root of the internal audit chain, so the canonical form is

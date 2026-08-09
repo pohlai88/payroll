@@ -1,3 +1,8 @@
+/**
+ * @feature diff
+ * @layer test
+ */
+
 import { describe, expect, it } from "vitest";
 import { diffGraphs, graphsIdentical } from "@/domain/derive/diff";
 import { type DeriveOptions, deriveLine } from "@/domain/derive/emit";

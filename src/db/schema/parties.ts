@@ -1,4 +1,9 @@
 /**
+ * @feature shell
+ * @layer schema
+ *
+ * Multi-feature schema — see section banners for companies / employees.
+ *
  * Companies, persons and employments.
  *
  * One person, many employments. The split is here from the start rather than
@@ -38,6 +43,7 @@ const createdAt = timestamp("created_at", { withTimezone: true })
   .notNull()
   .defaultNow();
 
+// --- @feature companies @layer schema ---
 export const companies = pgTable(
   "companies",
   {
@@ -67,6 +73,7 @@ export const companies = pgTable(
 /**
  * The human being. Identity that survives moving between group companies.
  */
+// --- @feature employees @layer schema ---
 export const persons = pgTable(
   "persons",
   {

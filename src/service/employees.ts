@@ -1,4 +1,8 @@
 /**
+ * @feature employees
+ * @layer service
+ * @hub src/server/routes/employees.ts
+ *
  * Tenant-scoped employee directory for pickers and the employees page.
  */
 
@@ -7,7 +11,7 @@ import { PermissionDeniedError } from "@/domain/rbac/authorize";
 import { type EmployeeSummary, listEmployeeSummaries } from "@/repo/employees";
 import { listAccessibleCompanies } from "./rbac";
 
-export type { EmployeeSummary };
+export type { EmployeeSummary } from "@/repo/employees";
 
 export async function listEmployeesForActor(
   db: Database,

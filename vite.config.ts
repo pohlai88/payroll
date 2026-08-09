@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer spine
+ *
+ * Vite SPA + marketing multi-page build.
+ */
+
 import path from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";

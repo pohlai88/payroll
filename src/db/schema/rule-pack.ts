@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer schema
+ *
  * The statutory rule pack: band tables, settings and the documents they came from.
  *
  * This is seeded, versioned data, not operational data. A run records the pack it

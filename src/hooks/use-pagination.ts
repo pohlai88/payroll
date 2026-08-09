@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Pagination helper hook.
+ */
+
 interface UsePaginationProps {
   currentPage: number;
   totalPages: number;

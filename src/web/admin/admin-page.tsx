@@ -1,4 +1,8 @@
 /**
+ * @feature admin-users
+ * @layer ui
+ * @hub src/server/routes/admin-users.ts
+ *
  * Admin — read-only admin-users table. SYSTEM_ADMIN only (see
  * `isSystemAdminPresentation` — a UI presentation predicate, not an
  * authorization mechanism; the API enforces access independently).

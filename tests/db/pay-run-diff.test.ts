@@ -1,4 +1,7 @@
 /**
+ * @feature diff
+ * @layer test
+ *
  * GET /v1/pay-runs/:runId/lines/:lineId/diff — compute-on-read graph diff.
  * Uses createRun + recompute so employeeSnapshot matches the Zod wall.
  */

@@ -1,3 +1,8 @@
+/**
+ * @feature shell
+ * @layer test
+ */
+
 import { describe, expect, it, vi } from "vitest";
 import { createApiClient } from "@/web/api/client";
 import { ApiClientError, SessionExpiredError } from "@/web/api/types";

@@ -1,4 +1,7 @@
 /**
+ * @feature rbac
+ * @layer schema
+ *
  * Users, roles and the permission matrix.
  *
  * System Admin is the only seeded role (`is_system = true`); its access is

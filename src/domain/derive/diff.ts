@@ -1,4 +1,7 @@
 /**
+ * @feature derivation
+ * @layer domain
+ *
  * Differences between two derivation graphs.
  *
  * This is what semantic node ids buy. Because `line.epf.ee` is `line.epf.ee` in

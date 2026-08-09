@@ -1,3 +1,8 @@
+/**
+ * @feature pay-run
+ * @layer test
+ */
+
 import { describe, expect, it } from "vitest";
 import { classify } from "@/domain/calc/classify";
 import { defaultSettings, makeEmployee } from "../helpers";

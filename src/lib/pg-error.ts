@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer repo
+ *
  * Postgres driver error helpers (node-pg / Drizzle wrap).
  */
 

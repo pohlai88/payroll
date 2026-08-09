@@ -1,4 +1,7 @@
 /**
+ * @feature employee-import
+ * @layer schema
+ *
  * HR/admin profile data for an employment, plus admin-registrable custom
  * fields — deliberately separate from `parties.ts`, which stays calc-only.
  *

@@ -1,4 +1,7 @@
 /**
+ * @feature transfer
+ * @layer schema
+ *
  * Cross-company internal group transfer: ends an employment at one company,
  * links it to the one created at another, for the same person.
  *

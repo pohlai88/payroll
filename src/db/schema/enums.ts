@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer schema
+ *
  * Postgres enums, each mirroring a TypeScript union in `src/domain/calc/types.ts`.
  *
  * The members are written out literally rather than derived from the unions,

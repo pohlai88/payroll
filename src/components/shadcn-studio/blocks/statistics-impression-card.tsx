@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Statistics impression card.
+ */
+
 import { Line, LineChart } from "recharts";
 
 import {

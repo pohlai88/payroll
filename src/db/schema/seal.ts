@@ -1,4 +1,7 @@
 /**
+ * @feature control
+ * @layer schema
+ *
  * The closure chain — one row per closed run, each linked to the previous
  * closure in the same company.
  *

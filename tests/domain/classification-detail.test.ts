@@ -1,3 +1,8 @@
+/**
+ * @feature pay-run
+ * @layer test
+ */
+
 import { describe, expect, it } from "vitest";
 import type { EmployeeSnapshot, LineInputs } from "@/domain/calc/types";
 import { deriveLine } from "@/domain/derive/emit";

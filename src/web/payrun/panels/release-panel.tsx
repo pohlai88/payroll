@@ -1,4 +1,8 @@
 /**
+ * @feature control
+ * @layer ui
+ * @hub src/server/routes/pay-run-control.ts
+ *
  * Release panel — appears once >=1 payment line is checked. Preview shows the
  * server's eligible/excluded/byBank breakdown verbatim (the SPA never
  * re-derives why a line was excluded); Commit creates the release batch.

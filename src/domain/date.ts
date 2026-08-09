@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer domain
+ *
  * ISO date primitives shared by the calc layer.
  *
  * `isIsoDate` is for the validation wall (`validate.ts`), which reports

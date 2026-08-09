@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer test
+ *
  * Seed data is content-addressed, and this is what makes that mean something.
  *
  * The band tables are transcribed statutory figures. An accidental edit — a

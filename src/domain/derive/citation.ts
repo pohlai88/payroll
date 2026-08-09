@@ -1,4 +1,7 @@
 /**
+ * @feature derivation
+ * @layer domain
+ *
  * What proves a figure.
  *
  * Two identifiers, not one, because they have different lifetimes:

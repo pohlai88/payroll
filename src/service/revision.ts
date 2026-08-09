@@ -1,4 +1,8 @@
 /**
+ * @feature pay-run
+ * @layer service
+ * @hub src/server/routes/pay-run.ts
+ *
  * Canonical calcRevision hash over calculation-relevant run state.
  */
 

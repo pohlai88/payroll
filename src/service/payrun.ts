@@ -1,4 +1,8 @@
 /**
+ * @feature pay-run
+ * @layer service
+ * @hub src/server/routes/pay-run.ts
+ *
  * Run creation and recomputation.
  *
  * Each function is one transaction. The engine is called, never reimplemented:

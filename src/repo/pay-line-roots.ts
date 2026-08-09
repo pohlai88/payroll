@@ -1,4 +1,8 @@
 /**
+ * @feature workspace
+ * @layer repo
+ * @hub src/server/routes/pay-run-workspace.ts
+ *
  * The 19 named sen roots every pay line carries — see `src/db/schema/run.ts`
  * `payLines`. Shared by workspace and payslip so the two read models cannot
  * drift on which columns map to which root keys.

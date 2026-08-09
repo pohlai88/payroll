@@ -1,4 +1,7 @@
 /**
+ * @feature employee-import
+ * @layer test
+ *
  * Auth-gated employee import HTTP routes — real DB, injected JWT verifier.
  */
 

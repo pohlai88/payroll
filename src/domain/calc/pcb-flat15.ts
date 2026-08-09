@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer domain
+ *
  * Flat 15% PCB regimes: REP, Knowledge Worker (IRDA), and C-Suite.
  *
  * REP / KW: MTD = [(P×R − T) − (Z+X)] / (n+1) with Table 2/3 rebate T.

@@ -1,8 +1,17 @@
 /**
- * Phase 8 — annual remuneration summary read facade.
- * NOT Form EA / C.P.8A. See spec §5.3 and frozen Rule 4.
+ * @feature remuneration
+ * @layer route
+ * @surface GET /v1/employees/:employeeId/remuneration-summary/:year
+ * @chain
+ *   ui:      src/web/reports/reports-page.tsx; annual-remuneration-summary.tsx
+ *   client:  getAnnualRemunerationSummary
+ *   route:   src/server/routes/employee-remuneration.ts
+ *   service: src/service/rbac.ts (requirePermission only; aggregation in route)
+ *   repo:    (none — fat route)
+ *   schema:  src/db/schema/run.ts; parties.ts
+ *   spine:   app.ts → employeeRemunerationRoutes; reports portal annual tab
  *
- * GET /v1/employees/:employeeId/remuneration-summary/:year
+ * Annual remuneration summary (not Form EA / C.P.8A). Fat-route.
  */
 import { and, eq, inArray } from "drizzle-orm";
 import { Hono } from "hono";

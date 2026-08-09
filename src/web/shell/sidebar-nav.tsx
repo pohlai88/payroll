@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer ui
+ *
  * Application sidebar — Clarity Payroll nav + signed-in user footer.
  * Structure adapted from application-shell-05; routes from `app-nav`.
  */

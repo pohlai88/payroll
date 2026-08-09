@@ -1,4 +1,8 @@
 /**
+ * @feature diff
+ * @layer ui
+ * @hub src/server/routes/pay-run-diff.ts
+ *
  * Employee-level graph diff tab — lazy-fetched on activation.
  * Shows NodeDiffRow[] grouped by kind (VALUE / ADDED / REMOVED / STRUCTURE / CITATION).
  */

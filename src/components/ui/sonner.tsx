@@ -1,4 +1,10 @@
-import type { CSSProperties } from "react";
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * shadcn UI primitive (shared).
+ */
+
 import {
   CircleCheckIcon,
   InfoIcon,
@@ -6,6 +12,7 @@ import {
   OctagonXIcon,
   TriangleAlertIcon,
 } from "lucide-react";
+import type { CSSProperties } from "react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 import { useDarkMode } from "@/hooks/use-dark-mode";
 

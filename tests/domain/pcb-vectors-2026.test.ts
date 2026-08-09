@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer test
+ *
  * Official vectors from LHDN MTD Computerized Spec 2026 EXHIBIT 5.
  *
  * `P-TEST-2026` is fetched/hashed but has no published answer key — Q1–Q5 are

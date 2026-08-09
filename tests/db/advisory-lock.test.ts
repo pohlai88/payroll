@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer test
+ *
  * Proves the primitive the test-harness concurrency guard depends on:
  * `pg_try_advisory_lock` genuinely refuses a second holder and genuinely
  * releases — including across idle periods when held on a dedicated Client.

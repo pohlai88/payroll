@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Notification dropdown block.
+ */
+
 import { LinkIcon, SettingsIcon, XIcon } from "lucide-react";
 import type { ReactElement } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

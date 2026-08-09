@@ -1,4 +1,7 @@
 /**
+ * @feature derivation
+ * @layer domain
+ *
  * The English dictionary, and the definition of every message key in the system.
  *
  * `MessageKey` is `keyof typeof EN`, so emitting a key that is not defined here

@@ -1,3 +1,10 @@
+/**
+ * @feature marketing
+ * @layer ui
+ *
+ * Marketing landing surface.
+ */
+
 import type { ReactNode } from "react";
 
 interface EvidenceDisclosureProps {

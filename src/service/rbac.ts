@@ -1,4 +1,8 @@
 /**
+ * @feature rbac
+ * @layer service
+ * @hub src/server/routes/me.ts
+ *
  * Authorization service — loads a user's grants from the database and evaluates
  * them through the pure decision functions in `src/domain/rbac`.
  */

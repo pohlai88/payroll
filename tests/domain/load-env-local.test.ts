@@ -1,3 +1,8 @@
+/**
+ * @feature shell
+ * @layer test
+ */
+
 import { describe, expect, it } from "vitest";
 import { applyEnvLines, parseEnvFile } from "@/server/load-env-local";
 

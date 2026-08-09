@@ -1,4 +1,7 @@
 /**
+ * @feature findings
+ * @layer domain
+ *
  * §8.6 transfer finding detectors — pure evaluation over loaded facts.
  */
 

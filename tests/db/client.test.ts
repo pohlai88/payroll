@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer test
+ *
  * `createPool` must never leave the pool's `'error'` event unhandled.
  *
  * Node's `EventEmitter` throws when an `'error'` event fires with no

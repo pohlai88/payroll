@@ -1,4 +1,7 @@
 /**
+ * @feature workspace
+ * @layer test
+ *
  * `GET /v1/pay-runs/:runId/workspace` — the main workspace read model.
  */
 

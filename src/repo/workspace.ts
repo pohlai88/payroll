@@ -1,4 +1,8 @@
 /**
+ * @feature workspace
+ * @layer repo
+ * @hub src/server/routes/pay-run-workspace.ts
+ *
  * The pay-run workspace read model — `GET /v1/pay-runs/:runId/workspace`.
  *
  * Composes the run header, action availability, aggregate tiles, findings

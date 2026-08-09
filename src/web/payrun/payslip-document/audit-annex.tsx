@@ -1,3 +1,11 @@
+/**
+ * @feature payslip
+ * @layer ui
+ * @hub src/server/routes/pay-run-payslip.ts
+ *
+ * Payslip document section.
+ */
+
 // Page 2 — calculation & audit annex
 import type { Lang } from "@/domain/derive/i18n/render";
 import type { PayslipDocumentDto } from "./types";

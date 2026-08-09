@@ -1,4 +1,7 @@
 /**
+ * @feature control
+ * @layer test
+ *
  * The closure chain.
  *
  * Nobody outside this system signs for it, so the only thing that makes a

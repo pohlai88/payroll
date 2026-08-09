@@ -1,4 +1,8 @@
 /**
+ * @feature gates
+ * @layer ui
+ * @hub src/server/routes/pay-run.ts
+ *
  * Gate-check confirmation dialog — evaluates REVIEW/APPROVAL before the
  * mutation. Confirm is enabled only when the gate is clear (`ok === true`).
  * The browser never bypasses a blocked gate.

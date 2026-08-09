@@ -1,3 +1,11 @@
+/**
+ * @feature pay-run
+ * @layer ui
+ * @hub src/server/routes/pay-run.ts
+ *
+ * Run/line status badge.
+ */
+
 import type { VariantProps } from "class-variance-authority";
 import { Badge, type badgeVariants } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";

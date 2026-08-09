@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer ui
+ *
  * Canonical brand-band page title used above the shell primary band.
  */
 

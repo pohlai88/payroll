@@ -1,4 +1,8 @@
 /**
+ * @feature transfer
+ * @layer service
+ * @hub src/server/routes/transfers.ts
+ *
  * Internal group transfer: ends an employment at one company and creates the
  * linked one at another, for the same person.
  *

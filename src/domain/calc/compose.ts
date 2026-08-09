@@ -1,3 +1,10 @@
+/**
+ * @feature pay-run
+ * @layer domain
+ *
+ * Pure statutory calc (no I/O).
+ */
+
 import { formatRM, pctHalfUpSen } from "../money";
 import { classify } from "./classify";
 import { eis } from "./eis";

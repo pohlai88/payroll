@@ -1,4 +1,7 @@
 /**
+ * @feature auth
+ * @layer spine
+ *
  * End-to-end developer bootstrap: Neon Auth email user + app invite.
  *
  * Neon Auth requires password length ≥ 8. Then set VITE_DEV_* in `.env.local`

@@ -1,4 +1,8 @@
 /**
+ * @feature rbac
+ * @layer repo
+ * @hub src/server/routes/me.ts
+ *
  * Persistence for users, roles, permission-matrix cells and assignments.
  *
  * Authorization decisions live in `src/domain/rbac` and `src/service/rbac`;

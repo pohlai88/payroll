@@ -1,4 +1,7 @@
 /**
+ * @feature rbac
+ * @layer test
+ *
  * Database-level RBAC invariants: seeded System Admin, unique assignments,
  * the system-role permission trigger, and cascade deletes.
  */

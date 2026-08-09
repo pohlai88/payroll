@@ -1,4 +1,7 @@
 /**
+ * @feature auth
+ * @layer ui
+ *
  * UI presentation predicate for System Admin — not an authorization mechanism.
  *
  * Derived from server-returned effective permissions using the canonical

@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Language dropdown block.
+ */
+
 "use client";
 
 import type { ReactElement } from "react";

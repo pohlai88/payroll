@@ -1,4 +1,7 @@
 /**
+ * @feature employee-import
+ * @layer spine
+ *
  * Emits the employee bulk-import CSV template: fixed headers plus one
  * column per active custom field, in order. Re-run after editing
  * db/seed/employee-custom-fields.json and reseeding to pick up new columns.

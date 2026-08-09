@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer ui
+ *
  * `ScopeContext` — holds the user's chosen company scope + reporting month.
  *
  * This context only stores state and exposes setters. It never derives

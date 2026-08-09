@@ -1,4 +1,8 @@
 /**
+ * @feature payslip
+ * @layer repo
+ * @hub src/server/routes/pay-run-payslip.ts
+ *
  * Payslip read models — index + full document DTO for a pay line.
  *
  * Masking and YTD aggregation live here so the route stays thin. Authorization
@@ -21,7 +25,7 @@ export interface PayslipIndexRow {
 }
 
 /** Keep in sync with `src/web/payrun/payslip-document/types.ts` `PayslipDocumentDto`. */
-export type PayslipDocumentDto = {
+export interface PayslipDocumentDto {
   readonly documentId: string;
   readonly generatedAt: string;
   readonly documentStatus: "APPROVED" | "CLOSED" | "DRAFT_PREVIEW";
@@ -104,7 +108,7 @@ export type PayslipDocumentDto = {
     readonly rulePackHash: string | null;
     readonly calcEngineVersion: string | null;
   };
-};
+}
 
 function maskNric(ic: string | null | undefined): string | null {
   if (!ic) {

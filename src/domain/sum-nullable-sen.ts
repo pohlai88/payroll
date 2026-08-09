@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer domain
+ *
  * Sum nullable sen amounts without coercing unknown (`null`) to zero.
  * Callers surface `incomplete` when any contributor was missing.
  */

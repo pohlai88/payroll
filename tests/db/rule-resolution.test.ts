@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer test
+ *
  * `resolveRule` turns `(scheme, ruleCode, statutoryDate)` into exactly one
  * approved rule pack, or refuses. These tests provoke every way that can go
  * wrong — nothing found, only unapproved content found, more than one

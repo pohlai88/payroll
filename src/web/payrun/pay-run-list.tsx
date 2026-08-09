@@ -1,4 +1,8 @@
 /**
+ * @feature pay-run
+ * @layer ui
+ * @hub src/server/routes/pay-run.ts
+ *
  * Pay-run list — `GET /v1/pay-runs`, scoped by `ScopeContext`.
  * Studio: datatable-pay-run + empty-state-01.
  */

@@ -1,4 +1,8 @@
 /**
+ * @feature payslip
+ * @layer ui
+ * @hub src/server/routes/pay-run-payslip.ts
+ *
  * Full-page bilingual payslip — /pay-runs/:runId/payslip/:lineId
  */
 import { useCallback, useEffect, useState } from "react";

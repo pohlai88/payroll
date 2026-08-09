@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer domain
+ *
  * Additional Remuneration PCB (bonus, commission, director’s fees, etc.).
  *
  * Spec steps 1–5: normal MTD for the month + additional MTD = total payable.

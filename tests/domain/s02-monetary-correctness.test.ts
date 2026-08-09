@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer test
+ *
  * S02 Monetary Correctness Tests
  *
  * These tests prove the S02 requirements for exact sen arithmetic,

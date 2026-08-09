@@ -1,5 +1,17 @@
 /**
- * `GET /v1/pay-runs/:runId/workspace` — the main workspace read model.
+ * @feature workspace
+ * @layer route
+ * @surface GET /v1/pay-runs/:runId/workspace
+ * @chain
+ *   ui:      src/web/payrun/workspace.tsx
+ *   client:  getWorkspace
+ *   route:   src/server/routes/pay-run-workspace.ts
+ *   service: (none — route → repo; AuthZ via pay-run-access)
+ *   repo:    src/repo/workspace.ts; src/repo/pay-line-roots.ts
+ *   schema:  src/db/schema/run.ts; findings.ts; parties.ts
+ *   spine:   app.ts → payRunWorkspaceRoutes; app.tsx /pay-runs/:runId
+ *
+ * Main pay-run workspace read model (no dedicated service layer yet).
  */
 
 import { Hono } from "hono";

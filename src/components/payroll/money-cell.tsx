@@ -1,3 +1,11 @@
+/**
+ * @feature pay-run
+ * @layer ui
+ * @hub src/server/routes/pay-run.ts
+ *
+ * Sen/RM money cell.
+ */
+
 import {
   Tooltip,
   TooltipContent,

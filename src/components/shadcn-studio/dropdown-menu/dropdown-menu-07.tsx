@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Shell dropdown menu block.
+ */
+
 import {
   BellIcon,
   CreditCardIcon,

@@ -1,4 +1,8 @@
 /**
+ * @feature employee-import
+ * @layer repo
+ * @hub src/server/routes/employee-import.ts
+ *
  * DB operations for the employee bulk importer. Create-only: nothing here
  * ever updates an existing person/employment/profile row — see
  * docs/superpowers/specs/2026-08-08-employee-master-import-design.md.

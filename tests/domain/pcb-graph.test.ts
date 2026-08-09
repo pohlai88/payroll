@@ -1,3 +1,8 @@
+/**
+ * @feature pay-run
+ * @layer test
+ */
+
 import { describe, expect, it } from "vitest";
 import { computeLine } from "@/domain/calc/compose";
 import { pcbNet } from "@/domain/calc/pcb";

@@ -1,4 +1,8 @@
 /**
+ * @feature control
+ * @layer service
+ * @hub src/server/routes/pay-run-control.ts
+ *
  * Sole writer of `line_payments` transitions.
  *
  * release.ts / close.ts must call these helpers — never update line_payments
@@ -85,6 +89,20 @@ export async function createReadyPaymentsForRun(
     .onConflictDoNothing({ target: linePayments.lineId })
     .returning({ id: linePayments.id });
   return inserted.length;
+}
+
+/**
+ * Current state of one line's payment. Part of the public payments API: callers
+ * that need a single line (closure assertions, control checks) go through this
+ * rather than reading `line_payments.state` directly — bulk readers still select
+ * the column in their own query.
+ */
+export async function getPaymentState(
+  db: DbOrTx,
+  lineId: string
+): Promise<LinePaymentState> {
+  const row = await loadPayment(db, lineId);
+  return row.state;
 }
 
 export async function holdLine(
@@ -318,12 +336,4 @@ export async function withdrawLine(
       after: { reasonCode: input.reasonCode },
     });
   });
-}
-
-async function getPaymentState(
-  db: Database,
-  lineId: string
-): Promise<LinePaymentState> {
-  const row = await loadPayment(db, lineId);
-  return row.state;
 }

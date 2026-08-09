@@ -1,4 +1,8 @@
 /**
+ * @feature workspace
+ * @layer ui
+ * @hub src/server/routes/pay-run-workspace.ts
+ *
  * Workspace totals strip — five aggregate tiles (Gross Pay, Employee EPF,
  * Employee SOCSO, PCB, Net Pay). Renders server-computed values only:
  * `MoneyCell` shows `currentSen`, `DeltaBadge` shows the server's

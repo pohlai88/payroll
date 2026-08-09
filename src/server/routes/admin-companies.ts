@@ -1,3 +1,19 @@
+/**
+ * @feature companies
+ * @layer route
+ * @surface GET|POST /v1/admin/companies; PATCH /v1/admin/companies/:companyId
+ * @chain
+ *   ui:      src/web/companies/companies-page.tsx
+ *   client:  getAdminCompanies, createAdminCompany, updateAdminCompany
+ *   route:   src/server/routes/admin-companies.ts
+ *   service: src/service/admin-companies.ts
+ *   repo:    src/repo/companies.ts
+ *   schema:  src/db/schema/parties.ts (companies)
+ *   spine:   app.ts → adminCompanyRoutes; app.tsx + app-nav /companies
+ *
+ * Admin companies HTTP: directory CRUD under /v1/admin/companies.
+ */
+
 import { Hono } from "hono";
 import { z } from "zod";
 import type { Database } from "@/db/client";

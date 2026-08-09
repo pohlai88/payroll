@@ -1,11 +1,35 @@
+/**
+ * @feature transfer
+ * @layer route
+ * @surface POST /v1/transfers
+ * @surface POST /v1/transfers/findings/:findingId/acknowledge
+ * @chain
+ *   ui:      (none — client wired; no SPA page yet)
+ *   client:  commitTransfer, acknowledgeTransferFinding
+ *   route:   src/server/routes/transfers.ts
+ *   service: src/service/transfer.ts; src/service/findings.ts
+ *   repo:    (writes via service → schema; findings via src/service/findings.ts)
+ *   schema:  src/db/schema/transfer.ts; parties.ts; run.ts; findings.ts
+ *   spine:   app.ts → transferRoutes
+ *
+ * Internal group employment transfer commit under /v1/transfers.
+ */
+
 import { Hono } from "hono";
 import { z } from "zod";
 import type { Database } from "@/db/client";
+import { acknowledgeTransferFindingForActor } from "@/service/findings";
 import { commitTransferForActor } from "@/service/transfer";
 import type { AuthVariables } from "../auth/middleware";
 import { handleRouteError } from "../errors";
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+
+const findingIdParam = z.string().uuid();
+
+const acknowledgeFindingBody = z.object({
+  note: z.string().min(1).nullable().optional(),
+});
 
 const commitTransferBody = z.object({
   personId: z.string().uuid(),
@@ -55,6 +79,23 @@ export function transferRoutes(db: Database) {
         body
       );
       return c.json(result, 201);
+    } catch (error) {
+      return handleRouteError(c, error);
+    }
+  });
+
+  app.post("/transfers/findings/:findingId/acknowledge", async (c) => {
+    try {
+      const user = c.get("user");
+      const findingId = findingIdParam.parse(c.req.param("findingId"));
+      const body = acknowledgeFindingBody.parse(await c.req.json());
+      await acknowledgeTransferFindingForActor(
+        db,
+        { userId: user.id, email: user.email },
+        findingId,
+        { note: body.note }
+      );
+      return c.json({ ok: true });
     } catch (error) {
       return handleRouteError(c, error);
     }

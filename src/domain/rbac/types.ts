@@ -1,4 +1,7 @@
 /**
+ * @feature rbac
+ * @layer domain
+ *
  * RBAC domain types — mirrored 1:1 with the Postgres enums in
  * `src/db/schema/enums.ts`. Members are written out literally rather than
  * derived, so a code change without a migration fails loudly in

@@ -1,10 +1,14 @@
 /**
+ * @feature gates
+ * @layer service
+ * @hub src/server/routes/pay-run.ts
+ *
  * Pure gate evaluation — no writes.
  * Spec: docs/superpowers/specs/2026-08-08-phase6-findings-gates-approval-design.md
  */
 
 import { and, eq } from "drizzle-orm";
-import type { Database, DbOrTx, Transaction } from "@/db/client";
+import type { Database, Transaction } from "@/db/client";
 import { gateCertifications } from "@/db/schema/control";
 import { anomalyFindings } from "@/db/schema/findings";
 import { auditEvents, payLines, payRuns } from "@/db/schema/run";
@@ -34,7 +38,7 @@ export interface GateResult {
  * payment attempts, artifacts, or status transitions.
  */
 export async function evaluateGate(
-  db: DbOrTx,
+  db: GateDb,
   runId: string,
   gate: GateKind,
   opts?: { readonly lineIds?: readonly string[] }
@@ -114,7 +118,7 @@ export async function evaluateGate(
 }
 
 export async function certifyGate(
-  db: DbOrTx,
+  db: GateDb,
   input: {
     readonly runId: string;
     readonly gate: GateKind;
@@ -158,7 +162,7 @@ export async function certifyGate(
 }
 
 async function reviewPrerequisites(
-  db: DbOrTx,
+  db: GateDb,
   runId: string
 ): Promise<GateIssue[]> {
   const lines = await db
@@ -213,7 +217,7 @@ async function reviewPrerequisites(
 }
 
 async function findingIssuesForGate(
-  db: DbOrTx,
+  db: GateDb,
   runId: string,
   gate: GateKind,
   lineIds?: readonly string[]

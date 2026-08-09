@@ -1,3 +1,11 @@
+/**
+ * @feature shell
+ * @layer ui
+ * @hub src/server/routes/pay-run.ts
+ *
+ * Payroll section header.
+ */
+
 import type * as React from "react";
 import { cn } from "@/lib/utils";
 

@@ -1,4 +1,8 @@
 /**
+ * @feature payslip
+ * @layer ui
+ * @hub src/server/routes/pay-run-payslip.ts
+ *
  * Payslip print preview — Phase 5B simplified layout, English-only,
  * light-only via `--doc-*` tokens (independent of dark mode). Renders the
  * workspace's `roots` verbatim; no client-side recalculation. The governed,

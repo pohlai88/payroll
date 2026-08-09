@@ -1,4 +1,8 @@
 /**
+ * @feature pay-run
+ * @layer repo
+ * @hub src/server/routes/pay-run.ts
+ *
  * Loads a run's lines as engine input.
  *
  * This is the only place that assembles `EmployeeSnapshot` and `LineInputs` from
@@ -86,6 +90,24 @@ export interface PayRunSummary {
   readonly createdAt: string;
 }
 
+/**
+ * Company predicate for the run list: a single company wins over the accessible
+ * set, and an absent set means "no company filter" (callers already short-circuit
+ * an *empty* set to `[]`, so undefined here is genuinely unscoped, not empty).
+ */
+function resolveCompanyScope(filters: {
+  companyId?: string;
+  companyIds?: readonly string[];
+}) {
+  if (filters.companyId) {
+    return eq(payRuns.companyId, filters.companyId);
+  }
+  if (filters.companyIds === undefined) {
+    return;
+  }
+  return inArray(payRuns.companyId, [...filters.companyIds]);
+}
+
 /** Runs visible to the caller, newest period first. `reportingMonth` is `YYYY-MM`. */
 export async function listPayRunSummaries(
   db: Database,
@@ -125,11 +147,7 @@ export async function listPayRunSummaries(
     .leftJoin(employeeCounts, eq(employeeCounts.runId, payRuns.id))
     .where(
       and(
-        filters.companyId
-          ? eq(payRuns.companyId, filters.companyId)
-          : filters.companyIds === undefined
-            ? undefined
-            : inArray(payRuns.companyId, [...filters.companyIds]),
+        resolveCompanyScope(filters),
         filters.reportingMonth
           ? eq(
               sql`${payRuns.year}::text || '-' || lpad(${payRuns.month}::text, 2, '0')`,

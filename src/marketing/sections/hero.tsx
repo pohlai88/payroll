@@ -1,3 +1,10 @@
+/**
+ * @feature marketing
+ * @layer ui
+ *
+ * Marketing landing surface.
+ */
+
 import { CONTROL_PROOF, HERO, HERO_ASSURANCE } from "@/marketing/content";
 import { CtaLink } from "@/marketing/cta-link";
 

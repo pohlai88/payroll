@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer client
+ *
  * Production API client — real VITE_API_BASE, no mock bypass.
  * Single surface: `payrollApi` / `getPayrollApi()`. No parallel `fetch*` wrappers.
  */
@@ -10,6 +13,7 @@ import type { GateKind, ReleaseMethod } from "./types";
 
 export type { GetEmployeesParams, GetPayRunsParams } from "./client";
 export type {
+  AcknowledgeTransferFindingResponse,
   ActionAvailability,
   AggregateTile,
   AnnualRemunerationSummaryDto,
@@ -54,11 +58,11 @@ export type {
   PaymentRegisterDto,
   PaymentRegisterRow,
   PaymentsListResponse,
-  PcbClassDepartureBody,
   PayRunMutationEnvelope,
   PayRunMutationKind,
   PayRunSummary,
   PayRunWorkspaceView,
+  PcbClassDepartureBody,
   ReleaseBatch,
   ReleaseBatchStatus,
   ReleaseByBank,
@@ -109,9 +113,11 @@ export function getPayrollApi(): PayrollApi {
 
 /** Convenience alias for shell code — same lazy singleton. */
 export const payrollApi = {
+  // --- @feature me @layer client ---
   getMe: () => getPayrollApi().getMe(),
   getPermissions: (companyId?: string | null) =>
     getPayrollApi().getPermissions(companyId),
+  // --- @feature admin-users @layer client ---
   getAdminUsers: () => getPayrollApi().getAdminUsers(),
   createAdminUser: (body: Parameters<PayrollApi["createAdminUser"]>[0]) =>
     getPayrollApi().createAdminUser(body),
@@ -127,6 +133,7 @@ export const payrollApi = {
     userId: string,
     body: Parameters<PayrollApi["revokeUserRole"]>[1]
   ) => getPayrollApi().revokeUserRole(userId, body),
+  // --- @feature companies @layer client ---
   getAdminCompanies: () => getPayrollApi().getAdminCompanies(),
   createAdminCompany: (body: Parameters<PayrollApi["createAdminCompany"]>[0]) =>
     getPayrollApi().createAdminCompany(body),
@@ -134,13 +141,16 @@ export const payrollApi = {
     companyId: string,
     body: Parameters<PayrollApi["updateAdminCompany"]>[1]
   ) => getPayrollApi().updateAdminCompany(companyId, body),
+  // --- @feature employee-import @layer client ---
   downloadEmployeeImportTemplate: (companyId?: string | null) =>
     getPayrollApi().downloadEmployeeImportTemplate(companyId),
   importEmployees: (body: string, contentType: string) =>
     getPayrollApi().importEmployees(body, contentType),
+  // --- @feature pay-run @layer client ---
   getPayRuns: (params?: GetPayRunsParams) => getPayrollApi().getPayRuns(params),
   createPayRun: (body: Parameters<PayrollApi["createPayRun"]>[0]) =>
     getPayrollApi().createPayRun(body),
+  // --- @feature workspace @layer client ---
   getWorkspace: (runId: string) => getPayrollApi().getWorkspace(runId),
   recompute: (runId: string) => getPayrollApi().recompute(runId),
   review: (runId: string, calcRevision: string) =>
@@ -148,14 +158,18 @@ export const payrollApi = {
   approve: (runId: string, calcRevision: string) =>
     getPayrollApi().approve(runId, calcRevision),
   demotePayRun: (runId: string) => getPayrollApi().demotePayRun(runId),
+  // --- @feature findings @layer client ---
   getFindings: (runId: string) => getPayrollApi().getFindings(runId),
   scanFindings: (runId: string) => getPayrollApi().scanFindings(runId),
   acknowledgeFinding: (runId: string, findingId: string, note?: string) =>
     getPayrollApi().acknowledgeFinding(runId, findingId, note),
+  // --- @feature gates @layer client ---
   evaluateGate: (runId: string, gate: GateKind) =>
     getPayrollApi().evaluateGate(runId, gate),
+  // --- @feature employees @layer client ---
   getEmployees: (params?: GetEmployeesParams) =>
     getPayrollApi().getEmployees(params),
+  // --- @feature control @layer client ---
   getPayments: (runId: string) => getPayrollApi().getPayments(runId),
   holdLine: (runId: string, lineId: string, reason: string) =>
     getPayrollApi().holdLine(runId, lineId, reason),
@@ -192,6 +206,7 @@ export const payrollApi = {
     lineId: string,
     body: Parameters<PayrollApi["recordDistribution"]>[2]
   ) => getPayrollApi().recordDistribution(runId, lineId, body),
+  // --- @feature artifacts @layer client ---
   getArtifacts: (runId: string) => getPayrollApi().getArtifacts(runId),
   uploadArtifact: (
     runId: string,
@@ -204,23 +219,32 @@ export const payrollApi = {
   closeRun: (runId: string) => getPayrollApi().closeRun(runId),
   getRunSeal: (runId: string) => getPayrollApi().getRunSeal(runId),
   getClosureChain: (runId: string) => getPayrollApi().getClosureChain(runId),
+  // --- @feature payslip @layer client ---
   getPayslip: (runId: string, lineId: string) =>
     getPayrollApi().getPayslip(runId, lineId),
   getPayslipIndex: (runId: string) => getPayrollApi().getPayslipIndex(runId),
+  // --- @feature diff @layer client ---
   getLineDiff: (runId: string, lineId: string) =>
     getPayrollApi().getLineDiff(runId, lineId),
+  // --- @feature derivation @layer client ---
   getLineDerivation: (runId: string, lineId: string, root?: string) =>
     getPayrollApi().getLineDerivation(runId, lineId, root),
+  // --- @feature reports @layer client ---
   getPaymentRegister: (runId: string) =>
     getPayrollApi().getPaymentRegister(runId),
   getStatutorySummary: (runId: string) =>
     getPayrollApi().getStatutorySummary(runId),
   getExceptionReport: (runId: string) =>
     getPayrollApi().getExceptionReport(runId),
+  // --- @feature remuneration @layer client ---
   getAnnualRemunerationSummary: (employeeId: string, year: number) =>
     getPayrollApi().getAnnualRemunerationSummary(employeeId, year),
+  // --- @feature transfer @layer client ---
   commitTransfer: (body: Parameters<PayrollApi["commitTransfer"]>[0]) =>
     getPayrollApi().commitTransfer(body),
+  acknowledgeTransferFinding: (findingId: string, note?: string) =>
+    getPayrollApi().acknowledgeTransferFinding(findingId, note),
+  // --- @feature treatments @layer client ---
   recordWageTreatmentDeparture: (
     payItemId: string,
     body: Parameters<PayrollApi["recordWageTreatmentDeparture"]>[1]

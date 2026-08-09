@@ -1,3 +1,8 @@
+/**
+ * @feature reports
+ * @layer test
+ */
+
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { roles, userRoleAssignments, users } from "@/db/schema/rbac";

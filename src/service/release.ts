@@ -1,4 +1,8 @@
 /**
+ * @feature control
+ * @layer service
+ * @hub src/server/routes/pay-run-control.ts
+ *
  * Release batches, payment attempts, generic payment register CSV.
  */
 

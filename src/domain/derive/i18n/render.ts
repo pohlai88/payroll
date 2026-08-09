@@ -1,4 +1,7 @@
 /**
+ * @feature derivation
+ * @layer domain
+ *
  * Turns a `LabelRef` into a sentence in one of the supported languages.
  *
  * Deliberately hand-rolled rather than pulled from an ICU library: Malay has no

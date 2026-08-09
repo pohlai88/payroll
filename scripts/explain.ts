@@ -1,4 +1,7 @@
 /**
+ * @feature derivation
+ * @layer spine
+ *
  * Prints the derivation of one figure, recursively, for a fixture employee.
  *
  *   npx tsx scripts/explain.ts [employeeId] [rootKey] [en|ms]

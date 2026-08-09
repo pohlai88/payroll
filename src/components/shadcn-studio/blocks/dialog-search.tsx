@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Search dialog block.
+ */
+
 import {
   ArrowDownIcon,
   ArrowUpIcon,

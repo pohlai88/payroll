@@ -1,4 +1,7 @@
 /**
+ * @feature rbac
+ * @layer test
+ *
  * Pure authorization evaluation against fixtures — no database.
  */
 

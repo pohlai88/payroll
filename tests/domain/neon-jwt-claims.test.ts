@@ -1,3 +1,8 @@
+/**
+ * @feature auth
+ * @layer test
+ */
+
 import { describe, expect, it } from "vitest";
 import { AuthError } from "@/server/auth/errors";
 import { parseNeonAuthClaims } from "@/server/auth/jwt";

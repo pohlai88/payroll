@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer spine
+ *
  * Canonical signed-in shell navigation — single source for sidebar,
  * command palette, and breadcrumbs. Paths must match `src/web/app.tsx`
  * Route declarations (validated below).
@@ -43,6 +46,7 @@ const APP_SHELL_ROUTE_PATHS = [
 type AppShellRoutePath = (typeof APP_SHELL_ROUTE_PATHS)[number];
 
 export const APP_NAV_ITEMS: readonly AppNavItem[] = [
+  // --- @feature pay-run @layer spine ---
   {
     id: "dashboard",
     label: "Dashboard",
@@ -56,24 +60,28 @@ export const APP_NAV_ITEMS: readonly AppNavItem[] = [
     href: "/pay-runs",
     icon: ReceiptTextIcon,
   },
+  // --- @feature employees @layer spine ---
   {
     id: "employees",
     label: "Employees",
     href: "/employees",
     icon: UsersIcon,
   },
+  // --- @feature reports @layer spine ---
   {
     id: "reports",
     label: "Reports",
     href: "/reports",
     icon: FileTextIcon,
   },
+  // --- @feature control @layer spine ---
   {
     id: "control",
     label: "Control",
     href: "/control",
     icon: ShieldCheckIcon,
   },
+  // --- @feature companies @layer spine ---
   {
     id: "companies",
     label: "Companies",
@@ -81,6 +89,7 @@ export const APP_NAV_ITEMS: readonly AppNavItem[] = [
     icon: Building2Icon,
     adminOnly: true,
   },
+  // --- @feature admin-users @layer spine ---
   {
     id: "admin",
     label: "Admin",

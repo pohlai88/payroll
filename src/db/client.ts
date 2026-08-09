@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer repo
+ *
  * The one database client.
  *
  * `drizzle-orm/node-postgres` over a plain `pg` Pool, used identically against

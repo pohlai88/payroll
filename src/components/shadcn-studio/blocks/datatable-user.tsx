@@ -1,4 +1,8 @@
 /**
+ * @feature admin-users
+ * @layer ui
+ * @hub src/server/routes/admin-users.ts
+ *
  * Studio datatable-component-04 adapted for Clarity admin users (read-only).
  */
 

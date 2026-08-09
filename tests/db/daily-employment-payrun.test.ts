@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer test
+ *
  * A DAILY-rated employment, through a real pay run, end to end.
  *
  * `constraints.test.ts` proves the `enforce_employment_item_compatibility`

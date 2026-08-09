@@ -1,4 +1,7 @@
 /**
+ * @feature artifacts
+ * @layer domain
+ *
  * Cloudflare R2 via S3-compatible API.
  *
  * AWS SDK ≥3.729 defaults checksums to WHEN_SUPPORTED, which R2 rejects.
@@ -89,9 +92,7 @@ export function createR2Store(config: R2Config): ArtifactStore {
 
     async delete(key: string): Promise<void> {
       const safe = assertSafeArtifactKey(key);
-      await client.send(
-        new DeleteObjectCommand({ Bucket: bucket, Key: safe })
-      );
+      await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: safe }));
     },
   };
 }

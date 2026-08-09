@@ -1,4 +1,7 @@
 /**
+ * @feature control
+ * @layer test
+ *
  * RFC 3161 request encoding — known-answer vectors.
  *
  * The expected bytes are written out literally rather than round-tripped

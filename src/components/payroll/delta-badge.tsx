@@ -1,3 +1,11 @@
+/**
+ * @feature pay-run
+ * @layer ui
+ * @hub src/server/routes/pay-run.ts
+ *
+ * Delta/variance badge.
+ */
+
 import { ArrowDownIcon, ArrowRightIcon, ArrowUpIcon } from "lucide-react";
 
 interface VarianceDto {

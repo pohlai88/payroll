@@ -1,4 +1,7 @@
 /**
+ * @feature findings
+ * @layer test
+ *
  * P0A — RELEASE line-scoped partial release vs run-scoped fail-closed.
  */
 

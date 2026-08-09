@@ -1,4 +1,8 @@
 /**
+ * @feature companies
+ * @layer ui
+ * @hub src/server/routes/admin-companies.ts
+ *
  * Company directory table — multicompany party rows for admin management.
  */
 

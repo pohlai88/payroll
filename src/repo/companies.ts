@@ -1,6 +1,9 @@
 /**
- * Company party persistence — directory reads and admin writes.
+ * @feature companies
+ * @layer repo
+ * @hub src/server/routes/admin-companies.ts
  *
+ * Company party persistence — directory reads and admin writes.
  * Authorization lives in `src/service/admin-companies` / `src/service/rbac`;
  * this module only loads and mutates rows.
  */

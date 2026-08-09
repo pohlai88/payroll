@@ -1,3 +1,10 @@
+/**
+ * @feature pay-run
+ * @layer domain
+ *
+ * Pure statutory calc (no I/O).
+ */
+
 import { ageAt } from "../ic";
 import type { Classification, EmployeeSnapshot, RuleSettings } from "./types";
 

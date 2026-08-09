@@ -1,4 +1,7 @@
 /**
+ * @feature auth
+ * @layer route
+ *
  * Invite-only Neon Auth → app `users` resolution.
  */
 

@@ -1,4 +1,7 @@
 /**
+ * @feature employee-import
+ * @layer spine
+ *
  * CLI for the employee bulk importer. Accepts CSV or JSON (array of row
  * objects); either way, column/key names must match the template exactly.
  * Create-only: an existing (employee code, company) pair is always

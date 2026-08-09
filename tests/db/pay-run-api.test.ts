@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer test
+ *
  * Auth-gated pay-run HTTP routes — real DB, injected Neon Auth JWT verifier.
  */
 

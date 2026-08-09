@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Visitors chart block.
+ */
+
 import {
   ArrowDownLeftIcon,
   ArrowUpRightIcon,

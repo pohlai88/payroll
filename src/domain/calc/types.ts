@@ -1,4 +1,7 @@
 /**
+ * @feature pay-run
+ * @layer domain
+ *
  * Pure calculation engine types. The engine never touches the database —
  * band tables, settings and employee snapshots are passed in.
  */

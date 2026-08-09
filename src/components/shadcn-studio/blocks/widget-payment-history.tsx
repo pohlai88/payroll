@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Payment history widget.
+ */
+
 import { EllipsisVerticalIcon } from "lucide-react";
 import { useCallback } from "react";
 import { useLocation } from "wouter";

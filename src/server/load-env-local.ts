@@ -1,4 +1,7 @@
 /**
+ * @feature shell
+ * @layer spine
+ *
  * Load `.env.local` into `process.env` when present.
  *
  * Existing process env wins (shell / CI exports are not overwritten). Missing

@@ -1,3 +1,11 @@
+/**
+ * @feature payslip
+ * @layer client
+ * @hub src/server/routes/pay-run-payslip.ts
+ *
+ * FE payslip DTO twin (Keep in sync with pay-run-payslip route).
+ */
+
 // Shared type — Keep in sync with `src/repo/payslip.ts` `PayslipDocumentDto`.
 export interface PayslipDocumentDto {
   documentId: string;

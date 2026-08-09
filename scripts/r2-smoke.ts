@@ -1,4 +1,7 @@
 /**
+ * @feature artifacts
+ * @layer spine
+ *
  * One-shot R2 smoke: put → get → delete against configured .env.local.
  * Usage: npx tsx scripts/r2-smoke.ts
  */

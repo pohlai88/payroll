@@ -1,3 +1,10 @@
+/**
+ * @feature marketing
+ * @layer ui
+ *
+ * Marketing landing surface.
+ */
+
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 

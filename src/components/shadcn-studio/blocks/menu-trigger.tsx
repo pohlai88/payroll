@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Shell menu trigger.
+ */
+
 import type { VariantProps } from "class-variance-authority";
 import { PanelLeftCloseIcon, PanelRightCloseIcon } from "lucide-react";
 import type { buttonVariants } from "@/components/ui/button";

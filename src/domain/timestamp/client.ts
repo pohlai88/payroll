@@ -1,4 +1,7 @@
 /**
+ * @feature control
+ * @layer domain
+ *
  * Asks a Time Stamp Authority to sign a hash, and checks the answer.
  *
  * The transport is plain HTTP by design: the token is a signed CMS structure,

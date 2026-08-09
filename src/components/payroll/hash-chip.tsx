@@ -1,4 +1,8 @@
 /**
+ * @feature control
+ * @layer ui
+ * @hub src/server/routes/pay-run-control.ts
+ *
  * A digest, shown short and copied in full.
  *
  * Sixty-four hex characters is unreadable and comparing two of them by eye is

@@ -1,6 +1,17 @@
 /**
- * Employee list HTTP: `GET /v1/employees` for pay-run creation pickers.
- * Always scoped to companies the caller can access (never cross-tenant dump).
+ * @feature employees
+ * @layer route
+ * @surface GET /v1/employees
+ * @chain
+ *   ui:      src/web/employees/employees-page.tsx
+ *   client:  getEmployees
+ *   route:   src/server/routes/employees.ts
+ *   service: src/service/employees.ts
+ *   repo:    src/repo/employees.ts
+ *   schema:  src/db/schema/parties.ts (persons, employments)
+ *   spine:   app.ts → employeeRoutes; app.tsx + app-nav /employees
+ *
+ * Tenant-scoped employee directory for roster + pay-run pickers.
  */
 
 import { Hono } from "hono";

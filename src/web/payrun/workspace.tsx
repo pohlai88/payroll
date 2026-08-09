@@ -1,4 +1,8 @@
 /**
+ * @feature workspace
+ * @layer ui
+ * @hub src/server/routes/pay-run-workspace.ts
+ *
  * Pay-run workspace orchestrator — fetches the `PayRunWorkspaceView` for the
  * `:runId` route param and composes `RunHeader` + `TotalsStrip` +
  * `FindingsPanel` + `EmployeeGrid` + `EmployeeSlideOver`. Review/Approve run

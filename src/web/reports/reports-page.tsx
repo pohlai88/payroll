@@ -1,4 +1,8 @@
 /**
+ * @feature reports
+ * @layer ui
+ * @hub src/server/routes/pay-run-reports.ts
+ *
  * Reports portal — URL-driven state: /reports?type=<type>&runId=<id>
  * Report types: payment-register | statutory-summary | exception-report | annual-remuneration
  * Studio: vertical icon tabs (tabs-22 DNA) + empty-state-01.

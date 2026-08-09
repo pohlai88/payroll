@@ -1,3 +1,8 @@
+/**
+ * @feature findings
+ * @layer test
+ */
+
 import { describe, expect, it } from "vitest";
 import { fingerprintOf } from "@/domain/findings/fingerprint";
 import {

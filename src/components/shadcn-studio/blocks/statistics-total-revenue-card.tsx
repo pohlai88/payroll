@@ -1,3 +1,10 @@
+/**
+ * @feature shell
+ * @layer ui
+ *
+ * Statistics revenue card.
+ */
+
 "use client";
 
 import { Bar, BarChart } from "recharts";

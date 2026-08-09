@@ -1,4 +1,8 @@
 /**
+ * @feature treatments
+ * @layer service
+ * @hub src/server/routes/treatments.ts
+ *
  * Governed pay-item treatment / PCB class departures (MY-STAT-S06).
  * STATUTORY_DEFAULT rows come from seed/migration; this service writes
  * APPROVED_DEPARTURE supersessions only.
