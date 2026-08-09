@@ -16,6 +16,7 @@ import { healthRoutes } from "./routes/health";
 import { meRoutes } from "./routes/me";
 import { payRunRoutes } from "./routes/pay-run";
 import { payRunControlRoutes } from "./routes/pay-run-control";
+import { payRunPayslipRoutes } from "./routes/pay-run-payslip";
 import { payRunWorkspaceRoutes } from "./routes/pay-run-workspace";
 
 export interface AppDeps {
@@ -51,6 +52,7 @@ export function createApp(deps: AppDeps): Hono {
     payRunControlRoutes(deps.db, { artifactStore: deps.artifactStore })
   );
   v1.route("/", payRunWorkspaceRoutes(deps.db));
+  v1.route("/", payRunPayslipRoutes(deps.db));
   v1.onError((error, c) => handleRouteError(c, error));
 
   app.route("/v1", v1);
