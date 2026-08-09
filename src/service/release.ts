@@ -47,6 +47,20 @@ export async function previewRelease(
   lineIds: readonly string[]
 ): Promise<ReleasePreview> {
   const gate = await evaluateGate(db, runId, "RELEASE", { lineIds });
+
+  // Run-scoped / prerequisite RELEASE issues have no lineId. Partial release
+  // must not proceed when the whole gate is closed.
+  const globalIssues = gate.issues.filter((i) => i.lineId === undefined);
+  if (globalIssues.length > 0) {
+    const reason = globalIssues[0]?.message ?? "RELEASE gate blocked";
+    return {
+      eligible: [],
+      excluded: lineIds.map((lineId) => ({ lineId, reason })),
+      totalSen: 0,
+      byBank: [],
+    };
+  }
+
   const gateBlocked = new Set(
     gate.issues
       .filter((i) => i.lineId !== undefined)

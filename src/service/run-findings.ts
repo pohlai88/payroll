@@ -182,6 +182,7 @@ export async function acknowledgeRunFinding(
       evidence: {
         note: note ?? null,
         fingerprint: finding.fingerprint,
+        calcRevision: finding.detectedRevision,
       },
     });
   });
@@ -588,9 +589,64 @@ async function upsertRunFindings(
         actor: "system",
         evidence: {
           ...d.evidence,
+          reason: "EVIDENCE_CHANGED",
           priorAcknowledgement: priorAck,
         },
       });
+      touched += 1;
+      continue;
+    }
+
+    // Same fingerprint — revision-bound acknowledgement (Option 2).
+    const revisionChanged = prev.detectedRevision !== revision;
+    const gateRelevant =
+      prev.severity !== "INFO" && (prev.blocks?.length ?? 0) > 0;
+
+    if (
+      revisionChanged &&
+      prev.status === "ACKNOWLEDGED" &&
+      gateRelevant
+    ) {
+      const priorAck = {
+        ackActor: prev.ackActor,
+        ackAt: prev.ackAt?.toISOString() ?? null,
+        ackNote: prev.ackNote,
+        fingerprint: prev.fingerprint,
+        priorDetectedRevision: prev.detectedRevision,
+      };
+      await db
+        .update(anomalyFindings)
+        .set({
+          status: "OPEN",
+          ackActor: null,
+          ackAt: null,
+          ackNote: null,
+          detectedRevision: revision,
+          updatedAt: new Date(),
+        })
+        .where(eq(anomalyFindings.id, prev.id));
+      await db.insert(findingEvents).values({
+        findingId: prev.id,
+        kind: "REOPENED",
+        actor: "system",
+        evidence: {
+          reason: "REVISION_CHANGED",
+          priorAcknowledgement: priorAck,
+          calcRevision: revision,
+        },
+      });
+      touched += 1;
+      continue;
+    }
+
+    if (revisionChanged && prev.status === "OPEN") {
+      await db
+        .update(anomalyFindings)
+        .set({
+          detectedRevision: revision,
+          updatedAt: new Date(),
+        })
+        .where(eq(anomalyFindings.id, prev.id));
       touched += 1;
     }
   }

@@ -548,6 +548,14 @@ export async function recomputeRun(
   actor: string
 ): Promise<RecomputeOutcome> {
   const run = await loadRunForCompute(db, runId);
+  // Service guard: do not enter calculation work and rely on the DB immutability
+  // trigger. APPROVED/CLOSED corrections use the governed off-cycle path.
+  if (run.status === "APPROVED" || run.status === "CLOSED") {
+    throw new ControlError(
+      "INVALID_STATE",
+      `cannot recompute a ${run.status} run — use a governed correction/off-cycle`
+    );
+  }
   const [tables, settings, catalog] = await Promise.all([
     loadStatutoryTables(db, run.rulePackId),
     loadRuleSettings(db, run.rulePackId),

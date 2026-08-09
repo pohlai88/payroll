@@ -88,6 +88,8 @@ Current `recomputeRun()`:
 
 **Critical invariant**: If calculation succeeds but findings scanning fails, the new revision must remain unscanned and every gate must fail closed.
 
+**Note on `calcRevision`**: It is a **content hash** of calculation-relevant state (`computeCalcRevision`). An identical recompute keeps the same revision and therefore preserves acknowledgements. Revision-bound reopen fires only when calc-relevant state changes (new hash), not merely because `recomputeRun` was invoked.
+
 **Test**: `tests/findings/scan-contract.test.ts`
 
 ```ts

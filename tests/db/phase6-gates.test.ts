@@ -182,6 +182,41 @@ describe("Phase 6 gates", () => {
     expect(after).toEqual(before);
   });
 
+  it("refuses recompute on APPROVED at the service layer", async () => {
+    const revision = await setupComputedRun();
+    const findings = await db
+      .select()
+      .from(anomalyFindings)
+      .where(eq(anomalyFindings.runId, RUN_ID));
+    for (const f of findings) {
+      if (
+        f.status === "OPEN" &&
+        f.severity !== "BLOCKING" &&
+        f.severity !== "INFO"
+      ) {
+        await acknowledgeRunFinding(
+          db,
+          f.id,
+          "tester@example.com",
+          f.severity === "WARNING" ? "ok" : undefined
+        );
+      }
+    }
+    await reviewRun(db, RUN_ID, "tester@example.com", revision);
+    await approveRun(db, RUN_ID, "tester@example.com", revision);
+
+    await expect(
+      recomputeRun(db, RUN_ID, "tester@example.com")
+    ).rejects.toMatchObject({
+      code: "INVALID_STATE",
+      message: expect.stringContaining("APPROVED"),
+    });
+
+    const [run] = await db.select().from(payRuns).where(eq(payRuns.id, RUN_ID));
+    expect(run?.status).toBe("APPROVED");
+    expect(run?.calcRevision).toBe(revision);
+  });
+
   it("rejects stale approval after recompute", async () => {
     const r1 = await setupComputedRun();
     const findings = await db

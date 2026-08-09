@@ -16,6 +16,10 @@ const alias = {
  * `web` renders React components (jsdom) — payslip document token and render
  * assertions. No database, no server; component tree must render without errors.
  *
+ * `marketing` holds the landing page's content gates: reconciliation to the sen,
+ * provenance of every cited figure, and the rule that nothing may be advertised
+ * unless it exists in `src/`.
+ *
  * `db` needs the Docker Postgres and migrates once per session. It fails loudly
  * when the database is absent rather than skipping, because a silently skipped
  * constraint test is indistinguishable from a passing one.
@@ -59,11 +63,31 @@ export default defineConfig({
       },
       {
         resolve: { alias },
+        plugins: [react()],
+        test: {
+          /**
+           * The marketing surface. jsdom because two of the three files render
+           * the page; the third reads `src/` from disk to assert that nothing is
+           * advertised which the app does not implement.
+           */
+          name: "marketing",
+          environment: "jsdom",
+          globals: true,
+          include: [
+            "tests/marketing/**/*.test.ts",
+            "tests/marketing/**/*.test.tsx",
+          ],
+          isolate: false,
+          maxWorkers: 1,
+        },
+      },
+      {
+        resolve: { alias },
         test: {
           name: "db",
           environment: "node",
           globals: true,
-          include: ["tests/db/**/*.test.ts"],
+          include: ["tests/db/**/*.test.ts", "tests/findings/**/*.test.ts"],
           globalSetup: ["tests/db/harness/global-setup.ts"],
           /**
            * One worker, one file at a time.
