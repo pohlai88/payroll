@@ -31,7 +31,12 @@ interface LineScanRow {
   readonly netSen: number | null;
   readonly epfEeSen: number | null;
   readonly socsoEeCoreSen: number | null;
+  readonly socsoErSen: number | null;
   readonly eisEeSen: number | null;
+  readonly eisErSen: number | null;
+  readonly epfWagesSen: number | null;
+  readonly socsoWagesSen: number | null;
+  readonly eisWagesSen: number | null;
   readonly employeeSnapshot: Record<string, unknown>;
 }
 
@@ -199,7 +204,12 @@ async function detectRunFindings(
       netSen: payLines.netSen,
       epfEeSen: payLines.epfEeSen,
       socsoEeCoreSen: payLines.socsoEeCoreSen,
+      socsoErSen: payLines.socsoErSen,
       eisEeSen: payLines.eisEeSen,
+      eisErSen: payLines.eisErSen,
+      epfWagesSen: payLines.epfWagesSen,
+      socsoWagesSen: payLines.socsoWagesSen,
+      eisWagesSen: payLines.eisWagesSen,
       employeeSnapshot: payLines.employeeSnapshot,
     })
     .from(payLines)
@@ -211,7 +221,12 @@ async function detectRunFindings(
     netSen: l.netSen,
     epfEeSen: l.epfEeSen,
     socsoEeCoreSen: l.socsoEeCoreSen,
+    socsoErSen: l.socsoErSen,
     eisEeSen: l.eisEeSen,
+    eisErSen: l.eisErSen,
+    epfWagesSen: l.epfWagesSen,
+    socsoWagesSen: l.socsoWagesSen,
+    eisWagesSen: l.eisWagesSen,
     employeeSnapshot: l.employeeSnapshot as Record<string, unknown>,
   }));
 
@@ -322,19 +337,43 @@ async function detectRunFindings(
     const epfApplicable = snap.epfApplicable !== false;
     const socsoApplicable = snap.socsoApplicable !== false;
     const eisApplicable = snap.eisApplicable !== false;
-    const wagesProxy = Number(snap.baseRateSen ?? 0);
 
+    // Scheme-specific wage bases — not baseRateSen (variable-only earnings must count).
+    // SOCSO/EIS employer-only categories: ER > 0 with EE === 0 is legitimate, not a finding.
+    const zeroSchemes: string[] = [];
     if (
-      (epfApplicable && wagesProxy > 0 && (line.epfEeSen ?? 0) === 0) ||
-      (socsoApplicable && wagesProxy > 0 && (line.socsoEeCoreSen ?? 0) === 0) ||
-      (eisApplicable && wagesProxy > 0 && (line.eisEeSen ?? 0) === 0)
+      epfApplicable &&
+      (line.epfWagesSen ?? 0) > 0 &&
+      (line.epfEeSen ?? 0) === 0
     ) {
+      zeroSchemes.push("epf");
+    }
+    if (
+      socsoApplicable &&
+      (line.socsoWagesSen ?? 0) > 0 &&
+      (line.socsoEeCoreSen ?? 0) === 0 &&
+      (line.socsoErSen ?? 0) === 0
+    ) {
+      zeroSchemes.push("socso");
+    }
+    if (
+      eisApplicable &&
+      (line.eisWagesSen ?? 0) > 0 &&
+      (line.eisEeSen ?? 0) === 0 &&
+      (line.eisErSen ?? 0) === 0
+    ) {
+      zeroSchemes.push("eis");
+    }
+    if (zeroSchemes.length > 0) {
       out.push(
         detected("STATUTORY_ZERO_WITH_WAGES", run.id, line.lineId, {
+          schemes: zeroSchemes,
           epfEeSen: line.epfEeSen,
           socsoEeCoreSen: line.socsoEeCoreSen,
           eisEeSen: line.eisEeSen,
-          baseRateSen: wagesProxy,
+          epfWagesSen: line.epfWagesSen,
+          socsoWagesSen: line.socsoWagesSen,
+          eisWagesSen: line.eisWagesSen,
         })
       );
     }
@@ -385,13 +424,9 @@ async function detectRunFindings(
       }
     }
 
-    if (baseline === undefined && prior !== null) {
-      // first appearance in this app relative to prior regular baseline existence
-      // handled below via NEW_EMPLOYEE when no prior line ever
-    }
+    // NEW_EMPLOYEE: new arrival relative to an established prior REGULAR baseline.
+    // First-ever payroll (no eligible prior) does not emit NEW_EMPLOYEE for everyone.
     if (prior !== null && baseline === undefined) {
-      // employee is in this run but was not in baseline — not NEW; skip
-    } else if (prior === null || baseline === undefined) {
       const everPaid = await employmentHasPriorLine(
         db,
         line.employmentId,
@@ -401,6 +436,7 @@ async function detectRunFindings(
         out.push(
           detected("NEW_EMPLOYEE", run.id, line.lineId, {
             employmentId: line.employmentId,
+            baselineRunId: prior.runId,
           })
         );
       }
@@ -705,6 +741,7 @@ async function loadPriorRegularBaseline(
         eq(payRuns.companyId, run.companyId),
         eq(payRuns.runType, "REGULAR"),
         ne(payRuns.id, run.id),
+        inArray(payRuns.status, ["APPROVED", "CLOSED"]),
         sql`(${payRuns.year}, ${payRuns.month}) < (${run.year}, ${run.month})`
       )
     )
@@ -726,20 +763,62 @@ async function loadPriorRegularBaseline(
     .from(payLines)
     .where(eq(payLines.runId, priorRun.id));
 
+  const priorEmploymentIds = priorLines.map((l) => l.employmentId);
+  const priorEmps =
+    priorEmploymentIds.length === 0
+      ? []
+      : await db
+          .select({
+            id: employments.id,
+            joinDate: employments.joinDate,
+            terminationDate: employments.terminationDate,
+          })
+          .from(employments)
+          .where(inArray(employments.id, priorEmploymentIds));
+  const empMeta = new Map(priorEmps.map((e) => [e.id, e]));
+
   const byEmployment = new Map(
-    priorLines.map((l) => [
-      l.employmentId,
-      {
-        netSen: l.netSen,
-        epfEeSen: l.epfEeSen,
-        socsoEeCoreSen: l.socsoEeCoreSen,
-        eisEeSen: l.eisEeSen,
-        activeInPeriod: true,
-      },
-    ])
+    priorLines.map((l) => {
+      const meta = empMeta.get(l.employmentId);
+      const activeInPeriod =
+        meta === undefined
+          ? true
+          : employmentActiveInPeriod(
+              meta.joinDate,
+              meta.terminationDate,
+              run.periodStart,
+              run.periodEnd
+            );
+      return [
+        l.employmentId,
+        {
+          netSen: l.netSen,
+          epfEeSen: l.epfEeSen,
+          socsoEeCoreSen: l.socsoEeCoreSen,
+          eisEeSen: l.eisEeSen,
+          activeInPeriod,
+        },
+      ];
+    })
   );
 
   return { runId: priorRun.id, byEmployment };
+}
+
+/** Overlap: joinDate ≤ periodEnd AND (terminationDate IS NULL OR terminationDate ≥ periodStart). */
+function employmentActiveInPeriod(
+  joinDate: string,
+  terminationDate: string | null,
+  periodStart: string,
+  periodEnd: string
+): boolean {
+  if (joinDate > periodEnd) {
+    return false;
+  }
+  if (terminationDate !== null && terminationDate < periodStart) {
+    return false;
+  }
+  return true;
 }
 
 function netVariancePct(
