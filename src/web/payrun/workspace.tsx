@@ -21,6 +21,7 @@ import { EmployeeGrid } from "./employee-grid";
 import { EmployeeSlideOver } from "./employee-slide-over";
 import { FindingsPanel } from "./findings-panel";
 import { GateCheckDialog } from "./gate-check-dialog";
+import { PaymentsPanel } from "./payments-panel";
 import { RunHeader } from "./run-header";
 import { TotalsStrip } from "./totals-strip";
 
@@ -51,6 +52,12 @@ function WorkspacePage() {
   const [gateLoading, setGateLoading] = useState(false);
   const [gateSubmitting, setGateSubmitting] = useState(false);
   const [gateError, setGateError] = useState<string | null>(null);
+
+  const [paymentsSelection, setPaymentsSelection] = useState<readonly string[]>(
+    []
+  );
+  // Bumped by ReleasePanel/BatchDrawer in a later task to force PaymentsPanel to refetch.
+  const [paymentsRefreshKey, _setPaymentsRefreshKey] = useState(0);
 
   const reload = useCallback(async () => {
     if (runId === undefined) {
@@ -225,6 +232,17 @@ function WorkspacePage() {
           onChanged={reload}
           runId={runId}
         />
+
+        {view.run.status === "APPROVED" || view.run.status === "CLOSED" ? (
+          <PaymentsPanel
+            lines={view.lines}
+            onSelectionChange={setPaymentsSelection}
+            readOnly={view.run.status === "CLOSED"}
+            refreshKey={paymentsRefreshKey}
+            runId={runId}
+            selectedLineIds={paymentsSelection}
+          />
+        ) : null}
 
         <EmployeeGrid
           lines={view.lines}
