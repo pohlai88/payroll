@@ -1,0 +1,12 @@
+-- Runs once on first boot of an empty PGDATA (docker-entrypoint-initdb.d).
+--
+-- The compose data dir is tmpfs, so "first boot" is every `docker compose up`.
+-- That is deliberate: the test database is recreated from migrations each time.
+--
+-- Why a second database rather than a second container: the dev database and
+-- the test suite were sharing `payroll`, and every `tests/db/**` file truncates
+-- the tables it touches. A watch-mode runner (IDE test explorer, stray vitest)
+-- therefore deleted the developer's own users, roles and seeded rows mid-session.
+-- Two databases in one Postgres keeps that isolation without a second container
+-- or a second port to remember.
+CREATE DATABASE payroll_test OWNER payroll;

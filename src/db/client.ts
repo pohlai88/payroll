@@ -15,7 +15,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool, type PoolConfig } from "pg";
 
 /**
- * The local development and test database defined by `docker-compose.yml`.
+ * The local development database defined by `docker-compose.yml`.
  *
  * Exported so the test harness and the developer scripts name the same database
  * without copying a URL between files. It is never a fallback: a missing
@@ -24,6 +24,18 @@ import { Pool, type PoolConfig } from "pg";
  */
 export const LOCAL_DEV_DATABASE_URL =
   "postgres://payroll:payroll@localhost:54329/payroll";
+
+/**
+ * The local *test* database — a separate database in the same container.
+ *
+ * `tests/db/**` truncates every table it touches. While that ran against
+ * `payroll`, a watch-mode runner (an IDE test explorer, a stray `vitest`)
+ * silently deleted the developer's own users, roles and seeded rows mid-session
+ * — indistinguishable from an auth bug until you notice the tables emptying.
+ * Separating the two makes that impossible rather than merely unlikely.
+ */
+export const LOCAL_TEST_DATABASE_URL =
+  "postgres://payroll:payroll@localhost:54329/payroll_test";
 
 export function requireDatabaseUrl(): string {
   const url = process.env.DATABASE_URL;

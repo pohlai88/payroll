@@ -17,6 +17,7 @@ import {
   createPool,
   type Database,
   LOCAL_DEV_DATABASE_URL,
+  LOCAL_TEST_DATABASE_URL,
 } from "@/db/client";
 
 /** Anything that can run a parameterized query — `Client` or `Pool`. */
@@ -27,15 +28,52 @@ export type LockConnection = Pick<Client, "query">;
  *
  * The harness deletes every row in the tables a test touched. Pointed at a real
  * database that would destroy a payroll, so the target must be local unless
- * someone deliberately says otherwise. A developer with DATABASE_URL still set
- * to a staging server from an earlier task should get an error, not an empty
+ * someone deliberately says otherwise. A developer with TEST_DATABASE_URL still
+ * set to a staging server from an earlier task should get an error, not an empty
  * database.
  */
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "db"]);
 const OVERRIDE_FLAG = "ALLOW_DESTRUCTIVE_TEST_DB";
 
+/** `postgres://user:pw@host:port/NAME` → `NAME` (no leading slash). */
+function databaseNameOf(url: string): string {
+  return new URL(url).pathname.replace(/^\//, "");
+}
+
+/**
+ * Last line of defence: never truncate the database the developer works in.
+ *
+ * The host check below only proves the server is local — and dev and test live
+ * in the *same* local server, so it cannot tell them apart. This did real
+ * damage: a watch-mode runner repeatedly emptied `users` and `roles` out from
+ * under a running session, which reads as an auth bug, not a test artefact.
+ *
+ * Checked by name rather than by whole-URL equality so a differing password,
+ * pool flag or query string cannot smuggle the dev database through.
+ */
+function assertNotTheDevDatabase(url: string): void {
+  if (databaseNameOf(url) !== databaseNameOf(LOCAL_DEV_DATABASE_URL)) {
+    return;
+  }
+  throw new Error(
+    "refusing to run destructive tests against the development database " +
+      `("${databaseNameOf(LOCAL_DEV_DATABASE_URL)}"): this harness truncates every table it touches, ` +
+      "which would delete your own users, roles and seeded rows. " +
+      `Use ${LOCAL_TEST_DATABASE_URL} (the default), or set ${OVERRIDE_FLAG}=1 if you genuinely mean this one.`
+  );
+}
+
+/**
+ * The test database, which is deliberately **not** `DATABASE_URL`.
+ *
+ * This harness truncates every table it touches. Reading `DATABASE_URL` meant a
+ * developer with the dev database exported — the normal state while running the
+ * app — had their own users, roles and seeded rows deleted by any background
+ * test run. Tests now address `payroll_test` unless `TEST_DATABASE_URL` says
+ * otherwise; `DATABASE_URL` is ignored so the two can never converge by accident.
+ */
 export function resolveTestDatabaseUrl(): string {
-  const url = process.env.DATABASE_URL ?? LOCAL_DEV_DATABASE_URL;
+  const url = process.env.TEST_DATABASE_URL ?? LOCAL_TEST_DATABASE_URL;
   if (process.env[OVERRIDE_FLAG] === "1") {
     return url;
   }
@@ -44,15 +82,20 @@ export function resolveTestDatabaseUrl(): string {
   try {
     host = new URL(url).hostname;
   } catch (cause) {
-    throw new Error(`DATABASE_URL is not a valid URL: ${JSON.stringify(url)}`, {
-      cause,
-    });
+    throw new Error(
+      `TEST_DATABASE_URL is not a valid URL: ${JSON.stringify(url)}`,
+      {
+        cause,
+      }
+    );
   }
+
+  assertNotTheDevDatabase(url);
 
   if (!LOCAL_HOSTS.has(host)) {
     throw new Error(
       `refusing to run destructive tests against host ${host}: the harness truncates every table it touches. ` +
-        `Point DATABASE_URL at the local docker database (${LOCAL_DEV_DATABASE_URL}), ` +
+        `Point TEST_DATABASE_URL at the local docker test database (${LOCAL_TEST_DATABASE_URL}), ` +
         `or set ${OVERRIDE_FLAG}=1 if you genuinely mean this one.`
     );
   }

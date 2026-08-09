@@ -1,9 +1,16 @@
-# Development and test database.
+# Development and test databases.
 #
 # The data directory is a tmpfs and fsync is off: this database is disposable by
 # design, recreated from migrations whenever it is wanted. That buys a test suite
 # that runs against a *real* Postgres — real plpgsql triggers, real constraints,
 # real transaction semantics — at close to in-memory speed.
+#
+# Two databases live in this one server:
+#   payroll       — what you develop against (`DATABASE_URL`)
+#   payroll_test  — what `vitest --project db` truncates (`TEST_DATABASE_URL`)
+# They are separate because every `tests/db/**` file truncates the tables it
+# touches; sharing one database let a watch-mode runner delete the developer's
+# own users and seeded rows mid-session. See db/docker/10-create-test-db.sql.
 #
 # Never point this compose file at anything you intend to keep.
 services:
@@ -26,6 +33,10 @@ services:
       - full_page_writes=off
     ports:
       - "54329:5432"
+    volumes:
+      # Creates payroll_test on first boot. tmpfs PGDATA means every
+      # `docker compose up` is a first boot, so this always runs.
+      - ./db/docker:/docker-entrypoint-initdb.d:ro
     tmpfs:
       - /var/lib/postgresql/data
     healthcheck:
