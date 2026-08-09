@@ -102,4 +102,95 @@ describe("createApiClient", () => {
       expect((error as ApiClientError).status).toBe(403);
     }
   });
+
+  it("getPayments requests the payments list", async () => {
+    const fetchImpl = vi.fn(async () => Response.json({ payments: [] }));
+    const api = createApiClient({
+      apiBase: "http://api.test",
+      acquireToken: () => Promise.resolve("tok"),
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    await api.getPayments("run-1");
+    const [url] = (fetchImpl.mock.calls[0] ?? []) as unknown as [string];
+    expect(url).toBe("http://api.test/v1/pay-runs/run-1/payments");
+  });
+
+  it("holdLine POSTs the reason", async () => {
+    const fetchImpl = vi.fn(async () => Response.json({ ok: true }));
+    const api = createApiClient({
+      apiBase: "http://api.test",
+      acquireToken: () => Promise.resolve("tok"),
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    await api.holdLine("run-1", "line-1", "moved off-cycle");
+    const [url, init] = (fetchImpl.mock.calls[0] ?? []) as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(url).toBe("http://api.test/v1/pay-runs/run-1/lines/line-1/hold");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body as string)).toEqual({
+      reason: "moved off-cycle",
+    });
+  });
+
+  it("previewRelease POSTs lineIds", async () => {
+    const fetchImpl = vi.fn(async () =>
+      Response.json({ eligible: [], excluded: [], totalSen: 0, byBank: [] })
+    );
+    const api = createApiClient({
+      apiBase: "http://api.test",
+      acquireToken: () => Promise.resolve("tok"),
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    await api.previewRelease("run-1", ["line-1", "line-2"]);
+    const [url, init] = (fetchImpl.mock.calls[0] ?? []) as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(url).toBe("http://api.test/v1/pay-runs/run-1/release/preview");
+    expect(JSON.parse(init.body as string)).toEqual({
+      lineIds: ["line-1", "line-2"],
+    });
+  });
+
+  it("commitRelease POSTs lineIds and method", async () => {
+    const fetchImpl = vi.fn(async () =>
+      Response.json({ batchId: "run-1-B01", registerArtifactId: "art-1" })
+    );
+    const api = createApiClient({
+      apiBase: "http://api.test",
+      acquireToken: () => Promise.resolve("tok"),
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    const result = await api.commitRelease("run-1", ["line-1"], "BANK");
+    expect(result.batchId).toBe("run-1-B01");
+    const [, init] = (fetchImpl.mock.calls[0] ?? []) as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(JSON.parse(init.body as string)).toEqual({
+      lineIds: ["line-1"],
+      method: "BANK",
+    });
+  });
+
+  it("closeRun POSTs with no body", async () => {
+    const fetchImpl = vi.fn(async () =>
+      Response.json({ manifestArtifactId: "art-manifest" })
+    );
+    const api = createApiClient({
+      apiBase: "http://api.test",
+      acquireToken: () => Promise.resolve("tok"),
+      fetchImpl: fetchImpl as unknown as typeof fetch,
+    });
+    const result = await api.closeRun("run-1");
+    expect(result.manifestArtifactId).toBe("art-manifest");
+    const [url, init] = (fetchImpl.mock.calls[0] ?? []) as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(url).toBe("http://api.test/v1/pay-runs/run-1/close");
+    expect(init.method).toBe("POST");
+  });
 });

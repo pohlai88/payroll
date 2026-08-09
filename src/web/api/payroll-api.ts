@@ -5,12 +5,19 @@
 import { acquireAccessToken } from "@/web/auth/client";
 import type { GetEmployeesParams, GetPayRunsParams } from "./client";
 import { createApiClient } from "./client";
-import type { GateKind } from "./types";
+import type { GateKind, ReleaseMethod } from "./types";
 
 export type { GetEmployeesParams, GetPayRunsParams } from "./client";
 export type {
   ActionAvailability,
   AggregateTile,
+  ArtifactRow,
+  ArtifactsListResponse,
+  ArtifactType,
+  ChecklistItem,
+  CloseRunResponse,
+  ClosureChecklistResponse,
+  DistributionChannel,
   EmployeeLineDto,
   EmployeeSummary,
   EmployeeVarianceDto,
@@ -22,14 +29,31 @@ export type {
   GateIssue,
   GateKind,
   GateResult,
+  GetBatchResponse,
+  LinePaymentRow,
+  LinePaymentState,
   MeCompany,
   MeResponse,
+  PaymentAttempt,
+  PaymentAttemptStatus,
+  PaymentsListResponse,
   PayRunSummary,
   PayRunWorkspaceView,
+  ReleaseBatch,
+  ReleaseBatchStatus,
+  ReleaseByBank,
+  ReleaseCommitResponse,
+  ReleaseEligibleLine,
+  ReleaseExcludedLine,
+  ReleaseMethod,
+  ReleasePreviewResponse,
   RootValue,
   RunSummary,
+  SignedArtifactUrlResponse,
   SparkPoint,
+  StoreArtifactResponse,
   VarianceDto,
+  WithdrawalReason,
 } from "./types";
 
 function requireApiBase(): string {
@@ -79,4 +103,50 @@ export const payrollApi = {
     getPayrollApi().evaluateGate(runId, gate),
   getEmployees: (params?: GetEmployeesParams) =>
     getPayrollApi().getEmployees(params),
+  getPayments: (runId: string) => getPayrollApi().getPayments(runId),
+  holdLine: (runId: string, lineId: string, reason: string) =>
+    getPayrollApi().holdLine(runId, lineId, reason),
+  unholdLine: (runId: string, lineId: string) =>
+    getPayrollApi().unholdLine(runId, lineId),
+  withdrawLine: (
+    runId: string,
+    lineId: string,
+    body: Parameters<PayrollApi["withdrawLine"]>[2]
+  ) => getPayrollApi().withdrawLine(runId, lineId, body),
+  previewRelease: (runId: string, lineIds: readonly string[]) =>
+    getPayrollApi().previewRelease(runId, lineIds),
+  commitRelease: (
+    runId: string,
+    lineIds: readonly string[],
+    method: ReleaseMethod
+  ) => getPayrollApi().commitRelease(runId, lineIds, method),
+  getBatch: (runId: string, batchId: string) =>
+    getPayrollApi().getBatch(runId, batchId),
+  settleAttempt: (
+    runId: string,
+    attemptId: string,
+    body: Parameters<PayrollApi["settleAttempt"]>[2]
+  ) => getPayrollApi().settleAttempt(runId, attemptId, body),
+  reconcileAttempt: (
+    runId: string,
+    attemptId: string,
+    evidenceArtifactId?: string
+  ) => getPayrollApi().reconcileAttempt(runId, attemptId, evidenceArtifactId),
+  cancelRelease: (runId: string, batchId: string, reason: string) =>
+    getPayrollApi().cancelRelease(runId, batchId, reason),
+  recordDistribution: (
+    runId: string,
+    lineId: string,
+    body: Parameters<PayrollApi["recordDistribution"]>[2]
+  ) => getPayrollApi().recordDistribution(runId, lineId, body),
+  getArtifacts: (runId: string) => getPayrollApi().getArtifacts(runId),
+  uploadArtifact: (
+    runId: string,
+    body: Parameters<PayrollApi["uploadArtifact"]>[1]
+  ) => getPayrollApi().uploadArtifact(runId, body),
+  getArtifactUrl: (runId: string, artifactId: string) =>
+    getPayrollApi().getArtifactUrl(runId, artifactId),
+  getClosureChecklist: (runId: string) =>
+    getPayrollApi().getClosureChecklist(runId),
+  closeRun: (runId: string) => getPayrollApi().closeRun(runId),
 };

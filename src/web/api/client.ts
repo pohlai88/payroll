@@ -10,16 +10,29 @@ import {
   type AdminUsersResponse,
   ApiClientError,
   type ApiErrorBody,
+  type ArtifactsListResponse,
+  type ArtifactType,
+  type CloseRunResponse,
+  type ClosureChecklistResponse,
+  type DistributionChannel,
   type EmployeeSummary,
   type FindingsListResponse,
   type GateKind,
   type GateResult,
+  type GetBatchResponse,
   type ImportReportResponse,
   type MeResponse,
+  type PaymentsListResponse,
   type PayRunSummary,
   type PayRunWorkspaceView,
   type PermissionsResponse,
+  type ReleaseCommitResponse,
+  type ReleaseMethod,
+  type ReleasePreviewResponse,
   SessionExpiredError,
+  type SignedArtifactUrlResponse,
+  type StoreArtifactResponse,
+  type WithdrawalReason,
 } from "./types";
 
 const TRAILING_SLASH = /\/$/;
@@ -183,6 +196,125 @@ export function createApiClient(deps: ApiClientDeps) {
           search: params?.search,
         })}`
       ),
+    getPayments: (runId: string) =>
+      requestJson<PaymentsListResponse>(`/v1/pay-runs/${runId}/payments`),
+    holdLine: (runId: string, lineId: string, reason: string) =>
+      requestJson<void>(`/v1/pay-runs/${runId}/lines/${lineId}/hold`, {
+        method: "POST",
+        body: JSON.stringify({ reason }),
+      }),
+    unholdLine: (runId: string, lineId: string) =>
+      requestJson<void>(`/v1/pay-runs/${runId}/lines/${lineId}/unhold`, {
+        method: "POST",
+      }),
+    withdrawLine: (
+      runId: string,
+      lineId: string,
+      body: {
+        readonly reasonCode: WithdrawalReason;
+        readonly note: string;
+        readonly postApprovalApprover?: string;
+        readonly replacementRunId?: string;
+      }
+    ) =>
+      requestJson<void>(`/v1/pay-runs/${runId}/lines/${lineId}/withdraw`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    previewRelease: (runId: string, lineIds: readonly string[]) =>
+      requestJson<ReleasePreviewResponse>(
+        `/v1/pay-runs/${runId}/release/preview`,
+        {
+          method: "POST",
+          body: JSON.stringify({ lineIds }),
+        }
+      ),
+    commitRelease: (
+      runId: string,
+      lineIds: readonly string[],
+      method: ReleaseMethod
+    ) =>
+      requestJson<ReleaseCommitResponse>(`/v1/pay-runs/${runId}/release`, {
+        method: "POST",
+        body: JSON.stringify({ lineIds, method }),
+      }),
+    getBatch: (runId: string, batchId: string) =>
+      requestJson<GetBatchResponse>(`/v1/pay-runs/${runId}/batches/${batchId}`),
+    settleAttempt: (
+      runId: string,
+      attemptId: string,
+      body: {
+        readonly outcome: "PAID" | "FAILED";
+        readonly paymentRef?: string;
+        readonly failedReason?: string;
+      }
+    ) =>
+      requestJson<void>(`/v1/pay-runs/${runId}/attempts/${attemptId}/settle`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    reconcileAttempt: (
+      runId: string,
+      attemptId: string,
+      evidenceArtifactId?: string
+    ) =>
+      requestJson<void>(
+        `/v1/pay-runs/${runId}/attempts/${attemptId}/reconcile`,
+        {
+          method: "POST",
+          body: JSON.stringify(
+            evidenceArtifactId === undefined ? {} : { evidenceArtifactId }
+          ),
+        }
+      ),
+    cancelRelease: (runId: string, batchId: string, reason: string) =>
+      requestJson<void>(`/v1/pay-runs/${runId}/batches/${batchId}/cancel`, {
+        method: "POST",
+        body: JSON.stringify({ reason }),
+      }),
+    recordDistribution: (
+      runId: string,
+      lineId: string,
+      body: {
+        readonly channel: DistributionChannel;
+        readonly artifactId?: string;
+        readonly note?: string;
+      }
+    ) =>
+      requestJson<{ id: string }>(
+        `/v1/pay-runs/${runId}/lines/${lineId}/distributions`,
+        {
+          method: "POST",
+          body: JSON.stringify(body),
+        }
+      ),
+    getArtifacts: (runId: string) =>
+      requestJson<ArtifactsListResponse>(`/v1/pay-runs/${runId}/artifacts`),
+    uploadArtifact: (
+      runId: string,
+      body: {
+        readonly filename: string;
+        readonly mimeType: string;
+        readonly base64: string;
+        readonly type: ArtifactType;
+      }
+    ) =>
+      requestJson<StoreArtifactResponse>(`/v1/pay-runs/${runId}/artifacts`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    getArtifactUrl: (runId: string, artifactId: string) =>
+      requestJson<SignedArtifactUrlResponse>(
+        `/v1/pay-runs/${runId}/artifacts/${artifactId}/url`
+      ),
+    getClosureChecklist: (runId: string) =>
+      requestJson<ClosureChecklistResponse>(
+        `/v1/pay-runs/${runId}/closure-checklist`
+      ),
+    closeRun: (runId: string) =>
+      requestJson<CloseRunResponse>(`/v1/pay-runs/${runId}/close`, {
+        method: "POST",
+      }),
   };
 }
 

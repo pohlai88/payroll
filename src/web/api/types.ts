@@ -239,3 +239,186 @@ export interface PayRunWorkspaceView {
   readonly findingsSummary: FindingsSummary | null;
   readonly lines: readonly EmployeeLineDto[];
 }
+
+export type LinePaymentState =
+  | "READY"
+  | "HOLD"
+  | "RELEASED"
+  | "PAID"
+  | "FAILED_RETURNED"
+  | "RECONCILED"
+  | "WITHDRAWN";
+
+export type WithdrawalReason =
+  | "MOVED_TO_OFFCYCLE"
+  | "DUPLICATE_LINE"
+  | "EMPLOYEE_NOT_PAYABLE"
+  | "PAYMENT_CANCELLED_BY_AUTHORITY"
+  | "OTHER_CONTROLLED_EXCEPTION";
+
+/**
+ * `GET /v1/pay-runs/:runId/payments` row — see `src/server/routes/pay-run-control.ts`.
+ * `employmentId` correlates this row to `EmployeeLineDto.employeeId` (Task 2 adds it
+ * to the server SELECT; it is not present until that task lands).
+ */
+export interface LinePaymentRow {
+  readonly lineId: string;
+  readonly employmentId: string;
+  readonly state: LinePaymentState;
+  readonly holdReason: string | null;
+  readonly releaseBatchId: string | null;
+  readonly paymentRef: string | null;
+  readonly netSen: number | null;
+}
+
+export interface PaymentsListResponse {
+  readonly payments: readonly LinePaymentRow[];
+}
+
+export type ReleaseMethod = "BANK" | "CASH";
+
+/** `POST /v1/pay-runs/:runId/release/preview` response — see `src/service/release.ts` `ReleasePreview`. */
+export interface ReleaseEligibleLine {
+  readonly lineId: string;
+  readonly employmentId: string;
+  readonly netSen: number;
+  readonly bank: string;
+  readonly account: string;
+  readonly name: string;
+}
+
+export interface ReleaseExcludedLine {
+  readonly lineId: string;
+  readonly reason: string;
+}
+
+export interface ReleaseByBank {
+  readonly bank: string;
+  readonly count: number;
+  readonly totalSen: number;
+}
+
+export interface ReleasePreviewResponse {
+  readonly eligible: readonly ReleaseEligibleLine[];
+  readonly excluded: readonly ReleaseExcludedLine[];
+  readonly totalSen: number;
+  readonly byBank: readonly ReleaseByBank[];
+}
+
+/** `POST /v1/pay-runs/:runId/release` response — see `src/service/release.ts` `commitRelease`. */
+export interface ReleaseCommitResponse {
+  readonly batchId: string;
+  readonly registerArtifactId: string;
+}
+
+export type PaymentAttemptStatus = "PENDING" | "PAID" | "FAILED";
+export type ReleaseBatchStatus =
+  | "OPEN"
+  | "PARTIALLY_SETTLED"
+  | "SETTLED"
+  | "SETTLED_WITH_FAILURES"
+  | "CANCELLED";
+
+/** `payment_attempts` row — see `src/db/schema/control.ts`. */
+export interface PaymentAttempt {
+  readonly id: string;
+  readonly batchId: string;
+  readonly lineId: string;
+  readonly amountSen: number;
+  readonly bankSnapshot: {
+    readonly bank: string;
+    readonly account: string;
+    readonly name: string;
+  };
+  readonly status: PaymentAttemptStatus;
+  readonly failedReason: string | null;
+  readonly settledAt: string | null;
+  readonly paymentRef: string | null;
+  readonly createdAt: string;
+}
+
+/** `release_batches` row — see `src/db/schema/control.ts`. */
+export interface ReleaseBatch {
+  readonly id: string;
+  readonly runId: string;
+  readonly method: ReleaseMethod;
+  readonly status: ReleaseBatchStatus;
+  readonly totalSen: number;
+  readonly lineCount: number;
+  readonly registerArtifactId: string | null;
+  readonly createdBy: string;
+  readonly createdAt: string;
+}
+
+/** `GET /v1/pay-runs/:runId/batches/:batchId` response — see `src/service/release.ts` `getBatch`. */
+export interface GetBatchResponse {
+  readonly batch: ReleaseBatch;
+  readonly attempts: readonly PaymentAttempt[];
+}
+
+/** One row of `GET /v1/pay-runs/:runId/closure-checklist` — see `src/service/close.ts` `ChecklistItem`. */
+export interface ChecklistItem {
+  readonly item: string;
+  readonly ok: boolean;
+  readonly detail: string;
+}
+
+export interface ClosureChecklistResponse {
+  readonly checklist: readonly ChecklistItem[];
+}
+
+/** `POST /v1/pay-runs/:runId/close` response — see `src/service/close.ts` `closeRun`. */
+export interface CloseRunResponse {
+  readonly manifestArtifactId: string;
+}
+
+export type DistributionChannel =
+  | "GENERATED"
+  | "SENT"
+  | "DELIVERED"
+  | "HANDED"
+  | "PRINTED";
+
+export type ArtifactType =
+  | "EVIDENCE"
+  | "PAYMENT_REGISTER"
+  | "BANK_FILE"
+  | "CASH_SHEET"
+  | "PAYSLIP_PDF"
+  | "MANIFEST"
+  | "EXCEPTION_REPORT";
+
+/** `artifacts` row — see `src/db/schema/artifacts.ts`. */
+export interface ArtifactRow {
+  readonly id: string;
+  readonly runId: string | null;
+  readonly entityType:
+    | "TRANSFER"
+    | "EMPLOYMENT_PRIOR_YTD"
+    | "PAY_RUN"
+    | "OTHER";
+  readonly entityId: string | null;
+  readonly type: ArtifactType;
+  readonly relativePath: string;
+  readonly sha256: string;
+  readonly byteSize: number;
+  readonly mimeType: string;
+  readonly source: "ATTACHED" | "GENERATED";
+  readonly createdBy: string;
+  readonly createdAt: string;
+}
+
+export interface ArtifactsListResponse {
+  readonly artifacts: readonly ArtifactRow[];
+}
+
+export interface StoreArtifactResponse {
+  readonly id: string;
+  readonly sha256: string;
+  readonly relativePath: string;
+}
+
+export interface SignedArtifactUrlResponse {
+  readonly url: string;
+  readonly filename: string;
+}
