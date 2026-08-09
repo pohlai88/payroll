@@ -153,6 +153,7 @@ describe("GET /v1/pay-runs/:runId/lines/:lineId/payslip", () => {
     const { payslips } = (await idx.json()) as {
       payslips: Array<{ lineId: string }>;
     };
+    if (!payslips[0]) throw new Error("no payslips");
     const { lineId } = payslips[0];
 
     const res = await app.request(
@@ -202,6 +203,7 @@ describe("GET /v1/pay-runs/:runId/lines/:lineId/payslip", () => {
     const { payslips } = (await idx.json()) as {
       payslips: Array<{ lineId: string }>;
     };
+    if (!payslips[0]) throw new Error("no payslips");
     const { lineId } = payslips[0];
 
     const res = await app.request(
@@ -225,6 +227,7 @@ describe("GET /v1/pay-runs/:runId/lines/:lineId/payslip", () => {
     const { payslips } = (await idx.json()) as {
       payslips: Array<{ lineId: string }>;
     };
+    if (!payslips[0]) throw new Error("no payslips");
     const { lineId } = payslips[0];
     const res = await app.request(
       `/v1/pay-runs/${RUN_ID}/lines/${lineId}/payslip`,

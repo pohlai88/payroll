@@ -10,6 +10,7 @@
  */
 import "./payslip-print.css";
 import type { Lang } from "@/domain/derive/i18n/render";
+import type { PayslipDocumentDto } from "./types";
 import { AuditAnnex } from "./audit-annex";
 import { DeductionsSection } from "./deductions-section";
 import { DocumentStatusMark } from "./document-status-mark";

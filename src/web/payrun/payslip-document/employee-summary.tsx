@@ -7,7 +7,25 @@ interface EmployeeSummaryProps {
   readonly lang: Lang;
 }
 
-const LABELS: Record<string, Record<Lang, string>> = {
+interface LabelMap {
+  en: string;
+  ms: string;
+}
+
+const LABELS: {
+  employee: LabelMap;
+  id: LabelMap;
+  designation: LabelMap;
+  department: LabelMap;
+  nric: LabelMap;
+  epfNo: LabelMap;
+  socsoNo: LabelMap;
+  gender: LabelMap;
+  citizenship: LabelMap;
+  payBasis: LabelMap;
+  payPeriod: LabelMap;
+  workingDays: LabelMap;
+} = {
   employee: { en: "EMPLOYEE", ms: "PEKERJA" },
   id: { en: "Employee ID", ms: "No. Pekerja" },
   designation: { en: "Designation", ms: "Jawatan" },
