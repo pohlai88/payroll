@@ -109,8 +109,8 @@ function UploadDropZone({
         aria-label="Upload file drop zone"
         className={cn(
           "flex cursor-pointer flex-col items-center gap-3 rounded-lg border border-border border-dashed bg-muted/30 px-6 py-8 text-center transition-colors",
-          dragging && "border-accent bg-accent/5",
-          file !== null && "border-accent/50",
+          dragging && "border-ring bg-ring/5",
+          file !== null && "border-ring/50",
           disabled && "pointer-events-none opacity-50"
         )}
         disabled={disabled}
@@ -123,14 +123,14 @@ function UploadDropZone({
         <UploadCloudIcon
           className={cn(
             "size-9 text-muted-foreground transition-colors",
-            dragging && "text-accent"
+            dragging && "text-ring"
           )}
         />
         {file === null ? (
           <>
             <p className="font-medium text-foreground text-sm">
               Drop a file here, or{" "}
-              <span className="text-accent underline-offset-2 hover:underline">
+              <span className="text-ring underline-offset-2 hover:underline">
                 browse
               </span>
             </p>
@@ -141,15 +141,16 @@ function UploadDropZone({
         ) : (
           <div className="flex items-center gap-2">
             <Badge variant="secondary">{file.name}</Badge>
-            <button
+            <Button
               aria-label="Remove file"
-              className="text-muted-foreground text-xs underline-offset-2 hover:text-foreground hover:underline"
+              className="h-auto px-0 text-muted-foreground text-xs underline-offset-2 hover:text-foreground"
               disabled={disabled}
               onClick={onClearClick}
               type="button"
+              variant="link"
             >
               Remove
-            </button>
+            </Button>
           </div>
         )}
       </button>
@@ -175,7 +176,7 @@ function UploadDropZone({
           role="progressbar"
         >
           <div
-            className="h-full rounded-full bg-accent transition-all duration-300"
+            className="h-full rounded-full bg-ring transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>

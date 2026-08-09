@@ -2,6 +2,8 @@
  * Governed pay-item treatment / PCB class departures (MY-STAT-S06).
  * STATUTORY_DEFAULT rows come from seed/migration; this service writes
  * APPROVED_DEPARTURE supersessions only.
+ *
+ * Service-internal only — no Hono route / SPA client method yet.
  */
 
 import { and, eq, isNull, sql } from "drizzle-orm";

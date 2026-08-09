@@ -6,6 +6,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import type { Database } from "@/db/client";
+import { PermissionDeniedError } from "@/domain/rbac/authorize";
 import { listPayRunSummaries } from "@/repo/pay-run";
 import type { GateKind } from "@/service/gates";
 import { evaluateGate } from "@/service/gates";
@@ -17,6 +18,7 @@ import {
   recomputeRunForActor,
   reviewRunForActor,
 } from "@/service/payrun";
+import { listAccessibleCompanies } from "@/service/rbac";
 import {
   acknowledgeRunFinding,
   listRunFindings,
@@ -63,9 +65,32 @@ export function payRunRoutes(db: Database) {
 
   app.get("/pay-runs", async (c) => {
     try {
+      const user = c.get("user");
       const companyId = c.req.query("companyId") ?? undefined;
       const reportingMonth = c.req.query("reportingMonth") ?? undefined;
-      const rows = await listPayRunSummaries(db, { companyId, reportingMonth });
+      const accessible = await listAccessibleCompanies(db, user.id);
+      const accessibleIds = accessible.map((company) => company.id);
+
+      if (companyId !== undefined) {
+        if (!accessibleIds.includes(companyId)) {
+          throw new PermissionDeniedError(
+            user.id,
+            "PAY_RUN",
+            "READ",
+            companyId
+          );
+        }
+        const rows = await listPayRunSummaries(db, {
+          companyId,
+          reportingMonth,
+        });
+        return c.json(rows);
+      }
+
+      const rows = await listPayRunSummaries(db, {
+        companyIds: accessibleIds,
+        reportingMonth,
+      });
       return c.json(rows);
     } catch (error) {
       return handleRouteError(c, error);

@@ -104,7 +104,7 @@ function GateCheckDialog({
         ) : null}
 
         {hasBlockingFinding && result?.ok === false ? (
-          <p className="text-[var(--status-bad-ink)] text-xs">
+          <p className="text-status-bad-ink text-xs">
             Finding issues must be fixed or warnings acknowledged, then
             re-scanned. Proceed is disabled while the gate is blocked.
           </p>

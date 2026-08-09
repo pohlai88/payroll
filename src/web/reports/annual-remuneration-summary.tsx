@@ -1,4 +1,10 @@
 import { MoneyCell } from "@/components/payroll/money-cell";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+} from "@/components/ui/table";
 import type { AnnualRemunerationSummaryDto } from "@/web/api/payroll-api";
 
 interface AnnualRemunerationSummaryProps {
@@ -23,7 +29,7 @@ function AnnualRemunerationSummary({ data }: AnnualRemunerationSummaryProps) {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="font-semibold text-foreground">
+        <h2 className="font-semibold text-base text-foreground">
           Annual Remuneration Summary
         </h2>
         <p className="text-muted-foreground text-sm">
@@ -34,33 +40,31 @@ function AnnualRemunerationSummary({ data }: AnnualRemunerationSummaryProps) {
         </p>
       </div>
 
-      {/* Limitation notice — must be shown, per spec Rule 4 */}
-      <div className="rounded border border-[hsl(var(--status-warn-fill))]/20 bg-[hsl(var(--status-warn-fill))] p-3 text-[hsl(var(--status-warn-ink))] text-xs">
+      <div className="rounded border border-status-warn-border bg-status-warn-fill p-3 text-status-warn-ink text-xs">
         <p className="mb-1 font-semibold">
           Important: Payroll-system summary only
         </p>
         <p>{data.limitationNotice}</p>
       </div>
 
-      <table className="w-full border-collapse text-sm">
-        <tbody>
+      <Table>
+        <TableBody>
           {ROWS.map(({ label, field }) => (
-            <tr className="border-border/50 border-b" key={field}>
-              <td className="py-2 text-muted-foreground">{label}</td>
-              <td className="py-2 text-right">
+            <TableRow key={field}>
+              <TableCell className="text-muted-foreground">{label}</TableCell>
+              <TableCell className="text-right">
                 <MoneyCell sen={data[field] as number} />
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
 
       <div className="space-y-1 text-muted-foreground text-xs">
         <p>Months included: {data.months.join(", ") || "—"}</p>
         <p>Runs included: {data.runsIncluded.length}</p>
       </div>
 
-      {/* Disclaimer — must be shown */}
       <div className="rounded border bg-muted/40 p-3 text-muted-foreground text-xs">
         {data.disclaimer}
       </div>

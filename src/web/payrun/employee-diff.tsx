@@ -5,8 +5,11 @@
 import { useEffect, useState } from "react";
 import { formatRM } from "@/domain/money";
 import { formatApiError } from "@/web/api/format-error";
-import type { NodeDiffRow, RunLineDiffDto } from "@/web/api/payroll-api";
-import { fetchLineDiff } from "@/web/api/payroll-api";
+import {
+  type NodeDiffRow,
+  payrollApi,
+  type RunLineDiffDto,
+} from "@/web/api/payroll-api";
 
 interface EmployeeDiffProps {
   readonly runId: string;
@@ -47,13 +50,7 @@ function ValueRow({ row }: { row: NodeDiffRow }) {
         <span className="text-muted-foreground">→</span>
         <span>{row.toValue ?? "—"}</span>
         {row.deltaSen !== null && row.deltaSen !== 0 && (
-          <span
-            className={
-              row.deltaSen > 0
-                ? "font-medium text-[hsl(var(--status-ok-ink))]"
-                : "font-medium text-destructive"
-            }
-          >
+          <span className="font-medium text-muted-foreground">
             ({deltaLabel(row.deltaSen)})
           </span>
         )}
@@ -127,7 +124,8 @@ function EmployeeDiff({ runId, lineId }: EmployeeDiffProps) {
   useEffect(() => {
     setData(null);
     setError(null);
-    fetchLineDiff(runId, lineId)
+    payrollApi
+      .getLineDiff(runId, lineId)
       .then(setData)
       .catch((e) => setError(formatApiError(e, "Failed to load diff")));
   }, [runId, lineId]);

@@ -1,22 +1,12 @@
 /**
- * Application sidebar — navigation + signed-in user footer.
- *
- * See `docs/superpowers/specs/2026-08-08-phase5b-payroll-ui-shell-workspace-design.md`
- * §3.2 for the nav item table and active/inactive tokens.
+ * Application sidebar — Clarity Payroll nav + signed-in user footer.
+ * Structure adapted from application-shell-05; routes from `app-nav`.
  */
 
-import {
-  FileTextIcon,
-  LogOutIcon,
-  ReceiptTextIcon,
-  SettingsIcon,
-  ShieldCheckIcon,
-  UsersIcon,
-} from "lucide-react";
-import type { ComponentType } from "react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
+import LogoSvg from "@/assets/svg/logo";
+import SimpleProfileDropdown from "@/components/shadcn-studio/blocks/dashboard-dropdown-10/simple-profile-dropdown";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import {
   Sidebar,
   SidebarContent,
@@ -28,27 +18,12 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useDarkMode } from "@/hooks/use-dark-mode";
 import { useAuthContext } from "@/web/context/auth-context";
-
-interface NavItem {
-  icon: ComponentType<{ className?: string }>;
-  label: string;
-  href: string;
-  adminOnly?: boolean;
-}
-
-const NAV_ITEMS: readonly NavItem[] = [
-  { icon: ReceiptTextIcon, label: "Pay Runs", href: "/pay-runs" },
-  { icon: UsersIcon, label: "Employees", href: "/employees" },
-  { icon: FileTextIcon, label: "Reports", href: "/reports" },
-  { icon: ShieldCheckIcon, label: "Control", href: "/control" },
-  { icon: SettingsIcon, label: "Admin", href: "/admin", adminOnly: true },
-];
-
-function isNavItemActive(location: string, href: string): boolean {
-  return location === href || location.startsWith(`${href}/`);
-}
+import { useShellNav } from "./shell-nav-context";
 
 function initialsOf(me: { name: string; email: string } | null): string {
   if (me === null) {
@@ -58,61 +33,104 @@ function initialsOf(me: { name: string; email: string } | null): string {
   return source.slice(0, 2).toUpperCase();
 }
 
-function SidebarNav() {
-  const { me, isSystemAdmin, signOut } = useAuthContext();
-  const [location] = useLocation();
+function SidebarUserMenu() {
+  const { me, signOut } = useAuthContext();
+  const { isMobile } = useSidebar();
+  const [dark, toggleDark] = useDarkMode();
+  const name = me?.name ?? me?.email ?? "—";
+  const email = me?.email ?? "—";
+  const initials = initialsOf(me);
 
   return (
-    <Sidebar>
-      <SidebarHeader className="px-4 py-3">
-        <span className="font-heading font-semibold text-primary text-sm">
-          Clarity Payroll
-        </span>
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <SimpleProfileDropdown
+          align="end"
+          dark={dark}
+          email={email}
+          initials={initials}
+          name={name}
+          onSignOut={signOut}
+          onToggleTheme={toggleDark}
+          side={isMobile ? "bottom" : "right"}
+          sideOffset={isMobile ? 8 : 16}
+          trigger={
+            <SidebarMenuButton
+              className="data-open:bg-sidebar-accent data-open:text-sidebar-accent-foreground"
+              size="lg"
+            >
+              <Avatar>
+                <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+              </Avatar>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium">{name}</span>
+                <span className="truncate text-muted-foreground text-xs">
+                  {email}
+                </span>
+              </div>
+            </SidebarMenuButton>
+          }
+        />
+      </SidebarMenuItem>
+    </SidebarMenu>
+  );
+}
+
+function SidebarNav() {
+  const { items, isActive, authReady } = useShellNav();
+
+  return (
+    <Sidebar
+      className="p-6 pr-0 *:data-[slot=sidebar-inner]:group-data-[variant=floating]:rounded-xl"
+      collapsible="icon"
+      variant="floating"
+    >
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              className="gap-2.5 bg-transparent! [&>svg]:size-8"
+              render={<Link href="/" />}
+              size="lg"
+            >
+              <LogoSvg className="[&_rect:first-child]:fill-primary [&_rect]:fill-sidebar" />
+              <span className="font-semibold text-base">Clarity Payroll</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
-      <Separator />
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {NAV_ITEMS.filter((item) => !item.adminOnly || isSystemAdmin).map(
-                (item) => (
-                  <SidebarMenuItem key={item.href}>
+              {items.map((item) => {
+                const active = isActive(item);
+                return (
+                  <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton
-                      isActive={isNavItemActive(location, item.href)}
+                      aria-current={active ? "page" : undefined}
+                      isActive={active}
                       render={<Link href={item.href} />}
+                      tooltip={item.label}
                     >
                       <item.icon className="size-4" />
                       <span>{item.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                )
-              )}
+                );
+              })}
+              {!authReady ? (
+                <SidebarMenuItem>
+                  <Skeleton className="h-8 w-full rounded-md" />
+                </SidebarMenuItem>
+              ) : null}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <Separator />
-      <SidebarFooter className="flex items-center gap-3 px-4 py-3">
-        <Avatar className="size-8">
-          <AvatarFallback className="text-xs">{initialsOf(me)}</AvatarFallback>
-        </Avatar>
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-medium text-foreground text-xs">
-            {me?.name ?? me?.email ?? "—"}
-          </p>
-          <p className="truncate text-muted-foreground text-xs">
-            {me?.email ?? "—"}
-          </p>
-        </div>
-        <button
-          aria-label="Sign out"
-          className="text-muted-foreground hover:text-foreground"
-          onClick={signOut}
-          type="button"
-        >
-          <LogOutIcon className="size-4" />
-        </button>
+      <SidebarFooter>
+        <SidebarUserMenu />
       </SidebarFooter>
     </Sidebar>
   );

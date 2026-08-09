@@ -1,0 +1,68 @@
+{
+  "employees": [
+    {
+      "companyCode": "DLBB",
+      "employeeCode": "DLBB1001",
+      "name": "Aisha Rahman",
+      "ic": "900101145678",
+      "joinDate": "2022-03-01",
+      "payBasis": "MONTHLY",
+      "baseRateSen": 550000,
+      "bankName": "Maybank",
+      "bankAccountNo": "1234567890"
+    },
+    {
+      "companyCode": "DLBB",
+      "employeeCode": "DLBB1002",
+      "name": "Chen Wei Ming",
+      "ic": "880515085432",
+      "joinDate": "2021-06-15",
+      "payBasis": "MONTHLY",
+      "baseRateSen": 720000,
+      "bankName": "CIMB",
+      "bankAccountNo": "9876543210"
+    },
+    {
+      "companyCode": "DLBM",
+      "employeeCode": "DLBM2001",
+      "name": "Siti Nurhaliza",
+      "ic": "920820105678",
+      "joinDate": "2023-01-10",
+      "payBasis": "MONTHLY",
+      "baseRateSen": 480000,
+      "bankName": "RHB",
+      "bankAccountNo": "1122334455"
+    },
+    {
+      "companyCode": "DLBM",
+      "employeeCode": "DLBM2002",
+      "name": "Rajesh Kumar",
+      "ic": "850312145321",
+      "joinDate": "2020-11-01",
+      "payBasis": "MONTHLY",
+      "baseRateSen": 650000,
+      "bankName": "Public Bank",
+      "bankAccountNo": "5566778899"
+    }
+  ],
+  "payRuns": [
+    {
+      "id": "DLBB-2026-08",
+      "companyCode": "DLBB",
+      "year": 2026,
+      "month": 8,
+      "periodStart": "2026-08-01",
+      "periodEnd": "2026-08-31",
+      "workingDays": 22
+    },
+    {
+      "id": "DLBM-2026-08",
+      "companyCode": "DLBM",
+      "year": 2026,
+      "month": 8,
+      "periodStart": "2026-08-01",
+      "periodEnd": "2026-08-31",
+      "workingDays": 22
+    }
+  ]
+}

@@ -4,6 +4,12 @@
  * `rootVariances.net` from the server, so direction and bps are both real.
  */
 import { DeltaBadge } from "@/components/payroll/delta-badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+} from "@/components/ui/table";
 import type { EmployeeLineDto } from "@/web/api/payroll-api";
 
 interface RunDiffPanelProps {
@@ -27,21 +33,21 @@ function RunDiffPanel({ lines }: RunDiffPanelProps) {
         Changes from prior run — {changed.length} employee
         {changed.length === 1 ? "" : "s"}
       </div>
-      <table className="w-full text-sm">
-        <tbody>
+      <Table>
+        <TableBody>
           {changed.map((line) => {
             const changedRootKeys = line.variance?.changedRootKeys ?? [];
             return (
-              <tr className="border-border/50 border-t" key={line.employeeId}>
-                <td className="px-6 py-1.5 text-foreground">
+              <TableRow key={line.employeeId}>
+                <TableCell className="px-6 py-1.5 text-foreground">
                   {line.employeeName}
-                </td>
-                <td className="px-2 py-1.5">
+                </TableCell>
+                <TableCell className="px-2 py-1.5">
                   {line.variance != null && line.rootVariances?.net != null ? (
                     <DeltaBadge variance={line.rootVariances.net} />
                   ) : null}
-                </td>
-                <td className="px-4 py-1.5">
+                </TableCell>
+                <TableCell className="px-4 py-1.5">
                   <div className="flex flex-wrap gap-1">
                     {changedRootKeys.slice(0, 6).map((key) => (
                       <span
@@ -57,12 +63,12 @@ function RunDiffPanel({ lines }: RunDiffPanelProps) {
                       </span>
                     )}
                   </div>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             );
           })}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

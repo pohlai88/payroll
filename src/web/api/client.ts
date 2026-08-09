@@ -12,7 +12,11 @@ import type {
 } from "@/web/payrun/payslip-document/types";
 import { formatApiError } from "./format-error";
 import {
+  type AdminCompaniesResponse,
+  type AdminCompanyRow,
+  type AdminUserRoleBody,
   type AdminUsersResponse,
+  type AdminUserRow,
   type AnnualRemunerationSummaryDto,
   ApiClientError,
   type ApiErrorBody,
@@ -21,6 +25,8 @@ import {
   type CloseRunResponse,
   type ClosureChainResponse,
   type ClosureChecklistResponse,
+  type CreateAdminCompanyBody,
+  type CreatePayRunBody,
   type DistributionChannel,
   type EmployeeSummary,
   type ExceptionReportDto,
@@ -29,9 +35,12 @@ import {
   type GateResult,
   type GetBatchResponse,
   type ImportReportResponse,
+  type InviteAdminUserBody,
   type MeResponse,
+  type OkResponse,
   type PaymentRegisterDto,
   type PaymentsListResponse,
+  type PayRunMutationEnvelope,
   type PayRunSummary,
   type PayRunWorkspaceView,
   type PermissionsResponse,
@@ -44,6 +53,8 @@ import {
   type SignedArtifactUrlResponse,
   type StatutorySummaryDto,
   type StoreArtifactResponse,
+  type UpdateAdminCompanyBody,
+  type UpdateAdminUserBody,
   type WithdrawalReason,
 } from "./types";
 
@@ -154,6 +165,40 @@ export function createApiClient(deps: ApiClientDeps) {
         `/v1/me/permissions${companyQuery(companyId)}`
       ),
     getAdminUsers: () => requestJson<AdminUsersResponse>("/v1/admin/users"),
+    createAdminUser: (body: InviteAdminUserBody) =>
+      requestJson<AdminUserRow>("/v1/admin/users", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    updateAdminUser: (userId: string, body: UpdateAdminUserBody) =>
+      requestJson<AdminUserRow>(`/v1/admin/users/${userId}`, {
+        method: "PATCH",
+        body: JSON.stringify(body),
+      }),
+    assignUserRole: (userId: string, body: AdminUserRoleBody) =>
+      requestJson<OkResponse>(`/v1/admin/users/${userId}/roles`, {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    revokeUserRole: (userId: string, body: AdminUserRoleBody) =>
+      requestJson<OkResponse>(`/v1/admin/users/${userId}/roles`, {
+        method: "DELETE",
+        body: JSON.stringify(body),
+      }),
+    getAdminCompanies: () =>
+      requestJson<AdminCompaniesResponse>("/v1/admin/companies"),
+    createAdminCompany: (body: CreateAdminCompanyBody) =>
+      requestJson<AdminCompanyRow>("/v1/admin/companies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+    updateAdminCompany: (companyId: string, body: UpdateAdminCompanyBody) =>
+      requestJson<AdminCompanyRow>(`/v1/admin/companies/${companyId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }),
     downloadEmployeeImportTemplate: (companyId?: string | null) =>
       requestText(`/v1/employee-import/template${companyQuery(companyId)}`),
     importEmployees: (body: string, contentType: string) =>
@@ -169,30 +214,42 @@ export function createApiClient(deps: ApiClientDeps) {
           reportingMonth: params?.reportingMonth,
         })}`
       ),
+    createPayRun: (body: CreatePayRunBody) =>
+      requestJson<PayRunMutationEnvelope>("/v1/pay-runs", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
     getWorkspace: (runId: string) =>
       requestJson<PayRunWorkspaceView>(`/v1/pay-runs/${runId}/workspace`),
     recompute: (runId: string) =>
-      requestJson<void>(`/v1/pay-runs/${runId}/recompute`, {
+      requestJson<PayRunMutationEnvelope>(`/v1/pay-runs/${runId}/recompute`, {
         method: "POST",
       }),
     review: (runId: string, calcRevision: string) =>
-      requestJson<void>(`/v1/pay-runs/${runId}/review`, {
+      requestJson<PayRunMutationEnvelope>(`/v1/pay-runs/${runId}/review`, {
         method: "POST",
         body: JSON.stringify({ calcRevision }),
       }),
     approve: (runId: string, calcRevision: string) =>
-      requestJson<void>(`/v1/pay-runs/${runId}/approve`, {
+      requestJson<PayRunMutationEnvelope>(`/v1/pay-runs/${runId}/approve`, {
         method: "POST",
         body: JSON.stringify({ calcRevision }),
+      }),
+    demotePayRun: (runId: string) =>
+      requestJson<PayRunMutationEnvelope>(`/v1/pay-runs/${runId}/demote`, {
+        method: "POST",
       }),
     getFindings: (runId: string) =>
       requestJson<FindingsListResponse>(`/v1/pay-runs/${runId}/findings`),
     scanFindings: (runId: string) =>
-      requestJson<void>(`/v1/pay-runs/${runId}/findings/scan`, {
-        method: "POST",
-      }),
+      requestJson<PayRunMutationEnvelope>(
+        `/v1/pay-runs/${runId}/findings/scan`,
+        {
+          method: "POST",
+        }
+      ),
     acknowledgeFinding: (runId: string, findingId: string, note?: string) =>
-      requestJson<void>(
+      requestJson<PayRunMutationEnvelope>(
         `/v1/pay-runs/${runId}/findings/${findingId}/acknowledge`,
         {
           method: "POST",
@@ -211,12 +268,12 @@ export function createApiClient(deps: ApiClientDeps) {
     getPayments: (runId: string) =>
       requestJson<PaymentsListResponse>(`/v1/pay-runs/${runId}/payments`),
     holdLine: (runId: string, lineId: string, reason: string) =>
-      requestJson<void>(`/v1/pay-runs/${runId}/lines/${lineId}/hold`, {
+      requestJson<OkResponse>(`/v1/pay-runs/${runId}/lines/${lineId}/hold`, {
         method: "POST",
         body: JSON.stringify({ reason }),
       }),
     unholdLine: (runId: string, lineId: string) =>
-      requestJson<void>(`/v1/pay-runs/${runId}/lines/${lineId}/unhold`, {
+      requestJson<OkResponse>(`/v1/pay-runs/${runId}/lines/${lineId}/unhold`, {
         method: "POST",
       }),
     withdrawLine: (
@@ -229,10 +286,13 @@ export function createApiClient(deps: ApiClientDeps) {
         readonly replacementRunId?: string;
       }
     ) =>
-      requestJson<void>(`/v1/pay-runs/${runId}/lines/${lineId}/withdraw`, {
-        method: "POST",
-        body: JSON.stringify(body),
-      }),
+      requestJson<OkResponse>(
+        `/v1/pay-runs/${runId}/lines/${lineId}/withdraw`,
+        {
+          method: "POST",
+          body: JSON.stringify(body),
+        }
+      ),
     previewRelease: (runId: string, lineIds: readonly string[]) =>
       requestJson<ReleasePreviewResponse>(
         `/v1/pay-runs/${runId}/release/preview`,
@@ -259,18 +319,22 @@ export function createApiClient(deps: ApiClientDeps) {
         readonly outcome: "PAID" | "FAILED";
         readonly paymentRef?: string;
         readonly failedReason?: string;
+        readonly settledAt?: string;
       }
     ) =>
-      requestJson<void>(`/v1/pay-runs/${runId}/attempts/${attemptId}/settle`, {
-        method: "POST",
-        body: JSON.stringify(body),
-      }),
+      requestJson<OkResponse>(
+        `/v1/pay-runs/${runId}/attempts/${attemptId}/settle`,
+        {
+          method: "POST",
+          body: JSON.stringify(body),
+        }
+      ),
     reconcileAttempt: (
       runId: string,
       attemptId: string,
       evidenceArtifactId?: string
     ) =>
-      requestJson<void>(
+      requestJson<OkResponse>(
         `/v1/pay-runs/${runId}/attempts/${attemptId}/reconcile`,
         {
           method: "POST",
@@ -280,10 +344,13 @@ export function createApiClient(deps: ApiClientDeps) {
         }
       ),
     cancelRelease: (runId: string, batchId: string, reason: string) =>
-      requestJson<void>(`/v1/pay-runs/${runId}/batches/${batchId}/cancel`, {
-        method: "POST",
-        body: JSON.stringify({ reason }),
-      }),
+      requestJson<OkResponse>(
+        `/v1/pay-runs/${runId}/batches/${batchId}/cancel`,
+        {
+          method: "POST",
+          body: JSON.stringify({ reason }),
+        }
+      ),
     recordDistribution: (
       runId: string,
       lineId: string,

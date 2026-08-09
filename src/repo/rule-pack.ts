@@ -132,6 +132,15 @@ export async function loadRuleSettings(
  * line at all. Deactivation governs what may be newly *entered*, not what can be
  * explained.
  */
+/**
+ * Canonical pay-item definitions for compute.
+ *
+ * Wage-base authority: `pay_item_treatments` (EPF/SOCSO/EIS/HRD) wins when a
+ * current treatment row exists. Catalog booleans `pay_items.epf_wages` /
+ * `socso_wages` / `eis_wages` are deprecated mirrors kept in sync by trigger for
+ * EPF/SOCSO/EIS only — HRD has no catalog mirror and exists only in treatments.
+ * PCB class comes from `pay_item_pcb_classes`, not `pay_items.taxable`.
+ */
 export async function loadPayItems(db: Database): Promise<PayItemDef[]> {
   const rows = await db
     .select({

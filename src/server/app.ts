@@ -9,6 +9,7 @@ import type { ArtifactStore } from "@/domain/artifacts/store";
 import type { VerifyJwt } from "./auth/jwt";
 import { type AuthVariables, authMiddleware } from "./auth/middleware";
 import { handleRouteError } from "./errors";
+import { adminCompanyRoutes } from "./routes/admin-companies";
 import { adminUserRoutes } from "./routes/admin-users";
 import { employeeImportRoutes } from "./routes/employee-import";
 import { employeeRemunerationRoutes } from "./routes/employee-remuneration";
@@ -35,7 +36,10 @@ export function createApp(deps: AppDeps): Hono {
   app.use(
     "*",
     cors({
-      origin: deps.corsOrigin ?? "http://localhost:5173",
+      origin: (deps.corsOrigin ?? "http://localhost:5173,http://localhost:5174")
+        .split(",")
+        .map((value) => value.trim())
+        .filter((value) => value.length > 0),
       allowHeaders: ["Authorization", "Content-Type"],
       allowMethods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     })
@@ -47,6 +51,7 @@ export function createApp(deps: AppDeps): Hono {
   v1.use("*", authMiddleware(deps));
   v1.route("/", meRoutes(deps.db));
   v1.route("/", adminUserRoutes(deps.db));
+  v1.route("/", adminCompanyRoutes(deps.db));
   v1.route("/", employeeImportRoutes(deps.db));
   v1.route("/", employeeRoutes(deps.db));
   v1.route("/", payRunRoutes(deps.db));

@@ -31,6 +31,8 @@
     "tmp",
     ".docker-data",
     ".vercel",
-    "**/*.tsbuildinfo"
+    "**/*.tsbuildinfo",
+    "src/components/shadcn-studio/blocks/pages/**",
+    "tmp-*.json"
   ]
 }

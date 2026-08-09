@@ -48,8 +48,9 @@ export const payItems = pgTable(
     /** MONTHLY-basis pay is reduced by days paid; most allowances are not. */
     prorates: boolean().notNull().default(false),
     /**
-     * Informational for the human PCB workflow and the payslip. Not an engine
-     * input: PCB is never calculated, only recorded as a verified external figure.
+     * Legacy catalog flag. Offline PCB compute uses `pay_item_pcb_classes` /
+     * `PayItemDef.pcbRemunerationClass` (via `loadPayItems`), not this column.
+     * Retained for payslip/display and older imports.
      */
     taxable: boolean().notNull().default(true),
     /** System items (BASIC, OT) cannot be deactivated — see the trigger. */

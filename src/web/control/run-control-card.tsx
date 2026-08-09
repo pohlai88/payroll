@@ -9,7 +9,6 @@ import { isRunStatus, StatusBadge } from "@/components/payroll/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 import type { GateResult, PayRunSummary, RunSeal } from "@/web/api/payroll-api";
 
 type GatePill = "CLEAR" | "BLOCKED" | "UNKNOWN" | "N/A";
@@ -27,14 +26,16 @@ interface RunControlCardProps {
   readonly seal: RunSeal | null;
 }
 
-function pillClass(pill: GatePill): string {
+function gatePillVariant(
+  pill: GatePill
+): "success" | "bad" | "outline" {
   if (pill === "CLEAR") {
-    return "border-0 bg-[var(--status-ok-fill)] text-[var(--status-ok-ink)]";
+    return "success";
   }
   if (pill === "BLOCKED") {
-    return "border-0 bg-[var(--status-bad-fill)] text-[var(--status-bad-ink)]";
+    return "bad";
   }
-  return "border-border text-muted-foreground";
+  return "outline";
 }
 
 /**
@@ -44,14 +45,7 @@ function pillClass(pill: GatePill): string {
 function SealBadges({ seal }: { readonly seal: RunSeal }) {
   const intact = seal.ok && seal.chainOk;
   return (
-    <Badge
-      className={cn(
-        "border-0 text-xs",
-        intact
-          ? "bg-[var(--status-ok-fill)] text-[var(--status-ok-ink)]"
-          : "bg-[var(--status-bad-fill)] text-[var(--status-bad-ink)]"
-      )}
-    >
+    <Badge className="text-xs" variant={intact ? "success" : "bad"}>
       {intact
         ? `✓ Sealed #${seal.sequence}`
         : `✕ ${seal.ok ? "Chain broken" : "Seal broken"}`}
@@ -106,7 +100,7 @@ function RunControlCard({
               status={isRunStatus(run.status) ? run.status : "DRAFT"}
             />
             {seal === null ? (
-              <Badge className={cn("text-xs", pillClass(gatePill))}>
+              <Badge className="text-xs" variant={gatePillVariant(gatePill)}>
                 Gate {gatePill}
               </Badge>
             ) : (
@@ -165,7 +159,7 @@ function RunControlCard({
           </div>
         )}
         {seal === null || seal.problems.length === 0 ? null : (
-          <ul className="space-y-1 rounded-md bg-[var(--status-bad-fill)] p-2 text-[var(--status-bad-ink)] text-xs">
+          <ul className="space-y-1 rounded-md bg-status-bad-fill p-2 text-status-bad-ink text-xs">
             {seal.problems.map((problem) => (
               <li key={problem}>{problem}</li>
             ))}

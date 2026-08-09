@@ -12,10 +12,10 @@ const alertVariants = cva(
         destructive:
           "bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current",
         success:
-          "bg-[hsl(var(--status-ok-fill))] text-[hsl(var(--status-ok-ink))] *:data-[slot=alert-description]:text-[hsl(var(--status-ok-ink))]/90 *:[svg]:text-current",
+          "bg-status-ok-fill text-status-ok-ink *:data-[slot=alert-description]:text-status-ok-ink/90 *:[svg]:text-current",
         warning:
-          "bg-[hsl(var(--status-warn-fill))] text-[hsl(var(--status-warn-ink))] *:data-[slot=alert-description]:text-[hsl(var(--status-warn-ink))]/90 *:[svg]:text-current",
-        info: "bg-[hsl(var(--status-info-fill))] text-[hsl(var(--status-info-ink))] *:data-[slot=alert-description]:text-[hsl(var(--status-info-ink))]/90 *:[svg]:text-current",
+          "bg-status-warn-fill text-status-warn-ink *:data-[slot=alert-description]:text-status-warn-ink/90 *:[svg]:text-current",
+        info: "bg-status-info-fill text-status-info-ink *:data-[slot=alert-description]:text-status-info-ink/90 *:[svg]:text-current",
       },
     },
     defaultVariants: {

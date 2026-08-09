@@ -7,6 +7,7 @@
  */
 
 import { MoneyCell } from "@/components/payroll/money-cell";
+import { Button } from "@/components/ui/button";
 import type { EmployeeLineDto } from "@/web/api/payroll-api";
 
 interface PayslipPreviewProps {
@@ -96,17 +97,9 @@ function PayslipPreview({ line, onPrint }: PayslipPreviewProps) {
         className="flex justify-end border-t px-6 py-3"
         style={{ borderColor: "var(--doc-rule-hairline)" }}
       >
-        <button
-          className="rounded border px-3 py-1.5 font-medium text-xs"
-          onClick={onPrint}
-          style={{
-            borderColor: "var(--doc-rule-standard)",
-            color: "var(--doc-ink)",
-          }}
-          type="button"
-        >
+        <Button onClick={onPrint} size="sm" type="button" variant="outline">
           Print preview
-        </button>
+        </Button>
       </div>
     </div>
   );

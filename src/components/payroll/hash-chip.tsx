@@ -9,6 +9,7 @@
 
 import { CheckIcon, CopyIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const HEAD = 8;
@@ -51,25 +52,26 @@ function HashChip({ value, label, className }: HashChipProps) {
   }, [value]);
 
   return (
-    <button
+    <Button
       className={cn(
-        "inline-flex items-center gap-1.5 rounded border border-border bg-muted/40 px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+        "h-auto gap-1.5 rounded border border-border bg-muted/40 px-1.5 py-0.5 font-mono text-muted-foreground text-xs hover:bg-muted hover:text-foreground",
         className
       )}
       onClick={handleCopy}
       title={value}
       type="button"
+      variant="ghost"
     >
       <span>{shortHash(value)}</span>
       {copied ? (
-        <CheckIcon aria-hidden className="size-3 text-[var(--status-ok-ink)]" />
+        <CheckIcon aria-hidden className="size-3 text-status-ok-ink" />
       ) : (
         <CopyIcon aria-hidden className="size-3 opacity-60" />
       )}
       <span className="sr-only">
         {copied ? `Copied ${label}` : `Copy ${label}`}
       </span>
-    </button>
+    </Button>
   );
 }
 

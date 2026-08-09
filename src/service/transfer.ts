@@ -2,6 +2,9 @@
  * Internal group transfer: ends an employment at one company and creates the
  * linked one at another, for the same person.
  *
+ * Service-internal only — no Hono route / SPA client method yet. Callers are
+ * other services, scripts, and tests.
+ *
  * See `docs/superpowers/specs/2026-08-08-internal-group-transfer-design.md`.
  * Findings scan after commit via `scanTransferFindings`. Evidence attaches
  * through `evidenceArtifactId` (hashed artifacts); `evidenceRef` is deprecated.

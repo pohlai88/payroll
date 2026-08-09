@@ -10,23 +10,30 @@ import {
   FileTextIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { formatApiError } from "@/web/api/format-error";
 import {
   type AnnualRemunerationSummaryDto,
   type EmployeeSummary,
   type ExceptionReportDto,
-  fetchAnnualRemunerationSummary,
-  fetchEmployees,
-  fetchExceptionReport,
-  fetchPaymentRegister,
-  fetchPayRuns,
-  fetchStatutorySummary,
   type PaymentRegisterDto,
   type PayRunSummary,
+  payrollApi,
   type StatutorySummaryDto,
 } from "@/web/api/payroll-api";
 import { useAuthContext } from "@/web/context/auth-context";
 import { useScopeContext } from "@/web/context/scope-context";
+import { PageTitle } from "@/web/shell/page-title";
 import { AnnualRemunerationSummary } from "./annual-remuneration-summary";
 import { ExceptionReport } from "./exception-report";
 import { PaymentRegister } from "./payment-register";
@@ -46,22 +53,22 @@ const REPORT_TYPES: Array<{
   {
     id: "payment-register",
     label: "Payment Register",
-    icon: <BarChart2Icon className="h-4 w-4" />,
+    icon: <BarChart2Icon className="size-4" />,
   },
   {
     id: "statutory-summary",
     label: "Statutory Summary",
-    icon: <FileTextIcon className="h-4 w-4" />,
+    icon: <FileTextIcon className="size-4" />,
   },
   {
     id: "exception-report",
     label: "Exception Report",
-    icon: <AlertTriangleIcon className="h-4 w-4" />,
+    icon: <AlertTriangleIcon className="size-4" />,
   },
   {
     id: "annual-remuneration",
     label: "Annual Remuneration Summary",
-    icon: <CalendarIcon className="h-4 w-4" />,
+    icon: <CalendarIcon className="size-4" />,
   },
 ];
 
@@ -94,7 +101,6 @@ function ReportsPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Following the same pattern as EmployeesPage - get a single company ID for API calls
   const singleCompanyId = useMemo(
     () =>
       scope.mode === "selected" && scope.companyIds.length === 1
@@ -103,7 +109,6 @@ function ReportsPage() {
     [scope]
   );
 
-  // Filter runs and employees to selected companies if we have multiple selected
   const selectedCompanyIds = useMemo(() => {
     if (scope.mode === "all") {
       return new Set(me?.companies?.map((c) => c.id) ?? []);
@@ -122,13 +127,15 @@ function ReportsPage() {
   );
 
   useEffect(() => {
-    fetchPayRuns(singleCompanyId)
+    payrollApi
+      .getPayRuns({ companyId: singleCompanyId })
       .then((result) => {
         setRuns(result);
       })
       .catch(() => undefined);
 
-    fetchEmployees(singleCompanyId)
+    payrollApi
+      .getEmployees({ companyId: singleCompanyId })
       .then((result) => {
         setEmps(result);
       })
@@ -139,7 +146,10 @@ function ReportsPage() {
     if (!selectedEmpId) {
       return;
     }
-    return await fetchAnnualRemunerationSummary(selectedEmpId, selectedYear);
+    return await payrollApi.getAnnualRemunerationSummary(
+      selectedEmpId,
+      selectedYear
+    );
   }, [selectedEmpId, selectedYear]);
 
   const loadRunReport = useCallback(async () => {
@@ -147,13 +157,13 @@ function ReportsPage() {
       return;
     }
     if (activeType === "payment-register") {
-      return await fetchPaymentRegister(selectedRunId);
+      return await payrollApi.getPaymentRegister(selectedRunId);
     }
     if (activeType === "statutory-summary") {
-      return await fetchStatutorySummary(selectedRunId);
+      return await payrollApi.getStatutorySummary(selectedRunId);
     }
     if (activeType === "exception-report") {
-      return await fetchExceptionReport(selectedRunId);
+      return await payrollApi.getExceptionReport(selectedRunId);
     }
   }, [activeType, selectedRunId]);
 
@@ -184,135 +194,124 @@ function ReportsPage() {
   }, [activeType, loadAnnualReport, loadRunReport]);
 
   return (
-    <div className="flex h-full">
-      {/* Sidebar */}
-      <nav className="w-56 shrink-0 space-y-1 border-r bg-card p-4">
-        <p className="mb-3 font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-          Reports
-        </p>
-        {REPORT_TYPES.map((rt) => (
-          <button
-            className={`flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm transition-colors ${
-              activeType === rt.id
-                ? "bg-primary/10 font-medium text-primary"
-                : "text-foreground hover:bg-muted"
-            }`}
-            key={rt.id}
-            onClick={() => {
-              setActiveType(rt.id);
-              setData(null);
-            }}
-            type="button"
-          >
-            {rt.icon}
-            {rt.label}
-          </button>
-        ))}
-      </nav>
+    <div className="space-y-6">
+      <PageTitle
+        description="Payment, statutory, exception, and annual remuneration reports."
+        title="Reports"
+      />
 
-      {/* Main panel */}
-      <main className="flex-1 space-y-4 overflow-auto p-6">
-        {/* Controls */}
-        <div className="flex items-end gap-3">
-          {activeType !== "annual-remuneration" && (
-            <div className="space-y-1">
-              <label
-                className="text-muted-foreground text-xs"
-                htmlFor="run-picker"
-              >
-                Pay Run
-              </label>
-              <select
-                className="rounded border px-2 py-1.5 text-sm"
-                id="run-picker"
-                onChange={(e) => setSelectedRunId(e.target.value)}
-                value={selectedRunId}
-              >
-                <option value="">— select run —</option>
-                {filteredRuns.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.label} ({r.status})
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-          {activeType === "annual-remuneration" && (
-            <>
-              <div className="space-y-1">
-                <label
-                  className="text-muted-foreground text-xs"
-                  htmlFor="emp-picker"
-                >
-                  Employee
-                </label>
-                <select
-                  className="rounded border px-2 py-1.5 text-sm"
-                  id="emp-picker"
-                  onChange={(e) => setSelectedEmpId(e.target.value)}
-                  value={selectedEmpId}
-                >
-                  <option value="">— select employee —</option>
-                  {filteredEmps.map((e) => (
-                    <option key={e.id} value={e.id}>
-                      {e.name} ({e.code})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-1">
-                <label
-                  className="text-muted-foreground text-xs"
-                  htmlFor="year-picker"
-                >
-                  Year
-                </label>
-                <input
-                  className="w-24 rounded border px-2 py-1.5 text-sm"
-                  id="year-picker"
-                  max={new Date().getFullYear() + 1}
-                  min={2020}
-                  onChange={(e) => setSelectedYear(Number(e.target.value))}
-                  type="number"
-                  value={selectedYear}
-                />
-              </div>
-            </>
-          )}
-          <button
-            className="rounded bg-primary px-4 py-1.5 font-medium text-primary-foreground text-sm"
-            onClick={load}
-            type="button"
-          >
-            Load
-          </button>
-        </div>
-
-        {/* Report view */}
-        {loading ? (
-          <p className="text-muted-foreground text-sm">Loading…</p>
-        ) : null}
-        {error ? <p className="text-destructive text-sm">{error}</p> : null}
-        {data && activeType === "payment-register" && (
-          <PaymentRegister data={data as PaymentRegisterDto} />
-        )}
-        {data && activeType === "statutory-summary" && (
-          <StatutorySummary data={data as StatutorySummaryDto} />
-        )}
-        {data && activeType === "exception-report" && (
-          <ExceptionReport data={data as ExceptionReportDto} />
-        )}
-        {data && activeType === "annual-remuneration" && (
-          <AnnualRemunerationSummary
-            data={data as AnnualRemunerationSummaryDto}
-          />
-        )}
-        {!(data || loading || error) && (
-          <p className="text-muted-foreground text-sm">
-            Select a run and click Load to generate a report.
+      <div className="flex min-h-0 flex-1 overflow-hidden rounded-xl border bg-card">
+        <nav className="w-56 shrink-0 space-y-1 border-r p-4">
+          <p className="mb-3 font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+            Report type
           </p>
-        )}
-      </main>
+          {REPORT_TYPES.map((rt) => (
+            <Button
+              className={cn(
+                "h-auto w-full justify-start gap-2 px-3 py-2 text-left font-normal",
+                activeType === rt.id
+                  ? "bg-primary/10 font-medium text-primary hover:bg-primary/10 hover:text-primary"
+                  : "text-foreground"
+              )}
+              key={rt.id}
+              onClick={() => {
+                setActiveType(rt.id);
+                setData(null);
+              }}
+              type="button"
+              variant="ghost"
+            >
+              {rt.icon}
+              <span className="truncate">{rt.label}</span>
+            </Button>
+          ))}
+        </nav>
+
+        <main className="flex-1 space-y-4 overflow-auto p-6">
+          <div className="flex flex-wrap items-end gap-3">
+            {activeType !== "annual-remuneration" ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="run-picker">Pay Run</Label>
+                <Select
+                  onValueChange={(value) => setSelectedRunId(value ?? "")}
+                  value={selectedRunId === "" ? null : selectedRunId}
+                >
+                  <SelectTrigger className="min-w-56" id="run-picker">
+                    <SelectValue placeholder="— select run —" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredRuns.map((r) => (
+                      <SelectItem key={r.id} value={r.id}>
+                        {r.label} ({r.status})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-1.5">
+                  <Label htmlFor="emp-picker">Employee</Label>
+                  <Select
+                    onValueChange={(value) => setSelectedEmpId(value ?? "")}
+                    value={selectedEmpId === "" ? null : selectedEmpId}
+                  >
+                    <SelectTrigger className="min-w-56" id="emp-picker">
+                      <SelectValue placeholder="— select employee —" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filteredEmps.map((e) => (
+                        <SelectItem key={e.id} value={e.id}>
+                          {e.name} ({e.code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="year-picker">Year</Label>
+                  <Input
+                    className="w-24"
+                    id="year-picker"
+                    max={new Date().getFullYear() + 1}
+                    min={2020}
+                    onChange={(e) => setSelectedYear(Number(e.target.value))}
+                    type="number"
+                    value={selectedYear}
+                  />
+                </div>
+              </>
+            )}
+            <Button onClick={load} type="button">
+              Load
+            </Button>
+          </div>
+
+          {loading ? (
+            <p className="text-muted-foreground text-sm">Loading…</p>
+          ) : null}
+          {error ? <p className="text-destructive text-sm">{error}</p> : null}
+          {data && activeType === "payment-register" ? (
+            <PaymentRegister data={data as PaymentRegisterDto} />
+          ) : null}
+          {data && activeType === "statutory-summary" ? (
+            <StatutorySummary data={data as StatutorySummaryDto} />
+          ) : null}
+          {data && activeType === "exception-report" ? (
+            <ExceptionReport data={data as ExceptionReportDto} />
+          ) : null}
+          {data && activeType === "annual-remuneration" ? (
+            <AnnualRemunerationSummary
+              data={data as AnnualRemunerationSummaryDto}
+            />
+          ) : null}
+          {!(data || loading || error) ? (
+            <p className="text-muted-foreground text-sm">
+              Select a run and click Load to generate a report.
+            </p>
+          ) : null}
+        </main>
+      </div>
     </div>
   );
 }

@@ -10,6 +10,7 @@
 
 import { useCallback } from "react";
 import { HashChip } from "@/components/payroll/hash-chip";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,7 +20,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
 import type {
   ChecklistItem,
   IssuedSeal,
@@ -146,16 +146,12 @@ function ClosureChecklistDialog({
           <ul className="space-y-2 rounded-md border p-3">
             {checklist.map((item) => (
               <li className="flex items-start gap-2 text-sm" key={item.item}>
-                <span
-                  className={cn(
-                    "mt-0.5 shrink-0 rounded px-1.5 py-0.5 font-mono text-xs",
-                    item.ok
-                      ? "bg-[var(--status-ok-fill)] text-[var(--status-ok-ink)]"
-                      : "bg-[var(--status-bad-fill)] text-[var(--status-bad-ink)]"
-                  )}
+                <Badge
+                  className="mt-0.5 font-mono"
+                  variant={item.ok ? "success" : "bad"}
                 >
                   {item.ok ? "OK" : "BLOCKED"}
-                </span>
+                </Badge>
                 <div>
                   <p className="font-medium text-foreground">{item.item}</p>
                   <p className="text-muted-foreground text-xs">{item.detail}</p>

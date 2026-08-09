@@ -18,6 +18,11 @@ import {
 } from "../src/db/client";
 import { payItems } from "../src/db/schema/catalog";
 import { employeeCustomFieldDefs } from "../src/db/schema/employee-profile";
+import {
+  companies,
+  employments,
+  persons,
+} from "../src/db/schema/parties";
 import { roles } from "../src/db/schema/rbac";
 import {
   eisBands,
@@ -28,7 +33,9 @@ import {
   seedFiles,
   socsoBands,
 } from "../src/db/schema/rule-pack";
+import { payRuns } from "../src/db/schema/run";
 import type { Band5, PayItemDef, SocsoBand } from "../src/domain/calc/types";
+import { createRun } from "../src/service/payrun";
 
 const SEED_DIR = path.join(process.cwd(), "db", "seed");
 
@@ -201,6 +208,8 @@ export async function seed(db: Database): Promise<string> {
     await recordSeedFiles(db, [read("pcb-table1-2026.json")]);
     await seedRbac(db);
     await seedEmployeeCustomFields(db);
+    await seedCompanies(db);
+    await seedDemoEmployees(db, packId);
     return packId;
   }
 
@@ -334,6 +343,8 @@ export async function seed(db: Database): Promise<string> {
   await recordSeedFiles(db, [read("pcb-table1-2026.json")]);
   await seedRbac(db);
   await seedEmployeeCustomFields(db);
+  await seedCompanies(db);
+  await seedDemoEmployees(db, packId);
   return packId;
 }
 
@@ -385,6 +396,184 @@ interface EmployeeCustomFieldSeed {
     sortOrder: number;
     active: boolean;
   }>;
+}
+
+interface CompaniesSeed {
+  companies: Array<{
+    code: string;
+    name: string;
+    epfNo: string | null;
+    socsoNo: string | null;
+    lhdnNo: string | null;
+    hrdfEnabled: boolean;
+    hrdfLevyPct: string;
+  }>;
+}
+
+/**
+ * Multicompany party rows used by scope selection and employee import.
+ * Idempotent on `code` — re-seed refreshes display/statutory fields without
+ * inventing a second company for the same payroll company code.
+ */
+async function seedCompanies(db: Database): Promise<void> {
+  const file = read<CompaniesSeed>("companies.json");
+  for (const company of file.data.companies) {
+    await db
+      .insert(companies)
+      .values({
+        code: company.code,
+        name: company.name,
+        epfNo: company.epfNo,
+        socsoNo: company.socsoNo,
+        lhdnNo: company.lhdnNo,
+        hrdfEnabled: company.hrdfEnabled,
+        hrdfLevyPct: company.hrdfLevyPct,
+      })
+      .onConflictDoUpdate({
+        target: companies.code,
+        set: {
+          name: company.name,
+          epfNo: company.epfNo,
+          socsoNo: company.socsoNo,
+          lhdnNo: company.lhdnNo,
+          hrdfEnabled: company.hrdfEnabled,
+          hrdfLevyPct: company.hrdfLevyPct,
+        },
+      });
+  }
+  await recordSeedFiles(db, [file]);
+}
+
+interface DemoEmployeesSeed {
+  employees: Array<{
+    companyCode: string;
+    employeeCode: string;
+    name: string;
+    ic: string;
+    joinDate: string;
+    payBasis: "MONTHLY" | "DAILY" | "HOURLY";
+    baseRateSen: number;
+    bankName: string;
+    bankAccountNo: string;
+  }>;
+  payRuns: Array<{
+    id: string;
+    companyCode: string;
+    year: number;
+    month: number;
+    periodStart: string;
+    periodEnd: string;
+    workingDays: number;
+  }>;
+}
+
+/**
+ * Demo persons / employments / DRAFT pay runs (with lines via createRun) so
+ * local SPA pages are not empty after seed. Idempotent on IC (person),
+ * company+employeeCode, and pay-run id (skip if the run already exists).
+ */
+async function seedDemoEmployees(
+  db: Database,
+  rulePackId: string
+): Promise<void> {
+  const file = read<DemoEmployeesSeed>("demo-employees.json");
+  const companyRows = await db
+    .select({ id: companies.id, code: companies.code })
+    .from(companies);
+  const companyByCode = new Map(companyRows.map((row) => [row.code, row.id]));
+
+  for (const employee of file.data.employees) {
+    const companyId = companyByCode.get(employee.companyCode);
+    if (companyId === undefined) {
+      throw new Error(
+        `demo employee ${employee.employeeCode}: unknown company ${employee.companyCode}`
+      );
+    }
+
+    const [existingPerson] = await db
+      .select({ id: persons.id })
+      .from(persons)
+      .where(eq(persons.ic, employee.ic))
+      .limit(1);
+
+    let personId = existingPerson?.id;
+    if (personId === undefined) {
+      const [inserted] = await db
+        .insert(persons)
+        .values({ name: employee.name, ic: employee.ic })
+        .returning({ id: persons.id });
+      personId = inserted?.id;
+    } else {
+      await db
+        .update(persons)
+        .set({ name: employee.name })
+        .where(eq(persons.id, personId));
+    }
+
+    if (personId === undefined) {
+      throw new Error(`failed to insert person for ${employee.employeeCode}`);
+    }
+
+    await db
+      .insert(employments)
+      .values({
+        personId,
+        companyId,
+        employeeCode: employee.employeeCode,
+        joinDate: employee.joinDate,
+        payBasis: employee.payBasis,
+        baseRateSen: employee.baseRateSen,
+        bankName: employee.bankName,
+        bankAccountNo: employee.bankAccountNo,
+        bankAccountName: employee.name,
+      })
+      .onConflictDoUpdate({
+        target: [employments.companyId, employments.employeeCode],
+        set: {
+          joinDate: employee.joinDate,
+          payBasis: employee.payBasis,
+          baseRateSen: employee.baseRateSen,
+          bankName: employee.bankName,
+          bankAccountNo: employee.bankAccountNo,
+          bankAccountName: employee.name,
+        },
+      });
+  }
+
+  for (const run of file.data.payRuns) {
+    const companyId = companyByCode.get(run.companyCode);
+    if (companyId === undefined) {
+      throw new Error(
+        `demo pay run ${run.id}: unknown company ${run.companyCode}`
+      );
+    }
+    const [existing] = await db
+      .select({ id: payRuns.id })
+      .from(payRuns)
+      .where(eq(payRuns.id, run.id))
+      .limit(1);
+    if (existing !== undefined) {
+      continue;
+    }
+    const created = await createRun(db, {
+      runId: run.id,
+      companyId,
+      rulePackId,
+      year: run.year,
+      month: run.month,
+      periodStart: run.periodStart,
+      periodEnd: run.periodEnd,
+      workingDays: run.workingDays,
+      actor: "seed",
+    });
+    if (created.lineCount < 1) {
+      throw new Error(
+        `demo pay run ${run.id}: createRun produced 0 lines (no period members?)`
+      );
+    }
+  }
+
+  await recordSeedFiles(db, [file]);
 }
 
 /**

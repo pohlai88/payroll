@@ -1,23 +1,12 @@
 /**
  * Production API client — real VITE_API_BASE, no mock bypass.
+ * Single surface: `payrollApi` / `getPayrollApi()`. No parallel `fetch*` wrappers.
  */
 
 import { acquireAccessToken } from "@/web/auth/client";
-import type {
-  PayslipDocumentDto,
-  PayslipIndexRow,
-} from "@/web/payrun/payslip-document/types";
 import type { GetEmployeesParams, GetPayRunsParams } from "./client";
 import { createApiClient } from "./client";
-import type {
-  AnnualRemunerationSummaryDto,
-  ExceptionReportDto,
-  GateKind,
-  PaymentRegisterDto,
-  ReleaseMethod,
-  RunLineDiffDto,
-  StatutorySummaryDto,
-} from "./types";
+import type { GateKind, ReleaseMethod } from "./types";
 
 export type { GetEmployeesParams, GetPayRunsParams } from "./client";
 export type {
@@ -31,6 +20,7 @@ export type {
   CloseRunResponse,
   ClosureChainResponse,
   ClosureChecklistResponse,
+  CreatePayRunBody,
   DistributionChannel,
   EmployeeLineDto,
   EmployeeSummary,
@@ -52,11 +42,14 @@ export type {
   MeCompany,
   MeResponse,
   NodeDiffRow,
+  OkResponse,
   PaymentAttempt,
   PaymentAttemptStatus,
   PaymentRegisterDto,
   PaymentRegisterRow,
   PaymentsListResponse,
+  PayRunMutationEnvelope,
+  PayRunMutationKind,
   PayRunSummary,
   PayRunWorkspaceView,
   ReleaseBatch,
@@ -112,17 +105,42 @@ export const payrollApi = {
   getPermissions: (companyId?: string | null) =>
     getPayrollApi().getPermissions(companyId),
   getAdminUsers: () => getPayrollApi().getAdminUsers(),
+  createAdminUser: (body: Parameters<PayrollApi["createAdminUser"]>[0]) =>
+    getPayrollApi().createAdminUser(body),
+  updateAdminUser: (
+    userId: string,
+    body: Parameters<PayrollApi["updateAdminUser"]>[1]
+  ) => getPayrollApi().updateAdminUser(userId, body),
+  assignUserRole: (
+    userId: string,
+    body: Parameters<PayrollApi["assignUserRole"]>[1]
+  ) => getPayrollApi().assignUserRole(userId, body),
+  revokeUserRole: (
+    userId: string,
+    body: Parameters<PayrollApi["revokeUserRole"]>[1]
+  ) => getPayrollApi().revokeUserRole(userId, body),
+  getAdminCompanies: () => getPayrollApi().getAdminCompanies(),
+  createAdminCompany: (
+    body: Parameters<PayrollApi["createAdminCompany"]>[0]
+  ) => getPayrollApi().createAdminCompany(body),
+  updateAdminCompany: (
+    companyId: string,
+    body: Parameters<PayrollApi["updateAdminCompany"]>[1]
+  ) => getPayrollApi().updateAdminCompany(companyId, body),
   downloadEmployeeImportTemplate: (companyId?: string | null) =>
     getPayrollApi().downloadEmployeeImportTemplate(companyId),
   importEmployees: (body: string, contentType: string) =>
     getPayrollApi().importEmployees(body, contentType),
   getPayRuns: (params?: GetPayRunsParams) => getPayrollApi().getPayRuns(params),
+  createPayRun: (body: Parameters<PayrollApi["createPayRun"]>[0]) =>
+    getPayrollApi().createPayRun(body),
   getWorkspace: (runId: string) => getPayrollApi().getWorkspace(runId),
   recompute: (runId: string) => getPayrollApi().recompute(runId),
   review: (runId: string, calcRevision: string) =>
     getPayrollApi().review(runId, calcRevision),
   approve: (runId: string, calcRevision: string) =>
     getPayrollApi().approve(runId, calcRevision),
+  demotePayRun: (runId: string) => getPayrollApi().demotePayRun(runId),
   getFindings: (runId: string) => getPayrollApi().getFindings(runId),
   scanFindings: (runId: string) => getPayrollApi().scanFindings(runId),
   acknowledgeFinding: (runId: string, findingId: string, note?: string) =>
@@ -179,57 +197,17 @@ export const payrollApi = {
   closeRun: (runId: string) => getPayrollApi().closeRun(runId),
   getRunSeal: (runId: string) => getPayrollApi().getRunSeal(runId),
   getClosureChain: (runId: string) => getPayrollApi().getClosureChain(runId),
+  getPayslip: (runId: string, lineId: string) =>
+    getPayrollApi().getPayslip(runId, lineId),
+  getPayslipIndex: (runId: string) => getPayrollApi().getPayslipIndex(runId),
+  getLineDiff: (runId: string, lineId: string) =>
+    getPayrollApi().getLineDiff(runId, lineId),
+  getPaymentRegister: (runId: string) =>
+    getPayrollApi().getPaymentRegister(runId),
+  getStatutorySummary: (runId: string) =>
+    getPayrollApi().getStatutorySummary(runId),
+  getExceptionReport: (runId: string) =>
+    getPayrollApi().getExceptionReport(runId),
+  getAnnualRemunerationSummary: (employeeId: string, year: number) =>
+    getPayrollApi().getAnnualRemunerationSummary(employeeId, year),
 };
-
-export function fetchPayslip(
-  runId: string,
-  lineId: string
-): Promise<PayslipDocumentDto> {
-  return getPayrollApi().getPayslip(runId, lineId);
-}
-
-export function fetchPayslipIndex(
-  runId: string
-): Promise<{ payslips: PayslipIndexRow[] }> {
-  return getPayrollApi().getPayslipIndex(runId);
-}
-
-export function fetchLineDiff(
-  runId: string,
-  lineId: string
-): Promise<RunLineDiffDto> {
-  return getPayrollApi().getLineDiff(runId, lineId);
-}
-
-export function fetchPaymentRegister(
-  runId: string
-): Promise<PaymentRegisterDto> {
-  return getPayrollApi().getPaymentRegister(runId);
-}
-
-export function fetchStatutorySummary(
-  runId: string
-): Promise<StatutorySummaryDto> {
-  return getPayrollApi().getStatutorySummary(runId);
-}
-
-export function fetchExceptionReport(
-  runId: string
-): Promise<ExceptionReportDto> {
-  return getPayrollApi().getExceptionReport(runId);
-}
-
-export function fetchAnnualRemunerationSummary(
-  employeeId: string,
-  year: number
-): Promise<AnnualRemunerationSummaryDto> {
-  return getPayrollApi().getAnnualRemunerationSummary(employeeId, year);
-}
-
-export function fetchPayRuns(companyId?: string) {
-  return getPayrollApi().getPayRuns({ companyId });
-}
-
-export function fetchEmployees(companyId?: string) {
-  return getPayrollApi().getEmployees({ companyId });
-}

@@ -20,6 +20,7 @@ import {
 import type { PayRunSummary } from "@/web/api/payroll-api";
 import { payrollApi } from "@/web/api/payroll-api";
 import { useScopeContext } from "@/web/context/scope-context";
+import { PageTitle } from "@/web/shell/page-title";
 
 function formatPeriod(run: PayRunSummary): string {
   return `${String(run.month).padStart(2, "0")}/${run.year}`;
@@ -89,37 +90,49 @@ function PayRunListPage() {
 
   if (!loading && visibleRuns.length === 0) {
     return (
-      <EmptyState
-        description="No pay runs found for the current scope and reporting month."
-        icon={<ReceiptTextIcon />}
-        title="No Pay Runs"
-      />
+      <div className="space-y-6">
+        <PageTitle
+          description="Runs for the current scope and reporting month."
+          title="Pay Runs"
+        />
+        <EmptyState
+          description="No pay runs found for the current scope and reporting month."
+          icon={<ReceiptTextIcon />}
+          title="No Pay Runs"
+        />
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Pay Runs</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Company</TableHead>
-              <TableHead>Period</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Employees</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {visibleRuns.map((run) => (
-              <PayRunRow key={run.id} onOpen={openRun} run={run} />
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <PageTitle
+        description="Runs for the current scope and reporting month."
+        title="Pay Runs"
+      />
+      <Card>
+        <CardHeader>
+          <CardTitle>Directory</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Company</TableHead>
+                <TableHead>Period</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Employees</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {visibleRuns.map((run) => (
+                <PayRunRow key={run.id} onOpen={openRun} run={run} />
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

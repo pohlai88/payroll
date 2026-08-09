@@ -1,36 +1,50 @@
-import { Badge } from "@/components/ui/badge";
+import { Badge, type badgeVariants } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import type { VariantProps } from "class-variance-authority";
 
 type RunStatus = "DRAFT" | "REVIEWED" | "APPROVED" | "CLOSED";
+type BadgeVariant = NonNullable<VariantProps<typeof badgeVariants>["variant"]>;
 
 interface StatusBadgeProps {
   status: RunStatus;
+  className?: string;
 }
 
-const STATUS_CONFIG: Record<RunStatus, { glyph: string; className: string }> = {
+const STATUS_CONFIG: Record<
+  RunStatus,
+  {
+    glyph: string;
+    variant: BadgeVariant;
+    className?: string;
+  }
+> = {
   DRAFT: {
     glyph: "◦",
-    className: "text-muted-foreground bg-transparent border border-border",
+    variant: "outline",
+    className: "text-muted-foreground bg-transparent",
   },
   REVIEWED: {
     glyph: "◔",
-    className: "text-foreground bg-transparent border border-border",
+    variant: "outline",
+    className: "text-foreground bg-transparent",
   },
   APPROVED: {
     glyph: "✓",
-    className:
-      "text-[var(--status-ok-ink)] bg-[var(--status-ok-fill)] border-0",
+    variant: "success",
   },
   CLOSED: {
     glyph: "✓",
-    className:
-      "text-[var(--status-ok-ink)] bg-[var(--status-ok-fill)] border-0",
+    variant: "success",
   },
 };
 
-function StatusBadge({ status }: StatusBadgeProps) {
+function StatusBadge({ status, className }: StatusBadgeProps) {
   const config = STATUS_CONFIG[status] ?? STATUS_CONFIG.DRAFT;
   return (
-    <Badge className={config.className} variant="outline">
+    <Badge
+      className={cn(config.className, className)}
+      variant={config.variant}
+    >
       {config.glyph} {status}
     </Badge>
   );
@@ -45,23 +59,41 @@ function isRunStatus(status: string): status is RunStatus {
   );
 }
 
+/** Map finding/exception severity → Badge variant (Straits status tokens). */
+function severityBadgeVariant(severity: string): BadgeVariant {
+  if (severity === "BLOCKING") {
+    return "bad";
+  }
+  if (severity === "WARNING") {
+    return "warning";
+  }
+  if (severity === "REVIEW") {
+    return "info";
+  }
+  return "secondary";
+}
+
 /**
- * Shared severity → className for finding/exception badge coloring.
- * Covers BLOCKING (bad), WARNING (warn), REVIEW (info), and a muted fallback
- * for INFO or any unknown severity.
+ * Surface tint for finding cards (not Badge chrome). Prefer
+ * `severityBadgeVariant` on Badge children; use this only for block backgrounds.
  */
 function severityBadgeClass(severity: string): string {
   if (severity === "BLOCKING") {
-    return "border-0 bg-[var(--status-bad-fill)] text-[var(--status-bad-ink)]";
+    return "border-0 bg-status-bad-fill text-status-bad-ink";
   }
   if (severity === "WARNING") {
-    return "border-[var(--status-warn-border)] bg-[var(--status-warn-fill)] text-[var(--status-warn-ink)]";
+    return "border-status-warn-border bg-status-warn-fill text-status-warn-ink";
   }
   if (severity === "REVIEW") {
-    return "border-0 bg-[var(--status-info-fill)] text-[var(--status-info-ink)]";
+    return "border-0 bg-status-info-fill text-status-info-ink";
   }
   return "border-border bg-muted text-muted-foreground";
 }
 
 export type { RunStatus, StatusBadgeProps };
-export { isRunStatus, StatusBadge, severityBadgeClass };
+export {
+  isRunStatus,
+  severityBadgeClass,
+  severityBadgeVariant,
+  StatusBadge,
+};

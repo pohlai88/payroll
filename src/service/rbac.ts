@@ -63,7 +63,7 @@ export async function listEffectivePermissions(
 export async function listAccessibleCompanies(
   db: Database,
   userId: string
-): Promise<Array<{ id: string; name: string }>> {
+): Promise<Array<{ id: string; code: string; name: string }>> {
   const grants = await loadAuthRoleGrants(db, userId);
 
   const rows = evaluateIsSystemAdmin(grants)
@@ -76,7 +76,11 @@ export async function listAccessibleCompanies(
         ),
       ]);
 
-  return rows.map((row) => ({ id: row.id, name: row.name }));
+  return rows.map((row) => ({
+    id: row.id,
+    code: row.code,
+    name: row.name,
+  }));
 }
 
 /**

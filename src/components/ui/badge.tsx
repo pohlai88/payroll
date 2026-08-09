@@ -20,10 +20,11 @@ const badgeVariants = cva(
           "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
         link: "text-primary underline-offset-4 hover:underline",
         success:
-          "bg-[hsl(var(--status-ok-fill))] text-[hsl(var(--status-ok-ink))] [a]:hover:bg-[hsl(var(--status-ok-fill))]/80",
+          "bg-status-ok-fill text-status-ok-ink [a]:hover:bg-status-ok-fill/80",
         warning:
-          "bg-[hsl(var(--status-warn-fill))] text-[hsl(var(--status-warn-ink))] [a]:hover:bg-[hsl(var(--status-warn-fill))]/80",
-        info: "bg-[hsl(var(--status-info-fill))] text-[hsl(var(--status-info-ink))] [a]:hover:bg-[hsl(var(--status-info-fill))]/80",
+          "bg-status-warn-fill text-status-warn-ink border-status-warn-border [a]:hover:bg-status-warn-fill/80",
+        info: "bg-status-info-fill text-status-info-ink [a]:hover:bg-status-info-fill/80",
+        bad: "bg-status-bad-fill text-status-bad-ink [a]:hover:bg-status-bad-fill/80",
       },
     },
     defaultVariants: {

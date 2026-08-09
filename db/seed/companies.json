@@ -1,0 +1,22 @@
+{
+  "companies": [
+    {
+      "code": "DLBB",
+      "name": "DLBB Sdn Bhd",
+      "epfNo": null,
+      "socsoNo": null,
+      "lhdnNo": null,
+      "hrdfEnabled": true,
+      "hrdfLevyPct": "1.0000"
+    },
+    {
+      "code": "DLBM",
+      "name": "DLBM Sdn Bhd",
+      "epfNo": null,
+      "socsoNo": null,
+      "lhdnNo": null,
+      "hrdfEnabled": true,
+      "hrdfLevyPct": "1.0000"
+    }
+  ]
+}

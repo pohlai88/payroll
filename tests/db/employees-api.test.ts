@@ -4,7 +4,12 @@
 
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createUser } from "@/repo/rbac";
+import {
+  assignUserToRole,
+  createRole,
+  createUser,
+  grantPermission,
+} from "@/repo/rbac";
 import { createApp } from "@/server/app";
 import { AuthError } from "@/server/auth/errors";
 import type { NeonAuthClaims, VerifyJwt } from "@/server/auth/jwt";
@@ -21,6 +26,10 @@ const ACTIVE_EMPLOYMENT_ID = "dddddddd-0000-4000-8000-000000000005";
 const TERMINATED_EMPLOYMENT_ID = "dddddddd-0000-4000-8000-000000000006";
 const OTHER_COMPANY_EMPLOYMENT_ID = "dddddddd-0000-4000-8000-000000000007";
 const USER_EMAIL = "employees-api@example.com";
+const SCOPED_EMAIL = "employees-scoped@example.com";
+const NOGRANT_EMAIL = "employees-nogrant@example.com";
+
+let readerRoleId = "";
 
 beforeAll(async () => {
   await database.truncate(...ALL_TABLES);
@@ -48,7 +57,43 @@ beforeAll(async () => {
       (${OTHER_COMPANY_EMPLOYMENT_ID}, ${PERSON_ID}, ${OTHER_COMPANY_ID}, 'E003', '2021-01-01', NULL, NULL,
        'MONTHLY', 300000, false, false, false, false)`);
 
-  await createUser(db, { email: USER_EMAIL, name: "Employees API User" });
+  const readerRole = await createRole(db, {
+    code: "EMP_API_READER",
+    name: "Employees API Reader",
+    scope: "COMPANY",
+  });
+  readerRoleId = readerRole.id;
+  await grantPermission(db, readerRoleId, "EMPLOYMENT", "READ");
+
+  const user = await createUser(db, {
+    email: USER_EMAIL,
+    name: "Employees API User",
+  });
+  await assignUserToRole(db, {
+    userId: user.id,
+    roleId: readerRoleId,
+    companyId: COMPANY_ID,
+  });
+  await assignUserToRole(db, {
+    userId: user.id,
+    roleId: readerRoleId,
+    companyId: OTHER_COMPANY_ID,
+  });
+
+  const scoped = await createUser(db, {
+    email: SCOPED_EMAIL,
+    name: "Scoped Employees User",
+  });
+  await assignUserToRole(db, {
+    userId: scoped.id,
+    roleId: readerRoleId,
+    companyId: COMPANY_ID,
+  });
+
+  await createUser(db, {
+    email: NOGRANT_EMAIL,
+    name: "No Grant Employees User",
+  });
 });
 
 afterAll(async () => {
@@ -77,13 +122,17 @@ function verifier(map: Record<string, NeonAuthClaims>): VerifyJwt {
   };
 }
 
-function userApp() {
+function appFor(token: string, email: string) {
   return createApp({
     db,
     verifyJwt: verifier({
-      user: claims({ sub: "neon-employees-user", email: USER_EMAIL }),
+      [token]: claims({ sub: `neon-${token}`, email }),
     }),
   });
+}
+
+function userApp() {
+  return appFor("user", USER_EMAIL);
 }
 
 describe("GET /v1/employees", () => {
@@ -102,6 +151,37 @@ describe("GET /v1/employees", () => {
     const body = await res.json();
     expect(Array.isArray(body)).toBe(true);
     expect(body.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("returns [] when the caller has no company grants", async () => {
+    const app = appFor("nogrant", NOGRANT_EMAIL);
+    const res = await app.request("/v1/employees", {
+      headers: { Authorization: "Bearer nogrant" },
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual([]);
+  });
+
+  it("403 when companyId is outside the caller's accessible set", async () => {
+    const app = appFor("scoped", SCOPED_EMAIL);
+    const res = await app.request(
+      `/v1/employees?companyId=${OTHER_COMPANY_ID}`,
+      { headers: { Authorization: "Bearer scoped" } }
+    );
+    expect(res.status).toBe(403);
+  });
+
+  it("company-scoped user only sees employees in granted companies", async () => {
+    const app = appFor("scoped", SCOPED_EMAIL);
+    const res = await app.request("/v1/employees", {
+      headers: { Authorization: "Bearer scoped" },
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body).toHaveLength(2);
+    expect(
+      body.every((row: { companyId: string }) => row.companyId === COMPANY_ID)
+    ).toBe(true);
   });
 
   it("derives ACTIVE / TERMINATED status from terminationDate", async () => {

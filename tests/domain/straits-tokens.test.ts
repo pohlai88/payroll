@@ -105,6 +105,28 @@ describe("Straits token CSS contract", () => {
     expect(theme.toLowerCase()).not.toMatch(/#14324a/);
   });
 
+  it("does not declare a circular --font-heading theme alias", () => {
+    const text = css();
+    expect(text).not.toMatch(/--font-heading\s*:/);
+  });
+
+  it("uses the shadcn v4 multiplicative radius scale", () => {
+    const text = css();
+    expect(text).toMatch(
+      /--radius-xs\s*:\s*calc\(var\(--radius\)\s*\*\s*0\.5\)/
+    );
+    expect(text).toMatch(
+      /--radius-sm\s*:\s*calc\(var\(--radius\)\s*\*\s*0\.75\)/
+    );
+    expect(text).toMatch(
+      /--radius-md\s*:\s*calc\(var\(--radius\)\s*\*\s*0\.875\)/
+    );
+    expect(text).toMatch(/--radius-lg\s*:\s*var\(--radius\)/);
+    expect(text).toMatch(
+      /--radius-xl\s*:\s*calc\(var\(--radius\)\s*\*\s*1\.5\)/
+    );
+  });
+
   it("projects known Straits literals for primary and doc-ink", () => {
     const text = css();
     expect(text).toMatch(/--primary\s*:\s*#14324a/i);

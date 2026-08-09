@@ -6,7 +6,7 @@
 
 import { ChevronDownIcon, ShieldAlertIcon } from "lucide-react";
 import { type ChangeEvent, useCallback, useEffect, useState } from "react";
-import { severityBadgeClass } from "@/components/payroll/status-badge";
+import { severityBadgeVariant } from "@/components/payroll/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -72,7 +72,7 @@ function FindingRowView({
   return (
     <li className="flex flex-col gap-2 border-b px-3 py-3 last:border-b-0">
       <div className="flex flex-wrap items-start gap-2">
-        <Badge className={cn("shrink-0", severityBadgeClass(finding.severity))}>
+        <Badge className="shrink-0" variant={severityBadgeVariant(finding.severity)}>
           {finding.severity}
         </Badge>
         <Badge className="shrink-0 font-mono text-xs" variant="outline">
@@ -117,7 +117,7 @@ function FindingRowView({
         </div>
       ) : null}
       {finding.severity === "BLOCKING" && finding.status === "OPEN" ? (
-        <p className="text-[var(--status-bad-ink)] text-xs">
+        <p className="text-status-bad-ink text-xs">
           Blocking — fix the condition and re-scan; cannot be acknowledged.
         </p>
       ) : null}

@@ -19,6 +19,7 @@ import {
   useState,
 } from "react";
 import type { MeResponse } from "@/web/api/payroll-api";
+import { formatApiError } from "@/web/api/format-error";
 import { payrollApi } from "@/web/api/payroll-api";
 import { signOutAuth } from "@/web/auth/client";
 import { isSystemAdminPresentation } from "@/web/auth/is-system-admin";
@@ -31,6 +32,8 @@ interface AuthContextValue {
    * `GET /v1/me/permissions`, since `MeResponse` itself carries no `role`.
    */
   isSystemAdmin: boolean;
+  /** Set when `/v1/me` or permissions fail after Neon Auth session exists. */
+  identityError: string | null;
   signOut: () => void;
 }
 
@@ -39,6 +42,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 function AuthProvider({ children }: { children: ReactNode }) {
   const [me, setMe] = useState<MeResponse | null>(null);
   const [isSystemAdmin, setIsSystemAdmin] = useState(false);
+  const [identityError, setIdentityError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -50,12 +54,14 @@ function AuthProvider({ children }: { children: ReactNode }) {
           setIsSystemAdmin(
             isSystemAdminPresentation(permissionsResult.permissions)
           );
+          setIdentityError(null);
         }
       })
-      .catch(() => {
+      .catch((cause: unknown) => {
         if (!cancelled) {
           setMe(null);
           setIsSystemAdmin(false);
+          setIdentityError(formatApiError(cause));
         }
       })
       .finally(() => {
@@ -71,14 +77,15 @@ function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(() => {
     setMe(null);
     setIsSystemAdmin(false);
+    setIdentityError(null);
     // Neon Auth owns the session cookie/token — there is no local access
     // token to clear here (see `web/auth/client.ts`).
     signOutAuth().catch(() => undefined);
   }, []);
 
   const value = useMemo(
-    () => ({ me, loading, isSystemAdmin, signOut }),
-    [me, loading, isSystemAdmin, signOut]
+    () => ({ me, loading, isSystemAdmin, identityError, signOut }),
+    [me, loading, isSystemAdmin, identityError, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

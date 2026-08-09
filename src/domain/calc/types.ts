@@ -54,7 +54,15 @@ export interface RuleSettings {
   hrdfLevyPct: number; // 1
 }
 
+/**
+ * Frozen employee facts for a pay line.
+ *
+ * `id` is the **employee code** (e.g. `DLBB1001`), not the employment UUID.
+ * API list DTOs (`EmployeeSummary.id`) and workspace `employeeId` use the
+ * employment UUID — do not conflate the two when joining layers.
+ */
 export interface EmployeeSnapshot {
+  /** Employee code within the company (payroll-facing identifier). */
   id: string;
   name: string;
   isMalaysian: boolean;

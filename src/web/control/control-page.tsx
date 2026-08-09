@@ -18,6 +18,7 @@ import type {
 } from "@/web/api/payroll-api";
 import { payrollApi } from "@/web/api/payroll-api";
 import { useScopeContext } from "@/web/context/scope-context";
+import { PageTitle } from "@/web/shell/page-title";
 import { type GatePill, RunControlCard } from "./run-control-card";
 
 interface RunControlState {
@@ -228,15 +229,10 @@ function ControlPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h1 className="font-semibold text-lg">Control</h1>
-          <p className="text-muted-foreground text-sm">
-            {reportingMonth} · {pendingCount} run
-            {pendingCount === 1 ? "" : "s"} pending review/approval
-          </p>
-        </div>
-      </div>
+      <PageTitle
+        description={`${reportingMonth} · ${pendingCount} run${pendingCount === 1 ? "" : "s"} pending review/approval`}
+        title="Control"
+      />
 
       {error === null ? null : (
         <p className="text-destructive text-sm">{error}</p>

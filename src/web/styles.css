@@ -17,12 +17,19 @@
   --popover-foreground: #26333d;
   --primary: #14324a;
   --primary-foreground: #fbfcfd;
+  /* Brand band — stays navy + light ink in both themes (shell header).
+     Do not alias to --primary: dark mode lightens primary for buttons. */
+  --brand: #14324a;
+  --brand-foreground: #fbfcfd;
   --secondary: #f3f5f7;
   --secondary-foreground: #26333d;
   --muted: #f3f5f7;
   --muted-foreground: #66737e;
-  --accent: #2e7d7a;
-  --accent-foreground: #fbfcfd;
+  /* Accent is the shadcn interactive highlight surface (menus, selects).
+     Governance teal lives on --ring only — never overload accent with brand fill
+     or every dropdown hover becomes a solid teal slab in both themes. */
+  --accent: #f3f5f7;
+  --accent-foreground: #26333d;
   --destructive: #a34141;
   --destructive-foreground: #fbfcfd;
   --border: #d7dee5;
@@ -84,107 +91,24 @@
 
   /* RESERVED (no canonical value): --doc-fill-grand-total — JSON fills.grand_total_row.hex is null */
 
-  /* Legacy tokens for compatibility */
+  /* shadcn radius base — CLI v4 multiplicative scale is declared below */
   --radius: 0.625rem;
-}
 
-body {
-  margin: 0;
-}
-
-/* Shell layout base */
-html,
-body,
-#root {
-  height: 100%;
-}
-
-h1 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0 0 1rem;
-}
-
-h2 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 1.5rem 0 0.5rem;
-}
-
-form {
-  display: grid;
-  gap: 0.75rem;
-  max-width: 22rem;
-}
-
-label {
-  display: grid;
-  gap: 0.25rem;
-  font-size: 0.9rem;
-}
-
-input {
-  padding: 0.4rem 0.5rem;
-  font: inherit;
-}
-
-button {
-  font: inherit;
-  padding: 0.4rem 0.75rem;
-  cursor: pointer;
-}
-
-.banner {
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
-  border: 1px solid #ccc;
-  background: #fff;
-}
-
-.banner.error {
-  border-color: #8a1f1f;
-  color: #8a1f1f;
-}
-
-.meta {
-  color: #444;
-  font-size: 0.9rem;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-  font-size: 0.9rem;
-}
-
-th,
-td {
-  border: 1px solid #ddd;
-  padding: 0.35rem 0.5rem;
-  text-align: left;
-  vertical-align: top;
-}
-
-th {
-  background: #eee;
-}
-
-.row {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-code {
-  font-family: ui-monospace, Consolas, monospace;
-  font-size: 0.85em;
+  /* Sidebar tokens — required by `bg-sidebar` / sidebar primitives */
+  --sidebar: #fbfcfd;
+  --sidebar-foreground: #26333d;
+  --sidebar-primary: #14324a;
+  --sidebar-primary-foreground: #fbfcfd;
+  --sidebar-accent: #f3f5f7;
+  --sidebar-accent-foreground: #26333d;
+  --sidebar-border: #d7dee5;
+  --sidebar-ring: #2e7d7a;
 }
 
 @theme inline {
-  --font-heading: var(--font-sans);
-  --font-sans: "Geist Variable", sans-serif;
+  /* Literal families only — @theme inline resolves at parse time (no var() chains). */
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, Consolas, monospace;
 
   /* App semantic colors */
   --color-background: var(--background);
@@ -195,6 +119,8 @@ code {
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -221,6 +147,7 @@ code {
   --color-status-info-fill: var(--status-info-fill);
   --color-status-warn-ink: var(--status-warn-ink);
   --color-status-warn-fill: var(--status-warn-fill);
+  --color-status-warn-border: var(--status-warn-border);
   --color-status-bad-ink: var(--status-bad-ink);
   --color-status-bad-fill: var(--status-bad-fill);
   --color-status-neutral-ink: var(--status-neutral-ink);
@@ -236,39 +163,66 @@ code {
   --color-section-summary-fill: var(--section-summary-fill);
   --color-section-summary-ink: var(--section-summary-ink);
 
-  /* Border radius */
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+  /* Sidebar colors */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Border radius — shadcn CLI v4 multiplicative scale */
+  --radius-xs: calc(var(--radius) * 0.5);
+  --radius-sm: calc(var(--radius) * 0.75);
+  --radius-md: calc(var(--radius) * 0.875);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: calc(var(--radius) * 1.5);
+  --radius-2xl: calc(var(--radius) * 2);
+  --radius-3xl: calc(var(--radius) * 2.5);
+  --radius-4xl: calc(var(--radius) * 3);
 }
 
 .dark {
-  /* Straits dark remap (semantic tokens only, document tokens not redefined) */
-  --background: #10181f;
-  --foreground: #fbfcfd;
-  --card: #16212b;
-  --card-foreground: #fbfcfd;
-  --popover: #16212b;
-  --popover-foreground: #fbfcfd;
-  --primary: #8eb4c9; /* lightened navy family for contrast on dark */
-  --primary-foreground: #10181f;
-  --secondary: #1a2430;
-  --secondary-foreground: #fbfcfd;
-  --muted: #1a2430;
-  --muted-foreground: #a8b3bd;
-  --accent: #4aa8a4; /* lightened teal */
-  --accent-foreground: #10181f;
-  --destructive: #d17a7a; /* lightened clay */
-  --destructive-foreground: #10181f;
-  --border: #2a3844;
-  --input: #2a3844;
-  --ring: #4aa8a4;
+  /* 100% shadcn default dark (neutral baseColor). Light (:root) stays Straits.
+     Document tokens are not redefined. Brand aliases primary (no Straits navy). */
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --brand: var(--primary);
+  --brand-foreground: var(--primary-foreground);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
 
-  /* Status fills/inks - lighten fills slightly; keep ink distinguishable on #10181f */
+  /* Domain-only tokens (not in shadcn scaffold) — dark remaps for contrast */
   --status-ok-ink: #4a8765;
   --status-ok-fill: #2a4a38;
   --status-info-ink: #5b9bc7;
@@ -280,8 +234,6 @@ code {
   --status-bad-fill: #6b2a2a;
   --status-neutral-ink: #a8b3bd;
   --status-neutral-fill: #2a3340;
-
-  /* Section tokens for dark mode */
   --section-earning-fill: #2a4556;
   --section-earning-ink: #7bb3d9;
   --section-deduction-fill: #6b5a38;
@@ -289,17 +241,70 @@ code {
   --section-employer-fill: #2a5a56;
   --section-employer-ink: #7bd9c1;
   --section-summary-fill: #2a3d56;
-  --section-summary-ink: #8eb4c9;
+  --section-summary-ink: oklch(0.922 0 0);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
     @apply font-sans;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+  }
+
+  /* Do not style heading tags here — Dashboard / shell pages own
+     typography via Tailwind utilities (text-2xl, font-semibold, etc.).
+     Pre-shadcn h1/h2 size+margin rules conflicted with those utilities. */
+
+  form {
+    display: grid;
+    gap: 0.75rem;
+    max-width: 22rem;
+  }
+
+  label {
+    display: grid;
+    gap: 0.25rem;
+    font-size: 0.9rem;
+  }
+
+  .banner {
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--card-foreground);
+  }
+
+  .banner.error {
+    border-color: var(--status-bad-ink);
+    color: var(--status-bad-ink);
+    background: var(--status-bad-fill);
+  }
+
+  .meta {
+    color: var(--muted-foreground);
+    font-size: 0.9rem;
+  }
+
+  .row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  code {
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 0.85em;
   }
 }

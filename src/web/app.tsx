@@ -15,24 +15,30 @@ import {
   useEffect,
   useState,
 } from "react";
-import { Redirect, Route, Switch } from "wouter";
+import { Route, Switch } from "wouter";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { initDarkModeFromStorage } from "@/hooks/use-dark-mode";
 import { AdminPage } from "@/web/admin/admin-page";
 import { formatApiError } from "@/web/api/format-error";
 import { getAuthSession, signInWithEmail } from "@/web/auth/client";
+import { CompaniesPage } from "@/web/companies/companies-page";
 import { AuthProvider } from "@/web/context/auth-context";
 import { ScopeProvider } from "@/web/context/scope-context";
 import { ControlPage } from "@/web/control/control-page";
+import { DashboardPage } from "@/web/dashboard/dashboard-page";
 import { EmployeesPage } from "@/web/employees/employees-page";
 import { PayRunListPage } from "@/web/payrun/pay-run-list";
 import { PayslipPage } from "@/web/payrun/payslip-page";
 import { WorkspacePage } from "@/web/payrun/workspace";
 import { ReportsPage } from "@/web/reports/reports-page";
 import { ShellLayout } from "@/web/shell/layout";
+
+initDarkModeFromStorage();
 
 type Screen = "loading" | "signed_out" | "signed_in";
 
@@ -92,13 +98,28 @@ export function App() {
     []
   );
 
+  const canDevLogin =
+    import.meta.env.MODE === "development" &&
+    (import.meta.env.VITE_DEV_EMAIL?.trim() ?? "").length > 0 &&
+    (import.meta.env.VITE_DEV_PASSWORD ?? "").length >= 8;
+
   const onDevLogin = useCallback(async () => {
+    const nextEmail = import.meta.env.VITE_DEV_EMAIL?.trim() ?? "";
+    const nextPassword = import.meta.env.VITE_DEV_PASSWORD ?? "";
+    if (
+      import.meta.env.MODE !== "development" ||
+      nextEmail.length === 0 ||
+      nextPassword.length < 8
+    ) {
+      setSignInError(
+        "Developer Login needs VITE_DEV_EMAIL and VITE_DEV_PASSWORD (≥8 chars) in .env.local — run: npx tsx scripts/setup-dev-user.ts --email … --name … --password … --system-admin"
+      );
+      return;
+    }
     setBusy(true);
     setSignInError(null);
     try {
-      const devEmail = import.meta.env.VITE_DEV_EMAIL || "dev@example.com";
-      const devPassword = import.meta.env.VITE_DEV_PASSWORD || "dev123";
-      await signInWithEmail(devEmail, devPassword);
+      await signInWithEmail(nextEmail, nextPassword);
       setScreen("signed_in");
     } catch (cause) {
       setSignInError(formatApiError(cause));
@@ -162,7 +183,7 @@ export function App() {
                 <Button className="flex-1" disabled={busy} type="submit">
                   Sign in
                 </Button>
-                {import.meta.env.MODE === "development" && (
+                {canDevLogin ? (
                   <Button
                     className="flex-1"
                     disabled={busy}
@@ -172,7 +193,7 @@ export function App() {
                   >
                     Developer Login
                   </Button>
-                )}
+                ) : null}
               </div>
             </form>
           </CardContent>
@@ -182,31 +203,32 @@ export function App() {
   }
 
   return (
-    <AuthProvider>
-      <ScopeProvider>
-        <ShellLayout>
-          <Switch>
-            <Route path="/">
-              <Redirect to="/pay-runs" />
-            </Route>
-            <Route component={PayRunListPage} path="/pay-runs" />
-            <Route
-              component={PayslipPage}
-              path="/pay-runs/:runId/payslip/:lineId"
-            />
-            <Route component={WorkspacePage} path="/pay-runs/:runId" />
-            <Route component={EmployeesPage} path="/employees" />
-            <Route component={ReportsPage} path="/reports" />
-            <Route component={ControlPage} path="/control" />
-            <Route component={AdminPage} path="/admin" />
-            <Route>
-              <main className="p-6 text-muted-foreground text-sm">
-                Not found.
-              </main>
-            </Route>
-          </Switch>
-        </ShellLayout>
-      </ScopeProvider>
-    </AuthProvider>
+    <TooltipProvider>
+      <AuthProvider>
+        <ScopeProvider>
+          <ShellLayout>
+            <Switch>
+              <Route component={DashboardPage} path="/" />
+              <Route component={PayRunListPage} path="/pay-runs" />
+              <Route
+                component={PayslipPage}
+                path="/pay-runs/:runId/payslip/:lineId"
+              />
+              <Route component={WorkspacePage} path="/pay-runs/:runId" />
+              <Route component={EmployeesPage} path="/employees" />
+              <Route component={ReportsPage} path="/reports" />
+              <Route component={ControlPage} path="/control" />
+              <Route component={CompaniesPage} path="/companies" />
+              <Route component={AdminPage} path="/admin" />
+              <Route>
+                <main className="p-6 text-muted-foreground text-sm">
+                  Not found.
+                </main>
+              </Route>
+            </Switch>
+          </ShellLayout>
+        </ScopeProvider>
+      </AuthProvider>
+    </TooltipProvider>
   );
 }

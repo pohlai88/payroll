@@ -7,7 +7,13 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { roles, userRoleAssignments, users } from "@/db/schema/rbac";
 import { auditEvents, payRuns } from "@/db/schema/run";
 import { SYSTEM_ADMIN_ROLE_CODE } from "@/domain/rbac/types";
-import { assignUserToRole, createUser, getRoleByCode } from "@/repo/rbac";
+import {
+  assignUserToRole,
+  createRole,
+  createUser,
+  getRoleByCode,
+  grantPermission,
+} from "@/repo/rbac";
 import { createApp } from "@/server/app";
 import { AuthError } from "@/server/auth/errors";
 import type { NeonAuthClaims, VerifyJwt } from "@/server/auth/jwt";
@@ -299,5 +305,62 @@ describe("pay-run API", () => {
     const app = createApp({ db, verifyJwt: verifier({}) });
     const res = await app.request("/v1/pay-runs");
     expect(res.status).toBe(401);
+  });
+
+  it("GET /v1/pay-runs returns [] when the caller has no company grants", async () => {
+    await createUser(db, { email: "payrun-nogrant@example.com", name: "No Grant" });
+    const app = createApp({
+      db,
+      verifyJwt: verifier({
+        nogrant: claims({
+          sub: "neon-payrun-nogrant",
+          email: "payrun-nogrant@example.com",
+        }),
+      }),
+    });
+    const res = await app.request("/v1/pay-runs", {
+      headers: { Authorization: "Bearer nogrant" },
+    });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual([]);
+  });
+
+  it("GET /v1/pay-runs 403 when companyId is outside accessible set", async () => {
+    const foreignCompanyId = "cccccccc-0000-4000-8000-000000000099";
+    await db.execute(sql`
+      INSERT INTO companies (id, code, name, hrdf_enabled)
+      VALUES (${foreignCompanyId}, 'FOREIGN', 'Foreign Co', false)
+      ON CONFLICT DO NOTHING`);
+
+    const user = await createUser(db, {
+      email: "payrun-scoped@example.com",
+      name: "Scoped PayRun",
+    });
+    const role = await createRole(db, {
+      code: "PAYRUN_SCOPED_READER",
+      name: "PayRun Scoped Reader",
+      scope: "COMPANY",
+    });
+    await grantPermission(db, role.id, "PAY_RUN", "READ");
+    await assignUserToRole(db, {
+      userId: user.id,
+      roleId: role.id,
+      companyId: COMPANY_ID,
+    });
+
+    const app = createApp({
+      db,
+      verifyJwt: verifier({
+        scoped: claims({
+          sub: "neon-payrun-scoped",
+          email: "payrun-scoped@example.com",
+        }),
+      }),
+    });
+    const res = await app.request(
+      `/v1/pay-runs?companyId=${foreignCompanyId}`,
+      { headers: { Authorization: "Bearer scoped" } }
+    );
+    expect(res.status).toBe(403);
   });
 });

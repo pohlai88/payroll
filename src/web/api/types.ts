@@ -26,6 +26,7 @@ export class SessionExpiredError extends Error {
 
 export interface MeCompany {
   readonly id: string;
+  readonly code: string;
   readonly name: string;
 }
 
@@ -55,6 +56,41 @@ export interface AdminUserRow {
 export interface AdminUsersResponse {
   readonly users: readonly AdminUserRow[];
 }
+
+export interface AdminCompanyRow {
+  readonly id: string;
+  readonly code: string;
+  readonly name: string;
+  readonly epfNo: string | null;
+  readonly socsoNo: string | null;
+  readonly lhdnNo: string | null;
+  readonly hrdfEnabled: boolean;
+  readonly hrdfLevyPct: string;
+  readonly createdAt: string;
+}
+
+export interface AdminCompaniesResponse {
+  readonly companies: readonly AdminCompanyRow[];
+}
+
+export type CreateAdminCompanyBody = {
+  readonly code: string;
+  readonly name: string;
+  readonly epfNo?: string | null;
+  readonly socsoNo?: string | null;
+  readonly lhdnNo?: string | null;
+  readonly hrdfEnabled?: boolean;
+  readonly hrdfLevyPct?: string;
+};
+
+export type UpdateAdminCompanyBody = {
+  readonly name?: string;
+  readonly epfNo?: string | null;
+  readonly socsoNo?: string | null;
+  readonly lhdnNo?: string | null;
+  readonly hrdfEnabled?: boolean;
+  readonly hrdfLevyPct?: string;
+};
 
 export interface ImportRowError {
   readonly field: string;
@@ -260,8 +296,7 @@ export type WithdrawalReason =
 
 /**
  * `GET /v1/pay-runs/:runId/payments` row — see `src/server/routes/pay-run-control.ts`.
- * `employmentId` correlates this row to `EmployeeLineDto.employeeId` (Task 2 adds it
- * to the server SELECT; it is not present until that task lands).
+ * `employmentId` correlates this row to workspace `EmployeeLineDto.employeeId`.
  */
 export interface LinePaymentRow {
   readonly lineId: string;
@@ -590,4 +625,101 @@ export interface AnnualRemunerationSummaryDto {
   readonly cp38Sen: number;
   readonly limitationNotice: string;
   readonly disclaimer: string;
+}
+
+/** Simple mutation ack — hold/unhold/withdraw/settle/reconcile/cancel, role assign/revoke. */
+export interface OkResponse {
+  readonly ok: true;
+}
+
+/**
+ * Unified success payload for pay-run mutations.
+ * Keep in sync with `src/service/pay-run-mutation-envelope.ts`.
+ */
+export type PayRunMutationKind =
+  | {
+      readonly kind: "CREATE";
+      readonly lineCount: number;
+    }
+  | {
+      readonly kind: "RECOMPUTE";
+      readonly computed: number;
+      readonly failures: readonly {
+        readonly employmentId: string;
+        readonly reason: string;
+      }[];
+    }
+  | { readonly kind: "REVIEW" }
+  | { readonly kind: "APPROVE" }
+  | { readonly kind: "DEMOTE" }
+  | {
+      readonly kind: "FINDINGS_SCAN";
+      readonly scanned: number;
+      readonly revision: string | null;
+    }
+  | {
+      readonly kind: "FINDING_ACKNOWLEDGE";
+      readonly findingId: string;
+    };
+
+export interface PayRunMutationEnvelope {
+  readonly run: {
+    readonly id: string;
+    readonly companyId: string;
+    readonly status: string;
+    readonly calcRevision: string | null;
+    readonly findingsScannedRevision: string | null;
+    readonly reviewedRevision: string | null;
+    readonly approvedRevision: string | null;
+    readonly year: number;
+    readonly month: number;
+  };
+  readonly counters: {
+    readonly lineCount: number;
+    readonly findingsTotal: number;
+    readonly findingsOpen: number;
+    readonly findingsBlocking: number;
+    readonly findingsWarning: number;
+    readonly gates: Readonly<
+      Record<GateKind, { readonly ok: boolean; readonly issueCount: number }>
+    >;
+  };
+  readonly mutation: PayRunMutationKind;
+}
+
+export interface CreatePayRunBody {
+  readonly runId: string;
+  readonly companyId: string;
+  readonly rulePackId: string;
+  readonly year: number;
+  readonly month: number;
+  readonly periodStart: string;
+  readonly periodEnd: string;
+  readonly workingDays: number;
+  readonly paidDays?: number | null;
+  readonly onlyEmploymentIds?: readonly string[];
+  readonly runType?: "REGULAR" | "OFFCYCLE";
+  readonly offcycleReason?:
+    | "CORRECTION"
+    | "ARREARS"
+    | "BONUS"
+    | "MISSED_PAYMENT"
+    | "FINAL_PAYMENT"
+    | null;
+}
+
+export interface InviteAdminUserBody {
+  readonly email: string;
+  readonly name: string;
+  readonly roleCode?: string;
+  readonly companyId?: string | null;
+}
+
+export interface UpdateAdminUserBody {
+  readonly status: "ACTIVE" | "DISABLED";
+}
+
+export interface AdminUserRoleBody {
+  readonly roleCode: string;
+  readonly companyId?: string | null;
 }

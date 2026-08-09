@@ -47,8 +47,11 @@ export function requireServerEnv(
   }
 
   const corsRaw = env.CORS_ORIGIN?.trim();
+  // Comma-separated list supported (Vite often falls through to :5174).
   const corsOrigin =
-    corsRaw === undefined || corsRaw === "" ? "http://localhost:5173" : corsRaw;
+    corsRaw === undefined || corsRaw === ""
+      ? "http://localhost:5173,http://localhost:5174"
+      : corsRaw;
 
   const r2AccountId = env.R2_ACCOUNT_ID?.trim();
   const r2AccessKeyId = env.R2_ACCESS_KEY_ID?.trim();

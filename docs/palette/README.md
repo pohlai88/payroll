@@ -85,7 +85,8 @@ Tailwind v4 convention). The intended light mapping:
 | `card`, `popover` | `cool_porcelain` `#fbfcfd` | |
 | `foreground` | `ink.body` `#26333d` | 12.94:1 on white |
 | `primary` | `executive_navy` `#14324a` | see divergence note below |
-| `ring`, `accent` | `governance_teal` `#2e7d7a` | |
+| `ring` | `governance_teal` `#2e7d7a` | focus / brand interaction |
+| `accent` | muted surface (`#f3f5f7` / dark `#1a2430`) | shadcn menu/select highlight — not brand teal |
 | `destructive` | `destructive_clay` `#a34141` | |
 | `border`, `input` | `rules_and_borders.hairline` `#d7dee5` | |
 | `muted`, `secondary` | `screen_reference` tints | not the print `fills` |

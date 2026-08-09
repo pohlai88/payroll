@@ -101,16 +101,14 @@ that uses pre-configured credentials from environment variables. See
 Quick setup:
 
 ```bash
-# 1. Create user in Neon Auth Console
-# 2. Run the setup script
-npx tsx scripts/setup-dev-user.ts --email dev@example.com --name "Dev User" --system-admin
+# Creates Neon Auth user + app SYSTEM_ADMIN invite (password ≥ 8)
+npx tsx scripts/setup-dev-user.ts \
+  --email dev@example.com --name "Dev User" --password 'dev123456' --system-admin
 
-# 3. Add to .env.local
-echo "VITE_DEV_EMAIL=dev@example.com" >> .env.local
-echo "VITE_DEV_PASSWORD=<your-password>" >> .env.local
-
-# 4. Restart dev server
+# Paste printed VITE_DEV_* into .env.local, then:
+npm run auth:smoke
 npm run dev
+npm run dev:api
 ```
 
 ## The golden master

@@ -26,6 +26,7 @@ import type { EmployeeSummary } from "@/web/api/types";
 import { useAuthContext } from "@/web/context/auth-context";
 import { useScopeContext } from "@/web/context/scope-context";
 import { EmployeeImportPanel } from "@/web/employee-import-panel";
+import { PageTitle } from "@/web/shell/page-title";
 
 const IMPORT_COMPLETE_PREFIX = "Import finished:";
 
@@ -111,9 +112,8 @@ function EmployeesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Card>
-        <CardHeader className="flex-row items-center justify-between">
-          <CardTitle>Employees</CardTitle>
+      <PageTitle
+        actions={
           <div className="relative w-64">
             <SearchIcon className="pointer-events-none absolute top-2 left-2.5 size-3.5 text-muted-foreground" />
             <Input
@@ -123,6 +123,13 @@ function EmployeesPage() {
               value={search}
             />
           </div>
+        }
+        description="Roster for the current company scope."
+        title="Employees"
+      />
+      <Card>
+        <CardHeader className="flex-row items-center justify-between">
+          <CardTitle>Directory</CardTitle>
         </CardHeader>
         <CardContent>
           {error !== null && (

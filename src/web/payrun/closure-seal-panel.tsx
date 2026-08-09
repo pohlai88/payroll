@@ -42,15 +42,7 @@ interface VerdictProps {
 
 function Verdict({ ok, okLabel, badLabel }: VerdictProps) {
   return (
-    <Badge
-      className={cn(
-        "border-0",
-        ok
-          ? "bg-[var(--status-ok-fill)] text-[var(--status-ok-ink)]"
-          : "bg-[var(--status-bad-fill)] text-[var(--status-bad-ink)]"
-      )}
-      variant="outline"
-    >
+    <Badge variant={ok ? "success" : "bad"}>
       {ok ? `✓ ${okLabel}` : `✕ ${badLabel}`}
     </Badge>
   );
@@ -134,16 +126,9 @@ function ChainRow({
         <span className="font-mono text-[11px] text-muted-foreground">
           {shortHash(seal.sealHash)}
         </span>
-        <span
-          className={cn(
-            "rounded px-1.5 py-0.5 font-mono text-[10px]",
-            seal.ok
-              ? "bg-[var(--status-ok-fill)] text-[var(--status-ok-ink)]"
-              : "bg-[var(--status-bad-fill)] text-[var(--status-bad-ink)]"
-          )}
-        >
+        <Badge className="font-mono text-[10px]" variant={seal.ok ? "success" : "bad"}>
           {seal.ok ? "OK" : "BROKEN"}
-        </span>
+        </Badge>
       </div>
     </li>
   );
@@ -247,7 +232,7 @@ function SealBody({
       </div>
 
       {seal.problems.length === 0 ? null : (
-        <ul className="space-y-1 rounded-md bg-[var(--status-bad-fill)] p-2 text-[var(--status-bad-ink)] text-xs">
+        <ul className="space-y-1 rounded-md bg-status-bad-fill p-2 text-status-bad-ink text-xs">
           {seal.problems.map((problem) => (
             <li key={problem}>{problem}</li>
           ))}

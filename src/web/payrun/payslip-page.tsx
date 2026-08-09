@@ -6,7 +6,7 @@ import { useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import type { Lang } from "@/domain/derive/i18n/render";
 import { formatApiError } from "@/web/api/format-error";
-import { fetchPayslip } from "@/web/api/payroll-api";
+import { payrollApi } from "@/web/api/payroll-api";
 import { PayslipDocument } from "./payslip-document/payslip-document";
 import type { PayslipDocumentDto } from "./payslip-document/types";
 
@@ -20,7 +20,8 @@ function PayslipPage() {
     if (!(runId && lineId)) {
       return;
     }
-    fetchPayslip(runId, lineId)
+    payrollApi
+      .getPayslip(runId, lineId)
       .then(setDto)
       .catch((e) => setError(formatApiError(e, "Failed to load payslip")));
   }, [runId, lineId]);
@@ -46,55 +47,30 @@ function PayslipPage() {
       >
         <a
           href={`/pay-runs/${runId}`}
-          style={{ fontSize: "0.875rem", color: "var(--muted-foreground)" }}
+          className="text-muted-foreground text-sm"
         >
           ← {lang === "en" ? "Back to workspace" : "Kembali ke ruang kerja"}
         </a>
-        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-          <div
-            style={{
-              display: "flex",
-              border: "1px solid var(--border)",
-              borderRadius: "0.375rem",
-              overflow: "hidden",
-            }}
-          >
-            <button
+        <div className="flex items-center gap-2">
+          <div className="inline-flex overflow-hidden rounded-md border border-border">
+            <Button
+              className="rounded-none"
               onClick={handleSetEn}
-              style={{
-                padding: "0.25rem 0.75rem",
-                fontSize: "0.8125rem",
-                fontWeight: lang === "en" ? 600 : 400,
-                background: lang === "en" ? "var(--primary)" : "transparent",
-                color:
-                  lang === "en"
-                    ? "var(--primary-foreground)"
-                    : "var(--foreground)",
-                border: "none",
-                cursor: "pointer",
-              }}
+              size="sm"
               type="button"
+              variant={lang === "en" ? "default" : "ghost"}
             >
               EN
-            </button>
-            <button
+            </Button>
+            <Button
+              className="rounded-none"
               onClick={handleSetMs}
-              style={{
-                padding: "0.25rem 0.75rem",
-                fontSize: "0.8125rem",
-                fontWeight: lang === "ms" ? 600 : 400,
-                background: lang === "ms" ? "var(--primary)" : "transparent",
-                color:
-                  lang === "ms"
-                    ? "var(--primary-foreground)"
-                    : "var(--foreground)",
-                border: "none",
-                cursor: "pointer",
-              }}
+              size="sm"
               type="button"
+              variant={lang === "ms" ? "default" : "ghost"}
             >
               BM
-            </button>
+            </Button>
           </div>
           <Button
             data-no-print
@@ -110,17 +86,11 @@ function PayslipPage() {
       {/* Document */}
       <div style={{ padding: "2rem" }}>
         {error !== null && (
-          <div style={{ color: "red", padding: "1rem" }}>Error: {error}</div>
+          <div className="p-4 text-destructive">Error: {error}</div>
         )}
         {dto !== null && <PayslipDocument dto={dto} lang={lang} />}
         {!(dto !== null || error !== null) && (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "4rem",
-              color: "var(--muted-foreground)",
-            }}
-          >
+          <div className="p-16 text-center text-muted-foreground">
             Loading…
           </div>
         )}

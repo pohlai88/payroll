@@ -1,18 +1,17 @@
 /**
- * Top bar — logo, company scope selector, reporting-month picker, ⌘K
- * trigger, user menu. See design doc §3.1. Full-width, `bg-primary`.
+ * Top bar — MenuTrigger (application-shell-05) + scope / reporting month /
+ * ⌘K search (dashboard-header-04 patterns) + user menu.
  */
 
 import {
   CheckIcon,
   ChevronsUpDownIcon,
-  LogOutIcon,
-  MoonIcon,
   SearchIcon,
-  SunIcon,
 } from "lucide-react";
 import type { ChangeEvent } from "react";
 import { useCallback, useEffect, useState } from "react";
+import SimpleProfileDropdown from "@/components/shadcn-studio/blocks/dashboard-dropdown-10/simple-profile-dropdown";
+import MenuTrigger from "@/components/shadcn-studio/blocks/menu-trigger";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,22 +24,16 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useDarkMode } from "@/hooks/use-dark-mode";
 import { cn } from "@/lib/utils";
 import { useAuthContext } from "@/web/context/auth-context";
 import { useScopeContext } from "@/web/context/scope-context";
 import { CommandPalette } from "./command-palette";
+import { ShellBreadcrumb } from "./shell-breadcrumb";
 
 function formatReportingMonth(value: string): string {
   const [year, month] = value.split("-").map(Number);
@@ -77,16 +70,15 @@ function computeScopeLabel(
   return remainder > 0 ? `${shown} +${remainder} more` : shown;
 }
 
-function useIsDarkMode(): [boolean, () => void] {
-  const [dark, setDark] = useState(() =>
-    document.documentElement.classList.contains("dark")
-  );
-  const toggle = () => {
-    const next = !dark;
-    document.documentElement.classList.toggle("dark", next);
-    setDark(next);
-  };
-  return [dark, toggle];
+function firstNameOf(me: { name: string; email: string } | null): string {
+  if (me === null) {
+    return "there";
+  }
+  const name = me.name.trim();
+  if (name === "") {
+    return me.email.split("@")[0] || "there";
+  }
+  return name.split(/\s+/)[0] ?? name;
 }
 
 function TopBar() {
@@ -96,7 +88,7 @@ function TopBar() {
   const [cmdOpen, setCmdOpen] = useState(false);
   const [scopeOpen, setScopeOpen] = useState(false);
   const [monthOpen, setMonthOpen] = useState(false);
-  const [dark, toggleDark] = useIsDarkMode();
+  const [dark, toggleDark] = useDarkMode();
 
   const companies = me?.companies ?? [];
   const selectedIds = scope.mode === "selected" ? scope.companyIds : [];
@@ -112,7 +104,6 @@ function TopBar() {
         ? selectedIds.filter((c) => c !== id)
         : [...selectedIds, id];
       if (next.length === 0) {
-        // Disallow silently falling back to "all" — see ScopeContext contract.
         return;
       }
       setScope({ mode: "selected", companyIds: next });
@@ -150,145 +141,151 @@ function TopBar() {
   }, []);
 
   return (
-    <header className="flex h-12 shrink-0 items-center gap-3 border-primary-foreground/20 border-b bg-primary px-4 text-primary-foreground">
-      <span className="shrink-0 font-heading font-semibold text-sm">
-        Clarity Payroll
-      </span>
+    <header className="text-brand-foreground">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+        <div className="flex min-w-0 items-center gap-3">
+          <MenuTrigger
+            className="border-brand-foreground! bg-brand-foreground! text-brand! shadow-none hover:bg-brand-foreground/90! hover:text-brand! aria-expanded:bg-brand-foreground/90! aria-expanded:text-brand!"
+            variant="outline"
+          />
+          <div className="hidden min-w-0 sm:flex sm:flex-col sm:items-start">
+            <p className="truncate font-semibold text-lg">
+              Hey, {firstNameOf(me)}
+            </p>
+            <ShellBreadcrumb />
+          </div>
+        </div>
 
-      <div className="mx-2 h-5 w-px bg-primary-foreground/20" />
-
-      <Popover onOpenChange={setScopeOpen} open={scopeOpen}>
-        <PopoverTrigger
-          render={
-            <Button
-              className="h-8 max-w-56 gap-1 truncate border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20"
-              size="sm"
-              variant="outline"
-            />
-          }
-        >
-          <span className="truncate text-xs">{scopeLabel}</span>
-          <ChevronsUpDownIcon className="size-3 shrink-0" />
-        </PopoverTrigger>
-        <PopoverContent align="start" className="w-64 p-0">
-          <Command>
-            <CommandInput placeholder="Search companies…" />
-            <CommandList>
-              <CommandEmpty>No companies found.</CommandEmpty>
-              <CommandGroup>
-                <CommandItem onSelect={selectAll} value="__all__">
-                  <CheckIcon
-                    className={cn(
-                      "mr-2 size-4",
-                      allSelected ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  All Companies
-                </CommandItem>
-                {companies.map((company) => {
-                  const checked = selectedIds.includes(company.id);
-                  return (
-                    <CommandItem
-                      key={company.id}
-                      onSelect={toggleCompany}
-                      value={company.id}
-                    >
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-2 sm:gap-3">
+          <Popover onOpenChange={setScopeOpen} open={scopeOpen}>
+            <PopoverTrigger
+              render={
+                <Button
+                  className="h-8 max-w-48 gap-1 truncate border-brand-foreground/20 bg-brand-foreground/10 text-brand-foreground hover:bg-brand-foreground/20 hover:text-brand-foreground aria-expanded:bg-brand-foreground/20 aria-expanded:text-brand-foreground"
+                  size="sm"
+                  variant="outline"
+                />
+              }
+            >
+              <span className="truncate text-xs">{scopeLabel}</span>
+              <ChevronsUpDownIcon className="size-3 shrink-0" />
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-64 p-0">
+              <Command>
+                <CommandInput placeholder="Search companies…" />
+                <CommandList>
+                  <CommandEmpty>No companies found.</CommandEmpty>
+                  <CommandGroup>
+                    <CommandItem onSelect={selectAll} value="__all__">
                       <CheckIcon
                         className={cn(
                           "mr-2 size-4",
-                          checked ? "opacity-100" : "opacity-0"
+                          allSelected ? "opacity-100" : "opacity-0"
                         )}
                       />
-                      {company.name}
+                      All Companies
                     </CommandItem>
-                  );
-                })}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
+                    {companies.map((company) => {
+                      const checked = selectedIds.includes(company.id);
+                      return (
+                        <CommandItem
+                          key={company.id}
+                          onSelect={() => {
+                            toggleCompany(company.id);
+                          }}
+                          value={`${company.code} ${company.name}`}
+                        >
+                          <CheckIcon
+                            className={cn(
+                              "mr-2 size-4",
+                              checked ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          <span className="flex min-w-0 flex-col">
+                            <span className="truncate">{company.name}</span>
+                            <span className="truncate font-mono text-muted-foreground text-xs">
+                              {company.code}
+                            </span>
+                          </span>
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
 
-      <Popover onOpenChange={setMonthOpen} open={monthOpen}>
-        <PopoverTrigger
-          render={
-            <Button
-              className="h-8 border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20"
-              size="sm"
-              variant="outline"
-            />
-          }
-        >
-          <span className="text-xs">
-            {formatReportingMonth(reportingMonth)}
-          </span>
-        </PopoverTrigger>
-        <PopoverContent align="start" className="w-auto p-3">
-          <label
-            className="flex flex-col gap-1.5 text-xs"
-            htmlFor="reporting-month"
+          <Popover onOpenChange={setMonthOpen} open={monthOpen}>
+            <PopoverTrigger
+              render={
+                <Button
+                  className="h-8 border-brand-foreground/20 bg-brand-foreground/10 text-brand-foreground hover:bg-brand-foreground/20 hover:text-brand-foreground aria-expanded:bg-brand-foreground/20 aria-expanded:text-brand-foreground"
+                  size="sm"
+                  variant="outline"
+                />
+              }
+            >
+              <span className="text-xs">
+                {formatReportingMonth(reportingMonth)}
+              </span>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-auto p-3">
+              <label
+                className="flex flex-col gap-1.5 text-xs"
+                htmlFor="reporting-month"
+              >
+                <span className="text-muted-foreground">Reporting month</span>
+                <input
+                  className="rounded-md border border-input bg-background px-2 py-1 text-foreground text-sm"
+                  id="reporting-month"
+                  onChange={onReportingMonthChange}
+                  type="month"
+                  value={reportingMonth}
+                />
+              </label>
+            </PopoverContent>
+          </Popover>
+
+          <Button
+            className="h-8 gap-2 border-brand-foreground/20 bg-brand-foreground/10 text-brand-foreground hover:bg-brand-foreground/20 hover:text-brand-foreground aria-expanded:bg-brand-foreground/20 aria-expanded:text-brand-foreground"
+            onClick={openCommandPalette}
+            size="sm"
+            type="button"
+            variant="outline"
           >
-            <span className="text-muted-foreground">Reporting month</span>
-            <input
-              className="rounded-md border border-input bg-background px-2 py-1 text-foreground text-sm"
-              id="reporting-month"
-              onChange={onReportingMonthChange}
-              type="month"
-              value={reportingMonth}
-            />
-          </label>
-        </PopoverContent>
-      </Popover>
+            <SearchIcon className="size-3" />
+            <span className="hidden text-xs lg:inline">Search or jump…</span>
+            <Badge className="ml-1 border-0 bg-brand-foreground/20 px-1 py-0 text-brand-foreground text-xs">
+              ⌘K
+            </Badge>
+          </Button>
 
-      <div className="flex-1" />
-
-      <Button
-        className="h-8 gap-2 border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20"
-        onClick={openCommandPalette}
-        size="sm"
-        type="button"
-        variant="outline"
-      >
-        <SearchIcon className="size-3" />
-        <span className="hidden text-xs sm:inline">Search or jump…</span>
-        <Badge className="ml-1 border-0 bg-primary-foreground/20 px-1 py-0 text-primary-foreground text-xs">
-          ⌘K
-        </Badge>
-      </Button>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <button aria-label="User menu" className="ml-1" type="button" />
-          }
-        >
-          <Avatar className="size-7">
-            <AvatarFallback className="bg-primary-foreground/20 text-primary-foreground text-xs">
-              {initialsOf(me)}
-            </AvatarFallback>
-          </Avatar>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>
-            <p className="font-medium text-sm">{me?.name ?? me?.email}</p>
-            <p className="text-muted-foreground text-xs">{me?.email}</p>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={toggleDark}>
-            {dark ? (
-              <SunIcon className="size-4" />
-            ) : (
-              <MoonIcon className="size-4" />
-            )}
-            {dark ? "Use light theme" : "Use dark theme"}
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={signOut} variant="destructive">
-            <LogOutIcon className="size-4" />
-            Sign out
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          <SimpleProfileDropdown
+            dark={dark}
+            email={me?.email ?? "—"}
+            initials={initialsOf(me)}
+            name={me?.name ?? me?.email ?? "—"}
+            onSignOut={signOut}
+            onToggleTheme={toggleDark}
+            trigger={
+              <Button
+                aria-label="User menu"
+                className="ml-0.5 size-8 rounded-full border-0 bg-transparent p-0 text-brand-foreground hover:bg-brand-foreground/15 hover:text-brand-foreground aria-expanded:bg-brand-foreground/15 aria-expanded:text-brand-foreground"
+                size="icon"
+                type="button"
+                variant="ghost"
+              >
+                <Avatar className="size-8 after:border-brand-foreground/35">
+                  <AvatarFallback className="bg-brand-foreground/15 text-brand-foreground text-xs">
+                    {initialsOf(me)}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            }
+          />
+        </div>
+      </div>
 
       <CommandPalette onOpenChange={setCmdOpen} open={cmdOpen} />
     </header>

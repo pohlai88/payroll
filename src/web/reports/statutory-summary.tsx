@@ -1,4 +1,10 @@
 import { MoneyCell } from "@/components/payroll/money-cell";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+} from "@/components/ui/table";
 import type { StatutorySummaryDto } from "@/web/api/payroll-api";
 
 interface StatutorySummaryProps {
@@ -22,7 +28,7 @@ function StatutorySummary({ data }: StatutorySummaryProps) {
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="font-semibold text-foreground">
+        <h2 className="font-semibold text-base text-foreground">
           Statutory Remittance Summary
         </h2>
         <p className="text-muted-foreground text-xs">
@@ -30,18 +36,18 @@ function StatutorySummary({ data }: StatutorySummaryProps) {
           {data.employeeCount} employee{data.employeeCount === 1 ? "" : "s"}
         </p>
       </div>
-      <table className="w-full border-collapse text-sm">
-        <tbody>
+      <Table>
+        <TableBody>
           {ROWS.map(({ label, field }) => (
-            <tr className="border-border/50 border-b" key={field}>
-              <td className="py-2 text-muted-foreground">{label}</td>
-              <td className="py-2 text-right">
+            <TableRow key={field}>
+              <TableCell className="text-muted-foreground">{label}</TableCell>
+              <TableCell className="text-right">
                 <MoneyCell sen={data[field] as number} />
-              </td>
-            </tr>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
       <p className="text-muted-foreground text-xs">
         Generated: {data.reportMeta.generatedAt} · Schema v
         {data.reportMeta.reportSchemaVersion}

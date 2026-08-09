@@ -1,19 +1,20 @@
-import type * as React from "react";
+"use client"
 
-import { cn } from "@/lib/utils";
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
 
 function Label({ className, ...props }: React.ComponentProps<"label">) {
   return (
-    // biome-ignore lint/a11y/noLabelWithoutControl: shadcn Label component designed to be used with htmlFor prop or nested controls by consumers
     <label
+      data-slot="label"
       className={cn(
-        "flex select-none items-center gap-2 font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-50 group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50",
+        "flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
         className
       )}
-      data-slot="label"
       {...props}
     />
-  );
+  )
 }
 
-export { Label };
+export { Label }

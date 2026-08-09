@@ -1,11 +1,14 @@
 /**
  * Employee list HTTP: `GET /v1/employees` for pay-run creation pickers.
+ * Always scoped to companies the caller can access (never cross-tenant dump).
  */
 
-import { and, eq, ilike, or, sql } from "drizzle-orm";
+import { and, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import type { Database } from "@/db/client";
 import { employments, persons } from "@/db/schema/parties";
+import { PermissionDeniedError } from "@/domain/rbac/authorize";
+import { listAccessibleCompanies } from "@/service/rbac";
 import type { AuthVariables } from "../auth/middleware";
 import { handleRouteError } from "../errors";
 
@@ -22,11 +25,30 @@ export function employeeRoutes(db: Database) {
 
   app.get("/employees", async (c) => {
     try {
+      const user = c.get("user");
       const companyId = c.req.query("companyId") ?? undefined;
       const search = c.req.query("search") ?? undefined;
+      const accessible = await listAccessibleCompanies(db, user.id);
+      const accessibleIds = accessible.map((company) => company.id);
+
+      if (companyId !== undefined && !accessibleIds.includes(companyId)) {
+        throw new PermissionDeniedError(
+          user.id,
+          "EMPLOYMENT",
+          "READ",
+          companyId
+        );
+      }
+
+      const scopedCompanyIds =
+        companyId !== undefined ? [companyId] : accessibleIds;
+
+      if (scopedCompanyIds.length === 0) {
+        return c.json([] satisfies EmployeeSummary[]);
+      }
 
       const conditions = [
-        companyId ? eq(employments.companyId, companyId) : undefined,
+        inArray(employments.companyId, scopedCompanyIds),
         search
           ? or(
               ilike(persons.name, `%${search}%`),
@@ -47,7 +69,7 @@ export function employeeRoutes(db: Database) {
         })
         .from(employments)
         .innerJoin(persons, eq(employments.personId, persons.id))
-        .where(conditions.length > 0 ? and(...conditions) : undefined);
+        .where(and(...conditions));
 
       return c.json(rows satisfies EmployeeSummary[]);
     } catch (error) {

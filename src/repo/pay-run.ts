@@ -88,8 +88,17 @@ export interface PayRunSummary {
 /** Runs visible to the caller, newest period first. `reportingMonth` is `YYYY-MM`. */
 export async function listPayRunSummaries(
   db: Database,
-  filters: { companyId?: string; reportingMonth?: string }
+  filters: {
+    companyId?: string;
+    /** When set (e.g. RBAC-accessible set), restrict to these companies. */
+    companyIds?: readonly string[];
+    reportingMonth?: string;
+  }
 ): Promise<PayRunSummary[]> {
+  if (filters.companyIds !== undefined && filters.companyIds.length === 0) {
+    return [];
+  }
+
   const employeeCounts = db
     .select({
       runId: payLines.runId,
@@ -117,7 +126,9 @@ export async function listPayRunSummaries(
       and(
         filters.companyId
           ? eq(payRuns.companyId, filters.companyId)
-          : undefined,
+          : filters.companyIds !== undefined
+            ? inArray(payRuns.companyId, [...filters.companyIds])
+            : undefined,
         filters.reportingMonth
           ? eq(
               sql`${payRuns.year}::text || '-' || lpad(${payRuns.month}::text, 2, '0')`,
