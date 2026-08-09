@@ -17,11 +17,13 @@ import type {
   PayRunWorkspaceView,
 } from "@/web/api/payroll-api";
 import { payrollApi } from "@/web/api/payroll-api";
+import { BatchDrawer } from "./batch-drawer";
 import { EmployeeGrid } from "./employee-grid";
 import { EmployeeSlideOver } from "./employee-slide-over";
 import { FindingsPanel } from "./findings-panel";
 import { GateCheckDialog } from "./gate-check-dialog";
 import { PaymentsPanel } from "./payments-panel";
+import { ReleasePanel } from "./release-panel";
 import { RunHeader } from "./run-header";
 import { TotalsStrip } from "./totals-strip";
 
@@ -56,9 +58,9 @@ function WorkspacePage() {
   const [paymentsSelection, setPaymentsSelection] = useState<readonly string[]>(
     []
   );
-  // Bumped by ReleasePanel/BatchDrawer in a later task to force PaymentsPanel to refetch.
-  // biome-ignore lint/correctness/noUnusedVariables: setter is bumped by ReleasePanel/BatchDrawer in Task 4 of the Phase 7 plan
   const [paymentsRefreshKey, setPaymentsRefreshKey] = useState(0);
+  const [activeBatchId, setActiveBatchId] = useState<string | null>(null);
+  const [batchDrawerOpen, setBatchDrawerOpen] = useState(false);
 
   const reload = useCallback(async () => {
     if (runId === undefined) {
@@ -111,6 +113,23 @@ function WorkspacePage() {
     }
     payrollApi.recompute(runId).then(reload);
   }, [runId, reload]);
+
+  const handleReleased = useCallback((batchId: string) => {
+    setActiveBatchId(batchId);
+    setBatchDrawerOpen(true);
+  }, []);
+
+  const handleClearSelection = useCallback(() => {
+    setPaymentsSelection([]);
+  }, []);
+
+  const handleBatchChanged = useCallback(() => {
+    setPaymentsRefreshKey((k) => k + 1);
+  }, []);
+
+  const handleCloseBatchDrawer = useCallback(() => {
+    setBatchDrawerOpen(false);
+  }, []);
 
   const closeGateDialog = useCallback(() => {
     if (gateSubmitting) {
@@ -245,6 +264,15 @@ function WorkspacePage() {
           />
         ) : null}
 
+        {view.run.status === "APPROVED" ? (
+          <ReleasePanel
+            onCleared={handleClearSelection}
+            onReleased={handleReleased}
+            runId={runId}
+            selectedLineIds={paymentsSelection}
+          />
+        ) : null}
+
         <EmployeeGrid
           lines={view.lines}
           onEditLine={handleEditLine}
@@ -272,6 +300,14 @@ function WorkspacePage() {
         open={gateDialogOpen}
         result={gateResult}
         submitting={gateSubmitting}
+      />
+
+      <BatchDrawer
+        batchId={activeBatchId}
+        onChanged={handleBatchChanged}
+        onClose={handleCloseBatchDrawer}
+        open={batchDrawerOpen}
+        runId={runId}
       />
     </div>
   );
