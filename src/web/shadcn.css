@@ -108,7 +108,7 @@
   --secondary: oklch(0.955 0.011 243.7); /* #eaf1f7  deck blue-fill */
   --secondary-foreground: oklch(0.446 0.079 233.8); /* #1d5b79  6.5:1 */
   --muted: oklch(0.969 0.005 245.3); /* #f2f5f8  deck ground-2 */
-  --muted-foreground: oklch(0.5464 0.023 243.7); /* solved to 4.5:1 on muted */
+  --muted-foreground: oklch(0.5425 0.023 243.7); /* solved to 4.5:1 on muted */
   --accent: oklch(0.943 0.014 243.7); /* one step past secondary, so hover
                                          reads over both card and secondary */
   --accent-foreground: oklch(0.307 0.056 245.3);
@@ -162,7 +162,7 @@
   --secondary: oklch(0.272 0.022 245.3);
   --secondary-foreground: oklch(0.965 0.005 245.3);
   --muted: oklch(0.272 0.022 245.3);
-  --muted-foreground: oklch(0.6417 0.022 243.7); /* solved to 4.5:1 on muted */
+  --muted-foreground: oklch(0.6455 0.022 243.7); /* solved to 4.5:1 on muted */
   --accent: oklch(0.305 0.024 243.7);
   --accent-foreground: oklch(0.965 0.005 245.3);
 

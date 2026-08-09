@@ -40,7 +40,6 @@ const TOKEN_FILES = new Set([
   resolve("src/web/payrun/payslip-document/payslip-print.css"),
 ]);
 
-
 /**
  * Block comments and whole-line `//` comments.
  *

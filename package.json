@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "packageManager": "npm@10.8.0",
   "scripts": {
-    "preinstall": "node scripts/ensure-npm.cjs",
+    "audit:contrast": "tsx scripts/audit-contrast.ts",
+    "auth:smoke": "tsx scripts/smoke-auth.ts",
     "build": "tsc --noEmit && vite build",
     "check": "ultracite check",
     "ci:lint": "biome ci .",
@@ -13,15 +13,13 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:reset": "tsx scripts/reset.ts",
     "db:seed": "tsx scripts/seed.ts",
-    "auth:smoke": "tsx scripts/smoke-auth.ts",
     "dev": "vite",
     "dev:api": "tsx watch src/server/dev-server.ts",
-    "setup:dev-user": "tsx scripts/setup-dev-user.ts",
-    "start": "node --import tsx src/server/dev-server.ts",
     "employee:import": "tsx scripts/employee-import.ts",
     "employee:template": "tsx scripts/employee-template.ts",
     "fix": "ultracite fix",
     "format": "ultracite fix",
+    "preinstall": "node scripts/ensure-npm.cjs",
     "knip": "knip",
     "knip:deps": "knip --include dependencies,unlisted,binaries,unresolved",
     "knip:production": "knip --production",
@@ -31,6 +29,8 @@
     "r2:info": "wrangler r2 bucket info clarity-payroll-artifacts",
     "r2:list": "wrangler r2 bucket list",
     "r2:smoke": "tsx scripts/r2-smoke.ts",
+    "setup:dev-user": "tsx scripts/setup-dev-user.ts",
+    "start": "node --import tsx src/server/dev-server.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
@@ -87,6 +87,7 @@
     "vitest": "^4.1.10",
     "wrangler": "^4.120.0"
   },
+  "packageManager": "npm@10.8.0",
   "engines": {
     "node": ">=22",
     "npm": ">=10"

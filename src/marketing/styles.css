@@ -1,307 +1,495 @@
 /**
- * Marketing surface — "governance briefing" identity.
+ * Clarity Payroll — Premium Product Theme
+ * Tailwind CSS v4 + shadcn/ui
  *
- * Deliberately independent of src/web/shadcn.css (stock SPA shadcn theme).
- * Nothing here is imported by the payroll SPA and nothing here may be
- * imported into it. The shadcn variable names are defined below so any
- * primitive from @/components/ui inherits this identity if a block pulls one in.
- *
- * Light-only by intent, and pure white: the concept is a briefing document, and
- * both a dark remap and a warm paper tint were tried and rejected.
+ * Intent:
+ * - Product UI, not the marketing surface.
+ * - Light + dark themes through the standard `.dark` class.
+ * - Navy = authority, teal = interaction/brand, amber = warning, red = destructive.
+ * - Quiet premium depth: restrained borders, soft elevation, subtle ambient canvas.
  */
 
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+
 @import "@fontsource-variable/bricolage-grotesque/opsz.css";
 @import "@fontsource-variable/archivo";
 @import "@fontsource/ibm-plex-mono/400.css";
 @import "@fontsource/ibm-plex-mono/500.css";
 
+@custom-variant dark (&:is(.dark *));
+
 :root {
   color-scheme: light;
 
-  /* Authority surfaces */
-  --navy: #13303f;
-  --navy-2: #1a4053;
+  /* Geometry */
+  --radius: 0.625rem;
 
-  /* Brand accent */
-  --teal: #2f7d70;
-  /* For accent on navy, where --teal falls below contrast. */
-  --teal-lift: #76bcae;
+  /* Core shadcn contract */
+  --background: #f6f8fb;
+  --foreground: #17212b;
 
-  /* First card family */
-  --blue-fill: #edf3f8;
-  --blue-line: #9db8d4;
-  --blue-ink: #1c4a63;
+  --card: #ffffff;
+  --card-foreground: #17212b;
 
-  /* Alternating card family */
-  --mint-fill: #edf5f2;
-  --mint-line: #a9c9c0;
-  --mint-ink: #2a7266;
+  --popover: #ffffff;
+  --popover-foreground: #17212b;
 
-  /*
-   * Reserved. Four sanctioned positions only: the rule-pack-in-force note, the
-   * SOCSO and EIS ceiling branches, blocking findings, and changed-figure
-   * deltas. Amber must never dramatise a condition that did not occur.
-   */
-  --amber-fill: #fff3db;
-  --amber-line: #c8901f;
-  --amber-ink: #74480c;
+  --primary: #15384b;
+  --primary-foreground: #ffffff;
 
-  --slate: #2c3e4a;
-  /* 5.35:1 on white. #6b7c8a was tried and fails AA at 4.31:1. */
-  --meta: #5c6d7a;
-  --hair: #dfe4e8;
-  --ground: #ffffff;
-  --ground-2: #f7f9fa;
-  --content-max: 80rem;
-  --section-block: clamp(4rem, 8vw, 7.5rem);
-  --page-inline: clamp(1.5rem, 4vw, 3.5rem);
+  --secondary: #edf2f6;
+  --secondary-foreground: #20384a;
 
-  /* shadcn contract — so @/components/ui primitives inherit this identity */
-  --background: var(--ground);
-  --foreground: var(--slate);
-  --card: var(--ground);
-  --card-foreground: var(--slate);
-  --popover: var(--ground);
-  --popover-foreground: var(--slate);
-  --primary: var(--navy);
-  --primary-foreground: var(--ground);
-  --secondary: var(--blue-fill);
-  --secondary-foreground: var(--blue-ink);
-  --muted: var(--ground-2);
-  --muted-foreground: var(--meta);
-  --accent: var(--teal);
-  --accent-foreground: var(--ground);
-  --destructive: var(--amber-ink);
-  --destructive-foreground: var(--ground);
-  --border: var(--hair);
-  --input: var(--hair);
-  --ring: var(--teal);
-  --radius: 0.5rem;
-}
+  --muted: #eef2f5;
+  --muted-foreground: #617080;
 
-@theme inline {
+  /* Accent is a usable interaction surface, not the raw brand color. */
+  --accent: #e6f2f0;
+  --accent-foreground: #155d56;
+
+  /* Destructive must remain destructive. Amber is warning, separately. */
+  --destructive: #c23b44;
+  --destructive-foreground: #ffffff;
+
+  --border: #d8e0e7;
+  --input: #c8d2db;
+  --ring: #218c7d;
+
+  /* Brand */
+  --brand: #0f766e;
+  --brand-strong: #0b5f59;
+  --brand-soft: #e6f2f0;
+  --brand-foreground: #ffffff;
+
+  --authority: #15384b;
+  --authority-2: #204f66;
+  --authority-soft: #e9f0f5;
+
+  /* Semantic states */
+  --success: #237a57;
+  --success-foreground: #ffffff;
+  --success-soft: #e7f4ed;
+  --success-soft-foreground: #1f674b;
+
+  --info: #2b6f97;
+  --info-foreground: #ffffff;
+  --info-soft: #e9f3f8;
+  --info-soft-foreground: #235d80;
+
+  --warning: #a26900;
+  --warning-foreground: #ffffff;
+  --warning-soft: #fff3d8;
+  --warning-soft-foreground: #714900;
+
+  --danger: #c23b44;
+  --danger-foreground: #ffffff;
+  --danger-soft: #fbecef;
+  --danger-soft-foreground: #9f3038;
+
+  /* Charts */
+  --chart-1: #0f766e;
+  --chart-2: #2b6f97;
+  --chart-3: #7b61a8;
+  --chart-4: #a26900;
+  --chart-5: #65758b;
+
+  /* Sidebar: deliberate dark authority rail even in light mode */
+  --sidebar: #102131;
+  --sidebar-foreground: #eaf0f6;
+  --sidebar-primary: #63c8b8;
+  --sidebar-primary-foreground: #071c1b;
+  --sidebar-accent: #1c3142;
+  --sidebar-accent-foreground: #f5fafd;
+  --sidebar-border: #294052;
+  --sidebar-ring: #63c8b8;
+
+  /* Product-only surfaces */
+  --surface-raised: #ffffff;
+  --surface-subtle: #f9fbfc;
+  --surface-inset: #eef3f6;
+  --surface-glass: rgb(255 255 255 / 0.82);
+
+  --shadow-1: 0 1px 2px rgb(17 32 48 / 0.04), 0 8px 24px rgb(17 32 48 / 0.05);
+  --shadow-2: 0 1px 2px rgb(17 32 48 / 0.05), 0 16px 44px rgb(17 32 48 / 0.09);
+
+  /* Typography */
   --font-display:
     "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono:
     "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
 
-  --color-navy: var(--navy);
-  --color-navy-2: var(--navy-2);
-  --color-teal: var(--teal);
-  --color-teal-lift: var(--teal-lift);
-  --color-blue-fill: var(--blue-fill);
-  --color-blue-line: var(--blue-line);
-  --color-blue-ink: var(--blue-ink);
-  --color-mint-fill: var(--mint-fill);
-  --color-mint-line: var(--mint-line);
-  --color-mint-ink: var(--mint-ink);
-  --color-amber-fill: var(--amber-fill);
-  --color-amber-line: var(--amber-line);
-  --color-amber-ink: var(--amber-ink);
-  --color-slate: var(--slate);
-  --color-meta: var(--meta);
-  --color-hair: var(--hair);
-  --color-ground: var(--ground);
-  --color-ground-2: var(--ground-2);
+.dark {
+  color-scheme: dark;
+
+  --background: #0a111b;
+  --foreground: #e7eef5;
+
+  --card: #101a27;
+  --card-foreground: #e7eef5;
+
+  --popover: #121d2a;
+  --popover-foreground: #eaf2f8;
+
+  /* On dark, the interaction color lifts rather than disappearing into navy. */
+  --primary: #7cd5c6;
+  --primary-foreground: #06211e;
+
+  --secondary: #182536;
+  --secondary-foreground: #dce6ef;
+
+  --muted: #151f2c;
+  --muted-foreground: #9fafbe;
+
+  --accent: #133632;
+  --accent-foreground: #c0f1e8;
+
+  --destructive: #f26d78;
+  --destructive-foreground: #2b070a;
+
+  --border: #263544;
+  --input: #334555;
+  --ring: #58c6b5;
+
+  --brand: #58c6b5;
+  --brand-strong: #84ddcf;
+  --brand-soft: #133632;
+  --brand-foreground: #06211e;
+
+  --authority: #9ec7db;
+  --authority-2: #73a9c2;
+  --authority-soft: #142939;
+
+  --success: #65c99a;
+  --success-foreground: #082217;
+  --success-soft: #123527;
+  --success-soft-foreground: #a9ebc9;
+
+  --info: #72b7dd;
+  --info-foreground: #071d29;
+  --info-soft: #142e3d;
+  --info-soft-foreground: #b8def1;
+
+  --warning: #e5b24c;
+  --warning-foreground: #2a1b00;
+  --warning-soft: #392c12;
+  --warning-soft-foreground: #f5d58f;
+
+  --danger: #f26d78;
+  --danger-foreground: #2b070a;
+  --danger-soft: #3c1d24;
+  --danger-soft-foreground: #ffc1c6;
+
+  --chart-1: #58c6b5;
+  --chart-2: #72b7dd;
+  --chart-3: #b9a2e1;
+  --chart-4: #e5b24c;
+  --chart-5: #9fafbe;
+
+  --sidebar: #08111a;
+  --sidebar-foreground: #dfe8f0;
+  --sidebar-primary: #7cd5c6;
+  --sidebar-primary-foreground: #06211e;
+  --sidebar-accent: #132433;
+  --sidebar-accent-foreground: #f2f7fb;
+  --sidebar-border: #203343;
+  --sidebar-ring: #58c6b5;
+
+  --surface-raised: #101a27;
+  --surface-subtle: #0d1722;
+  --surface-inset: #0b141f;
+  --surface-glass: rgb(16 26 39 / 0.84);
+
+  --shadow-1: 0 1px 2px rgb(0 0 0 / 0.28), 0 12px 30px rgb(0 0 0 / 0.22);
+  --shadow-2: 0 2px 4px rgb(0 0 0 / 0.32), 0 20px 56px rgb(0 0 0 / 0.32);
+}
+
+@theme inline {
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --radius-sm: calc(var(--radius) * 0.75);
-  --radius-md: calc(var(--radius) * 0.875);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-foreground: var(--brand-foreground);
+
+  --color-authority: var(--authority);
+  --color-authority-2: var(--authority-2);
+  --color-authority-soft: var(--authority-soft);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-soft: var(--success-soft);
+  --color-success-soft-foreground: var(--success-soft-foreground);
+
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-soft: var(--info-soft);
+  --color-info-soft-foreground: var(--info-soft-foreground);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-soft-foreground: var(--warning-soft-foreground);
+
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-soft-foreground: var(--danger-soft-foreground);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-surface-inset: var(--surface-inset);
+
+  --radius-sm: calc(var(--radius) * 0.7);
+  --radius-md: calc(var(--radius) * 0.85);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.5);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+
+  --shadow-panel: var(--shadow-1);
+  --shadow-float: var(--shadow-2);
 }
 
 @layer base {
   * {
-    border-color: var(--hair);
+    border-color: var(--border);
   }
 
   html {
     font-family: var(--font-sans);
+    background: var(--background);
     -webkit-font-smoothing: antialiased;
-    scroll-behavior: smooth;
-    overflow-x: clip;
+    text-rendering: optimizeLegibility;
   }
 
   body {
     margin: 0;
-    background-color: var(--ground);
-    color: var(--slate);
-    overflow-x: clip;
-    padding-bottom: env(safe-area-inset-bottom);
-    -webkit-tap-highlight-color: color-mix(
-      in srgb,
-      var(--teal) 22%,
-      transparent
-    );
-  }
-
-  ::selection {
-    background-color: var(--teal);
-    color: var(--ground);
+    min-height: 100vh;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-feature-settings:
+      "kern" 1,
+      "liga" 1,
+      "calt" 1;
   }
 
   h1,
   h2,
-  h3,
-  h4 {
+  h3 {
     font-family: var(--font-display);
-    letter-spacing: -0.03em;
+    letter-spacing: -0.025em;
     text-wrap: balance;
   }
 
-  p {
-    text-wrap: pretty;
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-sans);
+    letter-spacing: -0.015em;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--brand) 28%, transparent);
+    color: var(--foreground);
   }
 
   :focus-visible {
-    outline: 2px solid var(--teal);
-    outline-offset: 3px;
-  }
-
-  /* Anchor targets must not land under the sticky nav. */
-  [id] {
-    scroll-margin-top: calc(5.5rem + env(safe-area-inset-top));
-  }
-
-  a,
-  button,
-  [role="button"],
-  summary {
-    touch-action: manipulation;
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 }
 
-/* Short operational labels only. Explanatory prose never uses mono. */
-@utility rubric {
-  font-family: var(--font-sans);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-variant-numeric: tabular-nums;
-}
-
-@utility page-shell {
-  width: min(100%, var(--content-max));
-  margin-inline: auto;
-  padding-inline: max(var(--page-inline), env(safe-area-inset-left))
-    max(var(--page-inline), env(safe-area-inset-right));
-}
-
-@utility section-space {
-  padding-block: var(--section-block);
-}
-
-/* Every figure on this page is tabular. Money must never wobble. */
+/* Numeric UI: payroll, tax, deductions, YTD and control totals */
 @utility figure-nums {
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums lining-nums;
   font-feature-settings:
     "tnum" 1,
+    "lnum" 1,
     "zero" 1;
 }
 
-/* Soft radial teal light behind navy surfaces. Decorative layers only. */
-@utility glow {
-  background-image: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--teal-lift) 22%, transparent),
-    transparent 68%
-  );
+/* Operational microcopy only */
+@utility ui-mono {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Dividers fade at their ends rather than stopping dead. */
-@utility rule-fade {
-  background-image: linear-gradient(
-    90deg,
-    var(--hair),
-    color-mix(in srgb, var(--hair) 0%, transparent)
-  );
+/* Premium base panel: very low-noise elevation */
+@utility panel {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) * 1.2);
+  box-shadow: var(--shadow-1);
 }
 
-/* Quiet drafting-grid atmosphere for navy and pale grounds. */
-@utility pattern-grid {
-  background-image:
-    linear-gradient(
-      to right,
-      color-mix(in srgb, var(--teal-lift) 14%, transparent) 1px,
-      transparent 1px
+/* For tables, dense controls, filter bars and secondary rails */
+@utility panel-quiet {
+  background: var(--surface-subtle);
+  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+  border-radius: var(--radius);
+}
+
+/* Main app canvas — subtle atmosphere without becoming "marketing". */
+@utility workspace-canvas {
+  background:
+    radial-gradient(
+      900px 460px at 100% -10%,
+      color-mix(in srgb, var(--brand) 6%, transparent),
+      transparent 72%
     ),
-    linear-gradient(
-      to bottom,
-      color-mix(in srgb, var(--teal-lift) 14%, transparent) 1px,
-      transparent 1px
-    );
-  background-size: 48px 48px;
-  mask-image: radial-gradient(circle at 70% 20%, black 18%, transparent 72%);
-}
-
-@utility pattern-grid-light {
-  background-image:
-    linear-gradient(
-      to right,
-      color-mix(in srgb, var(--navy) 6%, transparent) 1px,
-      transparent 1px
+    radial-gradient(
+      720px 420px at 0% 100%,
+      color-mix(in srgb, var(--info) 4%, transparent),
+      transparent 74%
     ),
-    linear-gradient(
-      to bottom,
-      color-mix(in srgb, var(--navy) 6%, transparent) 1px,
-      transparent 1px
-    );
-  background-size: 40px 40px;
+    var(--background);
 }
 
-/* Evidence and control surfaces with a decisive cut corner. */
-@utility panel-cut {
-  clip-path: polygon(
-    0 0,
-    calc(100% - 1.25rem) 0,
-    100% 1.25rem,
-    100% 100%,
-    0 100%
-  );
+.dark .workspace-canvas {
+  background:
+    radial-gradient(
+      900px 460px at 100% -10%,
+      color-mix(in srgb, var(--brand) 10%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      720px 420px at 0% 100%,
+      color-mix(in srgb, var(--info) 7%, transparent),
+      transparent 74%
+    ),
+    var(--background);
 }
 
-@utility panel-cut-lg {
-  clip-path: polygon(0 0, calc(100% - 2rem) 0, 100% 2rem, 100% 100%, 0 100%);
-}
+/* Selected nav row: tint + authority indicator, not a generic grey slab. */
+@utility nav-active {
+  position: relative;
+  background: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--sidebar-border) 78%, transparent);
 
-/* button-04 / button-16 pattern: arrow advances on hover. */
-@utility cta-arrow {
-  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
-
-  .group\/cta:hover & {
-    transform: translateX(0.2rem);
+  &::before {
+    content: "";
+    position: absolute;
+    inset-block: 0.45rem;
+    inset-inline-start: 0.2rem;
+    width: 2px;
+    border-radius: 999px;
+    background: var(--sidebar-primary);
   }
 }
 
-@keyframes rise {
+/* Semantic notice surfaces */
+@utility notice-info {
+  background: var(--info-soft);
+  color: var(--info-soft-foreground);
+  border-color: color-mix(in srgb, var(--info) 36%, var(--border));
+}
+
+@utility notice-warning {
+  background: var(--warning-soft);
+  color: var(--warning-soft-foreground);
+  border-color: color-mix(in srgb, var(--warning) 40%, var(--border));
+}
+
+@utility notice-danger {
+  background: var(--danger-soft);
+  color: var(--danger-soft-foreground);
+  border-color: color-mix(in srgb, var(--danger) 42%, var(--border));
+}
+
+@utility notice-success {
+  background: var(--success-soft);
+  color: var(--success-soft-foreground);
+  border-color: color-mix(in srgb, var(--success) 38%, var(--border));
+}
+
+/* Frosted only where hierarchy benefits: sticky header / command bar. */
+@utility chrome-glass {
+  background: var(--surface-glass);
+  border-color: color-mix(in srgb, var(--border) 78%, transparent);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+}
+
+/* Quiet interaction polish */
+@utility interactive-lift {
+  transition:
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 160ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 160ms ease,
+    background-color 160ms ease;
+
+  @media (hover: hover) {
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-1);
+    }
+  }
+}
+
+@keyframes clarity-enter {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -309,22 +497,8 @@
   }
 }
 
-@keyframes rule-draw {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
-}
-
-@utility rise {
-  animation: rise 0.62s cubic-bezier(0.22, 1, 0.36, 1) backwards;
-}
-
-@utility rule-draw {
-  transform-origin: left;
-  animation: rule-draw 0.85s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+@utility clarity-enter {
+  animation: clarity-enter 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -70,10 +70,14 @@ function parseArgs(argv: string[]): Args {
 
   const envEmail = process.env.VITE_DEV_EMAIL?.trim();
   const envPassword = process.env.VITE_DEV_PASSWORD;
-  email = email ?? (envEmail !== undefined && envEmail.length > 0 ? envEmail : undefined);
+  email =
+    email ??
+    (envEmail !== undefined && envEmail.length > 0 ? envEmail : undefined);
   password =
     password ??
-    (envPassword !== undefined && envPassword.length > 0 ? envPassword : undefined);
+    (envPassword !== undefined && envPassword.length > 0
+      ? envPassword
+      : undefined);
   name = name ?? DEFAULT_DEV_NAME;
 
   if (email === undefined || password === undefined) {

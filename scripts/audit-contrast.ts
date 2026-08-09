@@ -64,13 +64,13 @@ function oklchToRgb(L: number, C: number, h: number): Rgb {
     }
     chroma = lo;
   }
-  return oklchToLinearRgb(L, chroma, h).map((v) => clamp01(linToSrgb(v))) as Rgb;
+  return oklchToLinearRgb(L, chroma, h).map((v) =>
+    clamp01(linToSrgb(v))
+  ) as Rgb;
 }
 
-const luminance = ([r, g, b]: Rgb): number => {
-  const [lr, lg, lb] = [r, g, b].map(srgbToLin);
-  return 0.2126 * lr + 0.7152 * lg + 0.0722 * lb;
-};
+const luminance = ([r, g, b]: Rgb): number =>
+  0.2126 * srgbToLin(r) + 0.7152 * srgbToLin(g) + 0.0722 * srgbToLin(b);
 
 function contrast(a: Rgb, b: Rgb): number {
   const la = luminance(a);
@@ -80,8 +80,14 @@ function contrast(a: Rgb, b: Rgb): number {
 
 const round2 = (n: number): number => Math.round(n * 100) / 100;
 
-const over = (fg: Rgb, alpha: number, bg: Rgb): Rgb =>
-  fg.map((c, i) => c * alpha + bg[i] * (1 - alpha)) as Rgb;
+const over = (fg: Rgb, alpha: number, backdrop: Rgb): Rgb => {
+  const mix = (f: number, b: number): number => f * alpha + b * (1 - alpha);
+  return [
+    mix(fg[0], backdrop[0]),
+    mix(fg[1], backdrop[1]),
+    mix(fg[2], backdrop[2]),
+  ];
+};
 
 const toHex = (rgb: Rgb): string =>
   `#${rgb
@@ -121,9 +127,15 @@ function simulate(rgb: Rgb, kind: string): Rgb {
 
 function toOklab([r, g, b]: Rgb): [number, number, number] {
   const [lr, lg, lb] = [r, g, b].map(srgbToLin);
-  const l = Math.cbrt(0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb);
-  const m = Math.cbrt(0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb);
-  const s = Math.cbrt(0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb);
+  const l = Math.cbrt(
+    0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb
+  );
+  const m = Math.cbrt(
+    0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb
+  );
+  const s = Math.cbrt(
+    0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb
+  );
   return [
     0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
     1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
@@ -182,7 +194,11 @@ const STATUS = ["success", "warning", "info", "destructive"] as const;
 
 type Result = { ok: boolean; line: string };
 
-function auditTheme(name: string, theme: Theme, tintAlphas: number[]): Result[] {
+function auditTheme(
+  name: string,
+  theme: Theme,
+  tintAlphas: number[]
+): Result[] {
   const results: Result[] = [];
   const get = (token: string): Rgb => {
     const entry = theme.get(`--${token}`);
@@ -205,14 +221,44 @@ function auditTheme(name: string, theme: Theme, tintAlphas: number[]): Result[] 
 
   check("foreground / background", get("foreground"), bg, TEXT_MIN);
   check("card-foreground / card", get("card-foreground"), card, TEXT_MIN);
-  check("popover-fg / popover", get("popover-foreground"), get("popover"), TEXT_MIN);
-  check("muted-foreground / muted", get("muted-foreground"), get("muted"), TEXT_MIN);
+  check(
+    "popover-fg / popover",
+    get("popover-foreground"),
+    get("popover"),
+    TEXT_MIN
+  );
+  check(
+    "muted-foreground / muted",
+    get("muted-foreground"),
+    get("muted"),
+    TEXT_MIN
+  );
   check("muted-foreground / background", get("muted-foreground"), bg, TEXT_MIN);
   check("muted-foreground / card", get("muted-foreground"), card, TEXT_MIN);
-  check("primary-fg / primary", get("primary-foreground"), get("primary"), TEXT_MIN);
-  check("secondary-fg / secondary", get("secondary-foreground"), get("secondary"), TEXT_MIN);
-  check("accent-fg / accent", get("accent-foreground"), get("accent"), TEXT_MIN);
-  check("sidebar-fg / sidebar", get("sidebar-foreground"), get("sidebar"), TEXT_MIN);
+  check(
+    "primary-fg / primary",
+    get("primary-foreground"),
+    get("primary"),
+    TEXT_MIN
+  );
+  check(
+    "secondary-fg / secondary",
+    get("secondary-foreground"),
+    get("secondary"),
+    TEXT_MIN
+  );
+  check(
+    "accent-fg / accent",
+    get("accent-foreground"),
+    get("accent"),
+    TEXT_MIN
+  );
+  check(
+    "sidebar-fg / sidebar",
+    get("sidebar-foreground"),
+    get("sidebar"),
+    TEXT_MIN
+  );
   check(
     "sidebar-primary-fg / sidebar-primary",
     get("sidebar-primary-foreground"),
@@ -225,7 +271,9 @@ function auditTheme(name: string, theme: Theme, tintAlphas: number[]): Result[] 
   const inputEntry = theme.get("--input");
   if (inputEntry) {
     const composited =
-      inputEntry.alpha < 1 ? over(inputEntry.rgb, inputEntry.alpha, card) : inputEntry.rgb;
+      inputEntry.alpha < 1
+        ? over(inputEntry.rgb, inputEntry.alpha, card)
+        : inputEntry.rgb;
     check("input boundary / card", composited, card, NON_TEXT_MIN);
   }
 
@@ -237,8 +285,18 @@ function auditTheme(name: string, theme: Theme, tintAlphas: number[]): Result[] 
     check(`${token} / background`, ink, bg, TEXT_MIN);
     for (const alpha of tintAlphas) {
       const pct = Math.round(alpha * 100);
-      check(`${token} / ${token}@${pct}% on card`, ink, over(ink, alpha, card), TEXT_MIN);
-      check(`${token} / ${token}@${pct}% on bg`, ink, over(ink, alpha, bg), TEXT_MIN);
+      check(
+        `${token} / ${token}@${pct}% on card`,
+        ink,
+        over(ink, alpha, card),
+        TEXT_MIN
+      );
+      check(
+        `${token} / ${token}@${pct}% on bg`,
+        ink,
+        over(ink, alpha, bg),
+        TEXT_MIN
+      );
     }
   }
 
@@ -252,7 +310,12 @@ function auditTheme(name: string, theme: Theme, tintAlphas: number[]): Result[] 
     ["charts", [1, 2, 3, 4, 5].map((i) => `chart-${i}`), SEPARATION_MIN],
   ];
   for (const [group, tokens, min] of groups) {
-    for (const vision of ["normal", "deuteranopia", "protanopia", "tritanopia"]) {
+    for (const vision of [
+      "normal",
+      "deuteranopia",
+      "protanopia",
+      "tritanopia",
+    ]) {
       const swatches = tokens.map((t) =>
         vision === "normal" ? get(t) : simulate(get(t), vision)
       );

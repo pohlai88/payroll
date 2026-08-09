@@ -11,9 +11,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const shadcnPath = resolve("src/web/shadcn.css");
-const printPath = resolve(
-  "src/web/payrun/payslip-document/payslip-print.css"
-);
+const printPath = resolve("src/web/payrun/payslip-document/payslip-print.css");
 const shadcn = () => readFileSync(shadcnPath, "utf8");
 const printCss = () => readFileSync(printPath, "utf8");
 
@@ -168,7 +166,6 @@ describe("stock shadcn SPA theme", () => {
     // oklch(0.205 0 0) → near-black neutral (was Straits navy #14324a)
     expect(resolveTokenHex(shadcn(), "--primary")).toBe("#171717");
   });
-
 });
 
 describe("light-theme document print CSS", () => {

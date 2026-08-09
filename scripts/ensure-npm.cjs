@@ -17,7 +17,7 @@ if (usingPnpm || usingYarn || !usingNpm) {
       "Use:",
       "  npm install",
       "  npm ci",
-    ].join("\n"),
+    ].join("\n")
   );
   process.exit(1);
 }

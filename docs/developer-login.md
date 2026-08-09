@@ -9,8 +9,15 @@ Requires `.env.local` with `DATABASE_URL`, `NEON_AUTH_BASE_URL`, and Vite auth
 URLs (see `.env.example`). Register `http://localhost:5173` as a Neon Auth
 trusted origin.
 
+**Order:** run `npm run db:seed` first so the `SYSTEM_ADMIN` role exists; then
+`setup:dev-user` (invite fails if the role is missing).
+
 ```bash
-# Explicit credentials (always assigns SYSTEM_ADMIN):
+# 1) Seed RBAC role (and catalog) — required before invite
+npm run db:migrate   # if migrations are not yet applied
+npm run db:seed
+
+# 2) Explicit credentials (always assigns SYSTEM_ADMIN):
 npm run setup:dev-user -- --email dev@example.com --name "Dev User" --password 'dev123456'
 
 # Or, after VITE_DEV_* are already in .env.local, upgrade / re-bootstrap:

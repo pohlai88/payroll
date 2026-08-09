@@ -31,7 +31,9 @@ function PageTitle({
           {title}
         </h1>
         {description !== undefined && description !== "" ? (
-          <p className="mt-1 text-primary-foreground/70 text-sm">{description}</p>
+          <p className="mt-1 text-primary-foreground/70 text-sm">
+            {description}
+          </p>
         ) : null}
       </div>
       {actions ?? null}

@@ -115,10 +115,15 @@ that uses pre-configured credentials from environment variables. The bootstrap a
 assigns **SYSTEM_ADMIN** (full permissions). See
 [docs/developer-login.md](docs/developer-login.md) for setup instructions.
 
-Quick setup:
+Quick setup (order matters — seed the `SYSTEM_ADMIN` role before inviting the
+developer user):
 
 ```bash
-# Creates Neon Auth user + app SYSTEM_ADMIN invite (password ≥ 8)
+# 1) Migrations + seed (creates roles.SYSTEM_ADMIN among other seed data)
+npm run db:migrate
+npm run db:seed
+
+# 2) Neon Auth user + app SYSTEM_ADMIN invite (password ≥ 8)
 npm run setup:dev-user -- \
   --email dev@example.com --name "Dev User" --password 'dev123456'
 

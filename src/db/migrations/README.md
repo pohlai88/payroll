@@ -1,5 +1,11 @@
 # Drizzle migration meta
 
+> **This file must stay out of `meta/`.** drizzle-kit `JSON.parse`s every file in
+> `meta/`, so a Markdown file there makes *every* `drizzle-kit generate` fail with
+> `SyntaxError: Unexpected token '#'` — including the command documented below.
+> Drift then becomes undetectable, which is the one thing this directory exists to
+> make visible.
+
 ## Snapshot coverage
 
 | Range | Status |
