@@ -73,30 +73,43 @@ This is about **trustworthiness**:
 ### 0A.1 Scan-Revision Binding
 
 **Contract**:
-- `scanRunFindings()` writes `findingsScannedRevision = calcRevision`
-- Recompute invalidates prior scan authority
-- Stale scan prevents progression through gates
+
+Current `recomputeRun()`:
+1. Clears `findingsScannedRevision`
+2. Creates new `calcRevision`
+3. Commits calculation
+4. Automatically calls `scanRunFindings()`
+5. Successful scan stamps the new revision
+
+**End states**:
+- Successful recompute + successful scan → `findingsScannedRevision === calcRevision`
+- New calculation revision before scan completes → prior scan authority invalid
+- Failed/incomplete scan → `findingsScannedRevision` must NOT be advanced → all gates fail with SCAN_INCOMPLETE
+
+**Critical invariant**: If calculation succeeds but findings scanning fails, the new revision must remain unscanned and every gate must fail closed.
 
 **Test**: `tests/findings/scan-contract.test.ts`
 
 ```ts
 describe("scan-revision binding", () => {
-  it("stamps findingsScannedRevision equal to calcRevision after scan", async () => {
-    // Create run, recompute
-    // Scan findings
+  it("successful recompute + scan stamps findingsScannedRevision = calcRevision", async () => {
+    // Create run, recompute (service auto-scans)
     // Assert: run.findingsScannedRevision === run.calcRevision
   });
 
-  it("recompute invalidates prior scan", async () => {
+  it("new calcRevision before scan completes invalidates prior scan authority", async () => {
     // Scan findings (revision R1)
-    // Recompute (revision R2)
-    // Assert: findingsScannedRevision !== calcRevision
+    // Begin recompute (clears scan stamp, creates R2)
+    // Before scan completes
+    // Assert: findingsScannedRevision !== calcRevision (stale)
   });
 
-  it("stale scan prevents gate evaluation", async () => {
-    // Stale scan
+  it("failed scan leaves revision unscanned and gates fail closed", async () => {
+    // Recompute succeeds (new calcRevision)
+    // Scan fails (e.g., DB error)
+    // Assert: findingsScannedRevision is null or stale
     // Evaluate gate
-    // Assert: Gate fails with "findings not scanned for current revision"
+    // Assert: Gate fails with SCAN_INCOMPLETE
   });
 });
 ```
@@ -116,6 +129,8 @@ Gate behavior is governed by:
 - `REVIEW`: Blocks its configured gate while OPEN; acknowledgement clears the gate requirement according to policy
 - `INFO`: Never blocks a gate
 
+**Runtime gates**: `"REVIEW" | "APPROVAL" | "RELEASE" | "CLOSE"`
+
 **Test**: Expand `tests/db/phase6-gates.test.ts`
 
 ```ts
@@ -127,7 +142,7 @@ describe("gate behavior", () => {
   });
 
   it("WARNING finding not in blocks array does not prevent gate", async () => {
-    // Create WARNING finding with blocks: ["APPROVE"]
+    // Create WARNING finding with blocks: ["APPROVAL"]
     // Evaluate REVIEW gate (not in blocks)
     // Assert: Gate passes
   });
@@ -155,14 +170,24 @@ describe("gate behavior", () => {
 - APPROVED/CLOSED → immutable; recomputation is refused
 - Corrections use governed correction/off-cycle mechanism
 
+**Two layers**:
+1. **Service guard**: `recomputeRun(APPROVED/CLOSED)` fails immediately with domain/control error
+2. **Database trigger**: Final integrity wall (calculation rows refuse UPDATE/DELETE after DRAFT)
+
 **Test**: Extend `tests/db/phase6-gates.test.ts`
 
 ```ts
 describe("approval immutability", () => {
-  it("APPROVED run cannot be recomputed", async () => {
+  it("APPROVED run cannot be recomputed (service layer)", async () => {
     // Approve run
-    // Attempt recompute
-    // Assert: Recompute rejected
+    // Attempt recompute via service
+    // Assert: Recompute rejected with ControlError before calculation work begins
+  });
+
+  it("APPROVED calculation data is immutable (database layer)", async () => {
+    // Approve run
+    // Attempt direct UPDATE on payLines/payLineItems/pcbEntries
+    // Assert: Database trigger prevents mutation
   });
 
   it("APPROVED findings are frozen", async () => {
@@ -182,17 +207,31 @@ describe("approval immutability", () => {
 ### 0A.4 Release Controls
 
 **Contract**:
-- Payment-readiness findings block release, not just approval
+- Payment-readiness findings block release for affected lines
+- Release supports **partial release**: line-scoped gate failures exclude affected lines while eligible lines continue
+- Run-scoped RELEASE issues must fail release entirely
 
 **Test**: `tests/findings/payment-readiness.test.ts`
 
 ```ts
 describe("release controls", () => {
-  it("BANK_MISSING blocks release for affected lines", async () => {
-    // Create line with missing bank details
-    // Detect BANK_MISSING finding
-    // Attempt release
-    // Assert: Release preview excludes line or blocks
+  it("line-scoped RELEASE finding excludes affected line (partial release)", async () => {
+    // Line A: missing bank details (BANK_DETAILS_MISSING with blocks: ["RELEASE"])
+    // Line B: clean
+    // previewRelease([A, B])
+    // Assert: A excluded from eligible set, B remains eligible
+  });
+
+  it("run-scoped RELEASE finding blocks entire release", async () => {
+    // Create run-level RELEASE finding (no lineId)
+    // Attempt release of any lines
+    // Assert: Release fails closed entirely
+  });
+
+  it("RELEASE finding not blocking APPROVAL allows approval", async () => {
+    // Create RELEASE finding with blocks: ["RELEASE"] only
+    // Evaluate APPROVAL gate
+    // Assert: APPROVAL gate passes
   });
 });
 ```
@@ -201,46 +240,84 @@ describe("release controls", () => {
 
 ## Phase 0B: Acknowledgement Revision Semantics (Week 1, P0)
 
-**Design Decision Required**: The current implementation appears evidence-bound (fingerprint-based reopening). The stronger invariant is revision-bound.
+**Design Decision**: The current implementation appears evidence-bound (fingerprint-based reopening). The stronger invariant is revision-bound.
 
-**Recommended Policy**:
+**Policy**:
 
 > A non-INFO acknowledgement is certification of a finding at one calculation revision. A new calculation revision must require fresh acknowledgement for any finding that remains gate-relevant, even when its evidence fingerprint happens to remain identical.
 
-**Implementation Options**:
+**Recommended Implementation**: **Option 2 - Reopen on new revision without migration**
 
-1. **Add `ackRevision` to findings table**
-   - Store revision at acknowledgement time
-   - Reopen if `calcRevision !== ackRevision` during rescan
+Existing schema:
+- `detectedRevision`
+- `fingerprint`
+- `ackActor`, `ackAt`, `ackNote`
+- `finding_events` (history table)
 
-2. **Reopen all acknowledged findings on new revision**
-   - During scan, reopen gate-relevant acknowledged findings if revision changed
-   - Keep fingerprint for evidence-change detection
+**Rescan semantics**:
 
-**Retain fingerprints** - they answer a different question: *did the underlying evidence change?*
+```ts
+// Same logical finding + same fingerprint + same revision
+→ preserve state
+
+// Same logical finding + same fingerprint + new calcRevision + ACKNOWLEDGED + gate-relevant
+→ reopen
+→ clear acknowledgement fields
+→ detectedRevision = current revision
+→ emit REOPENED event with reason=REVISION_CHANGED
+
+// Same logical finding + changed fingerprint
+→ reopen
+→ clear acknowledgement
+→ detectedRevision = current revision
+→ emit REOPENED event with reason=EVIDENCE_CHANGED
+
+// Same logical finding still OPEN on new revision
+→ update detectedRevision to current revision
+```
+
+**Acknowledgement event evidence** (for historical proof):
+```ts
+{
+  note,
+  fingerprint,
+  calcRevision  // Capture at acknowledgement time
+}
+```
+
+**Benefit**: Achieves desired invariant without schema migration. Only add dedicated `ackRevision` column later if concrete query/reporting requirement emerges.
 
 **Test**: `tests/findings/acknowledgement-lifecycle.test.ts`
 
 ```ts
 describe("acknowledgement revision binding", () => {
-  it("acknowledgement binds to specific calcRevision", async () => {
-    // Scan at revision R1
-    // Acknowledge finding
-    // Assert: ackRevision = R1 (or equivalent state)
-  });
-
   it("new calcRevision reopens acknowledged finding even with identical evidence", async () => {
     // Scan at R1, acknowledge
     // Recompute → R2 (evidence fingerprint unchanged)
     // Rescan
     // Assert: Finding reopened (status = OPEN)
+    // Assert: Event emitted with reason=REVISION_CHANGED
   });
 
   it("evidence change reopens acknowledged finding", async () => {
-    // Scan, acknowledge
+    // Scan at R1, acknowledge
     // Change underlying data (new evidence fingerprint)
-    // Rescan
+    // Rescan at R1
     // Assert: Finding reopened
+    // Assert: Event emitted with reason=EVIDENCE_CHANGED
+  });
+
+  it("acknowledgement event captures calcRevision for audit trail", async () => {
+    // Scan at R1
+    // Acknowledge finding
+    // Assert: Event record includes calcRevision=R1
+  });
+
+  it("OPEN finding on new revision updates detectedRevision", async () => {
+    // Create OPEN finding at R1
+    // Recompute → R2 (same fingerprint, still detected)
+    // Assert: detectedRevision updated to R2
+    // Assert: Status remains OPEN
   });
 });
 ```
@@ -253,7 +330,21 @@ describe("acknowledgement revision binding", () => {
 
 ### 0C.1 `NEW_EMPLOYEE` Detection Logic
 
-**Current issue**: Employee absent from baseline may skip detection
+**Current behavior**: Employee absent from baseline may skip detection. On first-ever payroll, everyone can qualify as NEW_EMPLOYEE.
+
+**Policy Decision** (semantic correction):
+
+> `NEW_EMPLOYEE` means a new arrival relative to an established payroll history, not "everyone in the system's first payroll."
+
+**Policy**:
+```ts
+No eligible prior payroll baseline
+→ do not emit NEW_EMPLOYEE
+
+Eligible prior payroll baseline exists
+AND employee has no prior payroll line
+→ emit NEW_EMPLOYEE
+```
 
 **Test**: `tests/findings/workforce.test.ts`
 
@@ -263,18 +354,25 @@ describe("NEW_EMPLOYEE", () => {
     // Setup: Prior regular APPROVED run with baseline employees
     // Create new run with additional employee (not in baseline)
     // Scan findings
-    // Assert: NEW_EMPLOYEE finding exists
+    // Assert: NEW_EMPLOYEE finding exists for new employee only
   });
 
-  it("does not detect NEW_EMPLOYEE when no prior baseline exists", async () => {
-    // First-ever payroll run
+  it("does not detect NEW_EMPLOYEE when no prior baseline exists (first payroll)", async () => {
+    // Company's first-ever payroll run
+    // All employees are technically new
     // Scan findings
-    // Assert: No NEW_EMPLOYEE findings (all employees are legitimately new)
+    // Assert: No NEW_EMPLOYEE findings (no baseline to compare against)
+  });
+
+  it("does not detect NEW_EMPLOYEE for employee in previous run", async () => {
+    // Prior run includes employee A
+    // Current run includes employee A again
+    // Assert: No NEW_EMPLOYEE for A
   });
 });
 ```
 
-**Action**: Fix skip logic to correctly detect genuinely new employees.
+**Action**: Implement policy as intentional semantic correction.
 
 ### 0C.2 `STATUTORY_ZERO_WITH_WAGES` - Scheme-Specific Bases
 
@@ -415,32 +513,52 @@ Each finding type must test:
 
 **Example: NET_VARIANCE_VS_PRIOR**
 
+**Current thresholds**:
 ```ts
+NET_VARIANCE_ABS_SEN = 30_000  // RM 300
+NET_VARIANCE_PCT = 0.2         // 20% (stored as ratio 0.2, not integer 20)
+```
+
+**Evidence format**: `pct` is stored as **ratio**, not percentage integer:
+```ts
+{ pct: 0.5 }  // 50%, not 50
+```
+
+```ts
+import { NET_VARIANCE_ABS_SEN, NET_VARIANCE_PCT } from "@/domain/findings/catalog";
+
 describe("NET_VARIANCE_VS_PRIOR", () => {
   it("detects variance exceeding both absolute and percentage thresholds", async () => {
-    // Baseline: netSen = 500000 (RM 5,000.00)
-    // Current: netSen = 750000 (RM 7,500.00)
-    // Variance: abs = 250000 (RM 2,500), pct = 50%
-    // Thresholds: abs = 200000 (RM 2,000), pct = 40%
+    // Use actual thresholds, not hardcoded values
+    // Baseline: netSen = 100000 (RM 1,000.00)
+    // Current: netSen = 135000 (RM 1,350.00)
+    // Variance: abs = 35000 (RM 350), pct = 0.35 (35%)
+    // Both exceed: abs (30000) and pct (0.2)
     
     const finding = await detectAndGetFinding("NET_VARIANCE_VS_PRIOR");
     
     expect(finding).toBeDefined();
     expect(finding.evidence).toEqual({
-      netSen: 750000,
-      baselineNetSen: 500000,
+      netSen: 135000,
+      baselineNetSen: 100000,
       baselineRunId: expect.any(String),
-      absVarianceSen: 250000,
-      pct: 50,
+      absVarianceSen: 35000,
+      pct: 0.35,  // ratio, not percentage
     });
   });
 
   it("does not detect when absolute threshold met but percentage threshold not met", async () => {
-    // Baseline: netSen = 10000000 (RM 100,000)
-    // Current: netSen = 10250000 (RM 102,500)
-    // Variance: abs = 250000 (RM 2,500), pct = 2.5%
-    // Thresholds: abs = 200000, pct = 40%
+    // Baseline: netSen = 1000000 (RM 10,000)
+    // Current: netSen = 1035000 (RM 10,350)
+    // Variance: abs = 35000 (exceeds 30000), pct = 0.035 (3.5%, below 0.2)
     // Assert: No finding (percentage too low)
+  });
+
+  it("tests boundary conditions around thresholds", async () => {
+    // abs == NET_VARIANCE_ABS_SEN → no finding (if using >)
+    // abs == NET_VARIANCE_ABS_SEN + 1 → absolute side satisfied
+    // pct == NET_VARIANCE_PCT → no finding
+    // pct just above NET_VARIANCE_PCT → percentage side satisfied
   });
 
   it("reopens when net changes after acknowledgement", async () => {
@@ -456,10 +574,19 @@ describe("NET_VARIANCE_VS_PRIOR", () => {
 
 **File**: `tests/findings/catalog-coverage.test.ts`
 
+**CRITICAL**: Use **exact catalog rule IDs** from runtime. Do not invent or approximate names.
+
+Current examples (not exhaustive):
+- Pay-run: `BANK_DETAILS_MISSING`, `BANK_DETAILS_CHANGED`, `OT_OUTLIER`, `EMPLOYEE_IN_OVERLAPPING_RUNS`
+- Transfer: `TRANSFER_OVERLAP_DATES`, `PERSON_IN_BOTH_EMPLOYERS`, `TRANSFER_FINAL_PAY_MISSING`, `TRANSFER_PRIOR_TAX_MISSING`, `SERVICE_DATES_INCONSISTENT`, `RECEIVING_REGISTRATION_INVALID`
+
+**Implementation**: Import actual catalogs and maintain tested registry with exact IDs.
+
 ```ts
 import { PAYRUN_ANOMALY_RULES, TRANSFER_ANOMALY_RULES } from "@/domain/findings/catalog";
 
 // Maintain explicit registry of tested rules
+// **Use exact rule IDs from catalog - do not invent names**
 const TESTED_PAYRUN_RULES = new Set([
   "PCB_UNVERIFIED",
   "NET_NEGATIVE",
@@ -470,19 +597,22 @@ const TESTED_PAYRUN_RULES = new Set([
   "NEW_EMPLOYEE",
   "EMPLOYEE_OMITTED",
   "EIS_AGE_HISTORY_UNRESOLVED",
-  "BANK_MISSING",
-  "BANK_CHANGED",
-  "OT_HOURS_OUTLIER",
-  "OT_PAY_VS_BASIC_OUTLIER",
+  "BANK_DETAILS_MISSING",
+  "BANK_DETAILS_CHANGED",
+  "OT_OUTLIER",
   "VARIABLE_ITEM_SPIKE",
-  "OVERLAPPING_RUNS",
-  // ... complete list
+  "EMPLOYEE_IN_OVERLAPPING_RUNS",
+  // ... complete with exact catalog IDs
 ]);
 
 const TESTED_TRANSFER_RULES = new Set([
-  "TRANSFER_OVERLAP",
-  "TRANSFER_EVIDENCE_MISSING",
-  // ... complete list
+  "TRANSFER_OVERLAP_DATES",
+  "PERSON_IN_BOTH_EMPLOYERS",
+  "TRANSFER_FINAL_PAY_MISSING",
+  "TRANSFER_PRIOR_TAX_MISSING",
+  "SERVICE_DATES_INCONSISTENT",
+  "RECEIVING_REGISTRATION_INVALID",
+  // ... complete with exact catalog IDs
 ]);
 
 describe("findings catalog coverage", () => {
@@ -512,6 +642,8 @@ describe("findings catalog coverage", () => {
 
 **Benefit**: Adding new finding to catalog without tests fails CI.
 
+**Action for Implementation**: Before writing tests, export actual catalog and verify all rule IDs. Do not proceed with invented names.
+
 ### 0D.4 Vertical Slice for High-Risk Findings
 
 For critical findings (`PCB_UNVERIFIED`, `EIS_AGE_HISTORY_UNRESOLVED`, bank/release controls), trace end-to-end:
@@ -531,67 +663,68 @@ For critical findings (`PCB_UNVERIFIED`, `EIS_AGE_HISTORY_UNRESOLVED`, bank/rele
 
 ### 1.1 Date Validation Layers
 
+**CRITICAL**: Reuse existing canonical date primitives from `src/domain/date.ts`:
+```ts
+isIsoDate(value)        // Validates ISO format + real calendar date
+parseIsoDate(value, what)
+isRealDate(y, m, d)     // Already uses UTC and rejects impossible dates
+```
+
+**Do not introduce a second ISO/calendar implementation.**
+
 **Layer 1: Syntax validity** (current)
 ```ts
 /^\d{4}-\d{2}-\d{2}$/  // ISO 8601 format
 ```
 
-**Layer 2: Calendar validity** (add)
-```ts
-function isValidCalendarDate(isoDate: string): boolean {
-  const [year, month, day] = isoDate.split("-").map(Number);
-  
-  // Reject invalid months/days
-  if (month < 1 || month > 12) return false;
-  if (day < 1 || day > 31) return false;
-  
-  // Check actual calendar validity
-  const date = new Date(year, month - 1, day);
-  return (
-    date.getFullYear() === year &&
-    date.getMonth() === month - 1 &&
-    date.getDate() === day
-  );
-}
-```
-
-**Reject**:
-- `2026-02-29` (not a leap year)
-- `2026-04-31` (April has 30 days)
-- `2026-13-01` (invalid month)
-- `2026-00-15` (invalid day)
-
-**Accept**:
-- `2028-02-29` (leap year)
-- Future dates (legitimate HR data for appointments)
+**Layer 2: Calendar validity** (use `isIsoDate()`)
+- Rejects: `2026-02-29`, `2026-04-31`, `2026-13-01`, `2026-00-15`
+- Accepts: `2028-02-29` (leap year), future dates
 
 **Layer 3: Business validity** (optional/domain-specific)
 - DOB after join date → import error
 - Unreasonable DOB (e.g., year < 1900) → warning or review finding
-- Future join date → allow (legitimate)
+- Future join date → **allow** (legitimate HR data for future appointments)
 
 **Test**: Expand `tests/domain/employee-row.test.ts`
 
 ```ts
+import { isIsoDate } from "@/domain/date";
+
 describe("date validation", () => {
-  it("rejects invalid calendar dates", () => {
-    expect(parseEmployeeRow({ ...validRow, "Join Date": "2026-02-29" })).toHaveError("invalid date");
-    expect(parseEmployeeRow({ ...validRow, "Join Date": "2026-04-31" })).toHaveError("invalid date");
+  it("rejects invalid calendar dates using isIsoDate", () => {
+    expect(isIsoDate("2026-02-29")).toBe(false);
+    expect(isIsoDate("2026-04-31")).toBe(false);
+    expect(isIsoDate("2026-13-01")).toBe(false);
+    
+    expect(parseEmployeeRow({ ...validRow, "Join Date": "2026-02-29" }))
+      .toHaveError("invalid date");
   });
 
   it("accepts leap year dates", () => {
-    expect(parseEmployeeRow({ ...validRow, "Join Date": "2028-02-29" })).toBeValid();
+    expect(isIsoDate("2028-02-29")).toBe(true);
+    expect(parseEmployeeRow({ ...validRow, "Join Date": "2028-02-29" }))
+      .toBeValid();
   });
 
   it("rejects DOB after join date", () => {
     expect(parseEmployeeRow({
       ...validRow,
-      "Date of Birth": "2000-01-01",
+      "Person DOB": "2000-01-01",  // Correct header: "Person DOB", not "Date of Birth"
       "Join Date": "1999-01-01"
     })).toHaveError("DOB after join date");
   });
+
+  it("allows future join dates", () => {
+    expect(parseEmployeeRow({
+      ...validRow,
+      "Join Date": "2027-01-01"  // Future appointment
+    })).toBeValid();
+  });
 });
 ```
+
+**Action**: Import validation must delegate to `isIsoDate()` - do not duplicate calendar logic.
 
 ### 1.2 Duplicate Employee Codes Within File
 
