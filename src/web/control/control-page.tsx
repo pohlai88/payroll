@@ -52,6 +52,9 @@ function gateForStatus(status: string): GateKind | null {
   if (status === "REVIEWED") {
     return "APPROVAL";
   }
+  if (status === "APPROVED") {
+    return "RELEASE";
+  }
   return null;
 }
 

@@ -16,6 +16,7 @@ import type {
   EmployeeLineDto,
   GateKind,
   GateResult,
+  LinePaymentState,
   PayRunWorkspaceView,
 } from "@/web/api/payroll-api";
 import { payrollApi } from "@/web/api/payroll-api";
@@ -78,6 +79,10 @@ function WorkspacePage() {
   const [artifactsLoading, setArtifactsLoading] = useState(false);
   const [artifactsError, setArtifactsError] = useState<string | null>(null);
 
+  const [paymentStateByEmployeeId, setPaymentStateByEmployeeId] = useState<
+    ReadonlyMap<string, LinePaymentState> | undefined
+  >(undefined);
+
   const reload = useCallback(async () => {
     if (runId === undefined) {
       return;
@@ -124,6 +129,24 @@ function WorkspacePage() {
       loadArtifacts();
     }
   }, [view, loadArtifacts]);
+
+  useEffect(() => {
+    if (
+      runId === undefined ||
+      view === null ||
+      !(view.run.status === "APPROVED" || view.run.status === "CLOSED") ||
+      paymentsRefreshKey < 0
+    ) {
+      return;
+    }
+    payrollApi.getPayments(runId).then((res) => {
+      const map = new Map<string, LinePaymentState>();
+      for (const row of res.payments) {
+        map.set(row.employmentId, row.state);
+      }
+      setPaymentStateByEmployeeId(map);
+    });
+  }, [runId, view, paymentsRefreshKey]);
 
   const openSlideOver = useCallback(
     (employeeId: string, tab: "line" | "payslip" | "derivation") => {
@@ -380,6 +403,7 @@ function WorkspacePage() {
           onSelectEmployee={handleSelectEmployee}
           onViewDerivation={handleViewDerivation}
           onViewFindings={handleViewDerivation}
+          paymentStateByEmployeeId={paymentStateByEmployeeId}
         />
       </div>
 

@@ -42,7 +42,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import type { EmployeeLineDto } from "@/web/api/payroll-api";
+import type { EmployeeLineDto, LinePaymentState } from "@/web/api/payroll-api";
 
 interface EmployeeGridProps {
   readonly lines: readonly EmployeeLineDto[];
@@ -50,6 +50,7 @@ interface EmployeeGridProps {
   readonly onEditLine?: (employeeId: string) => void;
   readonly onViewDerivation?: (employeeId: string) => void;
   readonly onViewFindings?: (employeeId: string) => void;
+  readonly paymentStateByEmployeeId?: ReadonlyMap<string, LinePaymentState>;
 }
 
 interface RootColumn {
@@ -116,8 +117,10 @@ function EmployeeGrid({
   onEditLine,
   onViewDerivation,
   onViewFindings,
+  paymentStateByEmployeeId,
 }: EmployeeGridProps) {
   const [page, setPage] = useState(0);
+  const showPaymentColumn = paymentStateByEmployeeId !== undefined;
 
   const totalPages = Math.max(1, Math.ceil(lines.length / PAGE_SIZE));
   const pageLines = lines.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -150,6 +153,11 @@ function EmployeeGrid({
                   {group.label}
                 </SectionHeader>
               ))}
+              {showPaymentColumn ? (
+                <TableHead className="bg-muted text-center" rowSpan={2}>
+                  Payment
+                </TableHead>
+              ) : null}
               <TableHead className="w-10 bg-muted" rowSpan={2} />
             </TableRow>
             <TableRow>
@@ -172,6 +180,7 @@ function EmployeeGrid({
                 onSelectEmployee={onSelectEmployee}
                 onViewDerivation={onViewDerivation}
                 onViewFindings={onViewFindings}
+                paymentState={paymentStateByEmployeeId?.get(line.employeeId)}
               />
             ))}
           </TableBody>
@@ -213,6 +222,7 @@ interface EmployeeRowProps {
   readonly onEditLine?: (employeeId: string) => void;
   readonly onViewDerivation?: (employeeId: string) => void;
   readonly onViewFindings?: (employeeId: string) => void;
+  readonly paymentState?: LinePaymentState;
 }
 
 function EmployeeRow({
@@ -221,6 +231,7 @@ function EmployeeRow({
   onEditLine,
   onViewDerivation,
   onViewFindings,
+  paymentState,
 }: EmployeeRowProps) {
   const { employeeId } = line;
   const hasChanges = line.variance?.hasChanges ?? false;
@@ -278,6 +289,13 @@ function EmployeeRow({
           </TableCell>
         );
       })}
+      {paymentState === undefined ? null : (
+        <TableCell className="text-center">
+          <Badge className="border-border bg-muted text-muted-foreground text-xs">
+            {paymentState}
+          </Badge>
+        </TableCell>
+      )}
       <TableCell onClick={stopPropagation}>
         <RowActionsMenu
           employeeId={employeeId}
