@@ -239,6 +239,22 @@ export function roundUpToFiveSen(amountSen: number): number {
   return result;
 }
 
+/**
+ * Compute delta as basis points (delta / previous × 10 000), rounded to the
+ * nearest integer. Returns null when previousSen is 0 (undefined ratio).
+ *
+ * Kept here so that all Math.round calls that settle a monetary ratio live
+ * inside this module (MY-STAT-S02 boundary rule).
+ */
+export function roundBps(
+  deltaSen: number,
+  previousSen: number
+): number | null {
+  return previousSen === 0
+    ? null
+    : Math.round((deltaSen / previousSen) * 10_000);
+}
+
 /** Format sen as "1,234.56" (no currency symbol). */
 export function formatRM(sen: number): string {
   assertSen(sen, "formatRM");

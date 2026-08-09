@@ -39,7 +39,7 @@ function PayslipPreview({ line, onPrint }: PayslipPreviewProps) {
     <div
       className="flex flex-col gap-0 rounded border text-sm"
       style={{
-        background: "#ffffff",
+        background: "var(--doc-fill-paper)",
         color: "var(--doc-ink)",
         fontFamily: "Geist, system-ui, sans-serif",
       }}

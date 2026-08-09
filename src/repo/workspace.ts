@@ -16,6 +16,7 @@ import type { Database } from "@/db/client";
 import { anomalyFindings } from "@/db/schema/findings";
 import { companies } from "@/db/schema/parties";
 import { payLines, payRuns } from "@/db/schema/run";
+import { roundBps } from "@/domain/money";
 
 export interface RunSummary {
   readonly id: string;
@@ -189,8 +190,7 @@ function computeTileVariance(
 ): VarianceDto {
   const previousSen = sumRoot(previousRoots, rootKey);
   const deltaSen = currentSen - previousSen;
-  const deltaBps =
-    previousSen === 0 ? null : Math.round((deltaSen / previousSen) * 10_000);
+  const deltaBps = roundBps(deltaSen, previousSen);
   return { previousSen, deltaSen, deltaBps, direction: directionOf(deltaSen) };
 }
 

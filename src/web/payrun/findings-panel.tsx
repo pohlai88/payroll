@@ -34,7 +34,7 @@ function severityBadgeClass(severity: FindingSeverity): string {
     return "border-0 bg-[var(--status-bad-fill)] text-[var(--status-bad-ink)]";
   }
   if (severity === "WARNING") {
-    return "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200";
+    return "border-[var(--status-warn-border)] bg-[var(--status-warn-fill)] text-[var(--status-warn-ink)]";
   }
   return "border-border bg-muted text-muted-foreground";
 }

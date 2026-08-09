@@ -43,6 +43,7 @@
   --status-info-fill: #d2e4ee;
   --status-warn-ink: #7c4e01;
   --status-warn-fill: #f2e0b9;
+  --status-warn-border: #d9c18a;
   --status-bad-ink: #8b3334;
   --status-bad-fill: #f2dcdd;
   --status-neutral-ink: #66737e;
@@ -274,6 +275,7 @@ code {
   --status-info-fill: #2a456b;
   --status-warn-ink: #c99c4a;
   --status-warn-fill: #6b5a2a;
+  --status-warn-border: #8a7238;
   --status-bad-ink: #d18989;
   --status-bad-fill: #6b2a2a;
   --status-neutral-ink: #a8b3bd;
