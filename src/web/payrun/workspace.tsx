@@ -80,6 +80,8 @@ function WorkspacePage() {
   const [artifactsLoading, setArtifactsLoading] = useState(false);
   const [artifactsError, setArtifactsError] = useState<string | null>(null);
 
+  const [recomputeError, setRecomputeError] = useState<string | null>(null);
+
   // Single source of truth for payments — shared by PaymentsPanel (display)
   // and the grid's payment-state badge column (derived map below).
   const [payments, setPayments] = useState<readonly LinePaymentRow[]>([]);
@@ -204,11 +206,19 @@ function WorkspacePage() {
     [openSlideOver]
   );
 
-  const handleRecompute = useCallback(() => {
+  const handleRecompute = useCallback(async () => {
     if (runId === undefined) {
       return;
     }
-    payrollApi.recompute(runId).then(reload);
+    setRecomputeError(null);
+    try {
+      await payrollApi.recompute(runId);
+      await reload();
+    } catch (err) {
+      setRecomputeError(
+        err instanceof Error ? err.message : "Recompute failed"
+      );
+    }
   }, [runId, reload]);
 
   /** Opens the batch drawer for a given batchId — used both after a fresh
@@ -408,6 +418,10 @@ function WorkspacePage() {
       />
 
       <div className="flex flex-col gap-4 px-6 pb-6">
+        {recomputeError === null ? null : (
+          <p className="text-destructive text-sm">{recomputeError}</p>
+        )}
+
         <TotalsStrip tiles={view.totals} />
 
         <FindingsPanel
