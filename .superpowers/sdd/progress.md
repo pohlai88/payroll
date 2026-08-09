@@ -157,3 +157,16 @@ Task 2: complete (commits de13ce0..763ad50 implement, b9b6283..a2a61ac fix, revi
   approved run with no pay line for the employee.
 - Minor (logged, not fixed): employeeCode/employeeName from snapshot is non-deterministic on
   iteration order (no ORDER BY); year param accepts "2026.0"-style strings (benign).
+
+Task 3: complete (commits a703b27..3c1a67e implement, 3c1a67e..923224c fix, review Approved after fix)
+- Note: further unrelated concurrent commits (employee-diff deltaSen fix, repo-wide lint
+  cleanup) landed during dispatch; review bases adjusted to isolate this task's own commits.
+- Important (fixed): payment-register Print button used `onClick={window.print}` (detached
+  `this` binding bug); client.ts report endpoints typed `<any>` with unsafe `as` casts in
+  payroll-api.ts. Fixed in 923224c — arrow-wrapped print handler, DTOs moved to types.ts and
+  client.ts methods typed concretely, casts removed.
+- Minor (logged, not fixed): URL state is read-at-mount only, not bidirectionally synced as
+  sidebar/picker selections change (no browser back/bookmark support mid-session).
+- Full suite at close: 918/918 passing, tsc 0 errors.
+
+All 3 tasks complete. Proceeding to final whole-branch review.

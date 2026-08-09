@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { roles, userRoleAssignments, users } from "@/db/schema/rbac";
 import { SYSTEM_ADMIN_ROLE_CODE } from "@/domain/rbac/types";
-import { assignUserToRole, createUser, getRoleByCode } from "@/repo/rbac";
+import { assignUserToRole, createUser, getRoleByCode, createRole, grantPermission } from "@/repo/rbac";
 import { createApp } from "@/server/app";
 import { AuthError } from "@/server/auth/errors";
 import type { NeonAuthClaims, VerifyJwt } from "@/server/auth/jwt";
@@ -16,6 +16,7 @@ const COMPANY_ID = "dddddddd-0003-4000-8000-000000000001";
 const PERSON_ID = "dddddddd-0003-4000-8000-000000000002";
 const EMP_ID = "dddddddd-0003-4000-8000-000000000003";
 const ADMIN_EMAIL = "remun-admin@example.com";
+const LIMITED_USER_EMAIL = "limited@example.com";
 let rulePackId = "";
 
 beforeAll(async () => {
@@ -65,6 +66,23 @@ function verifier(map: Record<string, NeonAuthClaims>): VerifyJwt {
     return Promise.resolve(c);
   };
 }
+async function makeLimitedUser(email: string) {
+  const user = await createUser(db, { email, name: "Limited User" });
+  // Create a role with no REPORT permissions
+  const limitedRole = await createRole(db, {
+    code: "LIMITED_ROLE",
+    name: "Limited Role",
+    scope: "COMPANY",
+  });
+  // Give this role some permissions, but NOT REPORT READ
+  await grantPermission(db, limitedRole.id, "EMPLOYMENT", "READ");
+  await assignUserToRole(db, {
+    userId: user.id,
+    roleId: limitedRole.id,
+    companyId: COMPANY_ID,
+  });
+  return user;
+}
 async function makeAdmin(email: string) {
   const user = await createUser(db, { email, name: "Remun Admin" });
   const role = await getRoleByCode(db, SYSTEM_ADMIN_ROLE_CODE);
@@ -77,11 +95,12 @@ async function makeAdmin(email: string) {
     companyId: null,
   });
 }
-function adminApp() {
+function testApp() {
   return createApp({
     db,
     verifyJwt: verifier({
       admin: claims({ sub: "neon-rem-admin", email: ADMIN_EMAIL }),
+      limited: claims({ sub: "neon-limited", email: LIMITED_USER_EMAIL }),
     }),
   });
 }
@@ -127,7 +146,7 @@ async function insertApprovedRuns() {
 
 describe("GET /v1/employees/:employeeId/remuneration-summary/:year", () => {
   it("returns 401 without token", async () => {
-    const app = adminApp();
+    const app = testApp();
     await makeAdmin(ADMIN_EMAIL);
     const res = await app.request(
       `/v1/employees/${EMP_ID}/remuneration-summary/2026`
@@ -135,8 +154,25 @@ describe("GET /v1/employees/:employeeId/remuneration-summary/:year", () => {
     expect(res.status).toBe(401);
   });
 
+  it("returns 403 when user lacks REPORT READ permission", async () => {
+    const app = testApp();
+    await makeAdmin(ADMIN_EMAIL);
+    await makeLimitedUser(LIMITED_USER_EMAIL);
+    await insertApprovedRuns();
+    const res = await app.request(
+      `/v1/employees/${EMP_ID}/remuneration-summary/2026`,
+      {
+        headers: { Authorization: "Bearer limited" },
+      }
+    );
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.code).toBe("PERMISSION_DENIED");
+    expect(body.message).toContain("cannot READ on REPORT");
+  });
+
   it("aggregates only APPROVED/CLOSED runs and excludes DRAFT", async () => {
-    const app = adminApp();
+    const app = testApp();
     await makeAdmin(ADMIN_EMAIL);
     await insertApprovedRuns();
     const res = await app.request(
@@ -157,7 +193,7 @@ describe("GET /v1/employees/:employeeId/remuneration-summary/:year", () => {
   });
 
   it("excludes approved runs with no pay line for this employee", async () => {
-    const app = adminApp();
+    const app = testApp();
     await makeAdmin(ADMIN_EMAIL);
     await insertApprovedRuns();
     // May run is APPROVED but employee has no pay line (e.g. joined after May)
@@ -186,7 +222,7 @@ describe("GET /v1/employees/:employeeId/remuneration-summary/:year", () => {
   });
 
   it("returns zero totals when no approved runs (not error)", async () => {
-    const app = adminApp();
+    const app = testApp();
     await makeAdmin(ADMIN_EMAIL);
     const res = await app.request(
       `/v1/employees/${EMP_ID}/remuneration-summary/2025`,
@@ -201,7 +237,7 @@ describe("GET /v1/employees/:employeeId/remuneration-summary/:year", () => {
   });
 
   it("includes limitationNotice and disclaimer in DTO", async () => {
-    const app = adminApp();
+    const app = testApp();
     await makeAdmin(ADMIN_EMAIL);
     await insertApprovedRuns();
     const res = await app.request(
