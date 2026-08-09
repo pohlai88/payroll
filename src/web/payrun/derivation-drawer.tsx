@@ -9,7 +9,7 @@
  * change here.
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { DerivedNode } from "@/components/payroll/node-panel";
 import { NodePanel } from "@/components/payroll/node-panel";
 import {
@@ -23,6 +23,10 @@ import type { EmployeeLineDto } from "@/web/api/payroll-api";
 
 interface DerivationDrawerProps {
   readonly roots: EmployeeLineDto["roots"];
+  /** Identifies which employee/line the `roots` belong to — used to reset
+   * `selectedRoot` when the drawer is switched to a different line without
+   * unmounting (e.g. slide-over kept open across an employee switch). */
+  readonly lineId: string;
 }
 
 function derivationNodeFor(
@@ -43,7 +47,7 @@ function derivationNodeFor(
   return null;
 }
 
-function DerivationDrawer({ roots }: DerivationDrawerProps) {
+function DerivationDrawer({ roots, lineId }: DerivationDrawerProps) {
   const rootKeys = Object.keys(roots);
   const [selectedRoot, setSelectedRoot] = useState(rootKeys[0] ?? "");
   const node =
@@ -52,6 +56,14 @@ function DerivationDrawer({ roots }: DerivationDrawerProps) {
   const handleValueChange = useCallback((value: string | null) => {
     setSelectedRoot(value ?? "");
   }, []);
+
+  // Reset to the new line's default root whenever the identity changes —
+  // avoids showing a stale/invalid root key carried over from a prior
+  // employee if this component stays mounted across a line switch.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset must run only when lineId (identity) changes, not on every roots re-render
+  useEffect(() => {
+    setSelectedRoot(rootKeys[0] ?? "");
+  }, [lineId]);
 
   return (
     <div className="flex flex-col gap-4">

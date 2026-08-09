@@ -22,6 +22,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { EmployeeLineDto, VarianceDto } from "@/web/api/payroll-api";
 import { DerivationDrawer } from "./derivation-drawer";
+import { EmployeeDiff } from "./employee-diff";
 import { PayslipPreview } from "./payslip-preview";
 
 interface EmployeeSlideOverProps {
@@ -151,6 +152,9 @@ function EmployeeSlideOver({
             <TabsTrigger value="line">Line</TabsTrigger>
             <TabsTrigger value="payslip">Payslip Preview</TabsTrigger>
             <TabsTrigger value="derivation">Derivation</TabsTrigger>
+            {line.previousRoots !== null && (
+              <TabsTrigger value="diff">Diff</TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent className="mt-4" value="line">
@@ -170,8 +174,14 @@ function EmployeeSlideOver({
           </TabsContent>
 
           <TabsContent className="mt-4" value="derivation">
-            <DerivationDrawer roots={line.roots} />
+            <DerivationDrawer lineId={line.lineId} roots={line.roots} />
           </TabsContent>
+
+          {line.previousRoots !== null && (
+            <TabsContent className="mt-4" value="diff">
+              <EmployeeDiff lineId={line.lineId} runId={runId} />
+            </TabsContent>
+          )}
         </Tabs>
       </SheetContent>
     </Sheet>
