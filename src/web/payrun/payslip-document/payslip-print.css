@@ -1,0 +1,42 @@
+/* payslip-print.css — Phase 8 production payslip print stylesheet */
+@media print {
+  :root,
+  .dark {
+    color-scheme: light !important;
+  }
+  html,
+  body {
+    background: white !important;
+    color: black !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .shell-sidebar,
+  .shell-topbar,
+  .payslip-actions,
+  [data-no-print] {
+    display: none !important;
+  }
+  table,
+  figure,
+  [data-print-keep],
+  [data-evidence-block] {
+    break-inside: avoid;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  [data-group-header] {
+    break-after: avoid;
+  }
+  tr {
+    break-inside: avoid;
+  }
+  thead {
+    display: table-header-group;
+  }
+  tfoot {
+    display: table-footer-group;
+  }
+}
