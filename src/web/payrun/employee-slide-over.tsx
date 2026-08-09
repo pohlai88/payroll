@@ -20,7 +20,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { EmployeeLineDto, VarianceDto } from "@/web/api/payroll-api";
+import type { EmployeeLineDto } from "@/web/api/payroll-api";
 import { DerivationDrawer } from "./derivation-drawer";
 import { EmployeeDiff } from "./employee-diff";
 import { PayslipPreview } from "./payslip-preview";
@@ -90,21 +90,6 @@ const LINE_GROUPS: readonly LineGroup[] = [
     rows: [{ key: "net", label: "Net Pay" }],
   },
 ];
-
-function directionFor(
-  changed: boolean,
-  hasPrior: boolean,
-  currentSen: number | null,
-  previousSen: number | null
-): VarianceDto["direction"] {
-  if (!hasPrior) {
-    return "NO_PRIOR";
-  }
-  if (!changed) {
-    return "SAME";
-  }
-  return (currentSen ?? 0) > (previousSen ?? 0) ? "UP" : "DOWN";
-}
 
 function EmployeeSlideOver({
   open,
@@ -193,7 +178,6 @@ interface LineTabProps {
 }
 
 function LineTab({ line }: LineTabProps) {
-  const hasPrior = line.previousRoots !== null;
   const changedRootKeys = line.variance?.changedRootKeys ?? [];
 
   return (
@@ -219,17 +203,7 @@ function LineTab({ line }: LineTabProps) {
               const current = line.roots[key];
               const previous = line.previousRoots?.[key] ?? null;
               const isChanged = changedRootKeys.includes(key);
-              const variance: VarianceDto = {
-                previousSen: previous?.sen ?? null,
-                deltaSen: null,
-                deltaBps: null,
-                direction: directionFor(
-                  isChanged,
-                  hasPrior,
-                  current?.sen ?? null,
-                  previous?.sen ?? null
-                ),
-              };
+              const variance = line.rootVariances?.[key] ?? null;
               return (
                 <div
                   className="grid grid-cols-3 items-center px-3 py-2 text-sm"
@@ -254,7 +228,9 @@ function LineTab({ line }: LineTabProps) {
                       notApplicable={previous?.notApplicable ?? false}
                       sen={previous?.sen ?? null}
                     />
-                    {isChanged && <DeltaBadge variance={variance} />}
+                    {isChanged && variance !== null && (
+                      <DeltaBadge variance={variance} />
+                    )}
                   </div>
                 </div>
               );

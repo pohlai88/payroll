@@ -320,6 +320,7 @@ describe("GET /v1/pay-runs/:runId/workspace", () => {
     for (const line of body.lines) {
       expect(line.previousRoots).toBeNull();
       expect(line.variance).toBeNull();
+      expect(line.rootVariances).toBeNull();
     }
   });
 
@@ -363,6 +364,22 @@ describe("GET /v1/pay-runs/:runId/workspace", () => {
       direction: "SAME",
     });
 
+    // rootVariances must be present (runs are identical so every root is SAME)
+    expect(line.rootVariances).not.toBeNull();
+    for (const key of [
+      "gross",
+      "net",
+      "epfEe",
+      "epfEr",
+      "eisEe",
+      "eisEr",
+    ]) {
+      expect(line.rootVariances[key]).toMatchObject({
+        deltaSen: 0,
+        direction: "SAME",
+      });
+    }
+
     const grossTile = body.totals.find(
       (t: { key: string }) => t.key === "gross_pay"
     );
@@ -371,5 +388,83 @@ describe("GET /v1/pay-runs/:runId/workspace", () => {
       deltaSen: 0,
       direction: "SAME",
     });
+  });
+
+  it("rootVariances carries correct deltaSen, deltaBps and direction for non-zero deltas", async () => {
+    await makeAdmin(ADMIN_EMAIL);
+    const app = adminApp();
+
+    // Create and compute PREV run, then RUN with the same params (identical).
+    await createAndRecomputeRunWithParams(app, {
+      runId: PREV_RUN_ID,
+      year: 2026,
+      month: 6,
+      periodStart: "2026-06-01",
+      periodEnd: "2026-06-30",
+    });
+    await createAndRecomputeRunWithParams(app, {
+      runId: RUN_ID,
+      year: 2026,
+      month: 7,
+      periodStart: "2026-07-01",
+      periodEnd: "2026-07-31",
+    });
+    await linkRunToPrior(RUN_ID, PREV_RUN_ID);
+
+    // Fetch the current gross value from the prior run's pay line.
+    const prevRes = await app.request(`/v1/pay-runs/${PREV_RUN_ID}/workspace`, {
+      headers: { Authorization: "Bearer admin" },
+    });
+    const prevBody = await prevRes.json();
+    const [prevLine] = prevBody.lines;
+    const prevGrossSen: number = prevLine.roots.gross.sen as number;
+
+    // Directly mutate the prior run's pay line to simulate a lower gross in
+    // the prior period — this makes RUN_ID's gross appear as an UP movement.
+    const newPrevGrossSen = prevGrossSen - 50000; // 500 RM less in prior
+    await db.execute(sql`
+      UPDATE pay_lines
+      SET gross_sen = ${newPrevGrossSen},
+          net_sen   = ${newPrevGrossSen}
+      WHERE run_id = ${PREV_RUN_ID} AND employment_id = ${EMPLOYMENT_ID}`);
+
+    const res = await app.request(`/v1/pay-runs/${RUN_ID}/workspace`, {
+      headers: { Authorization: "Bearer admin" },
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const [line] = body.lines;
+
+    // gross: UP (current > previous)
+    const grossVariance = line.rootVariances?.gross;
+    expect(grossVariance).toBeDefined();
+    expect(grossVariance.previousSen).toBe(newPrevGrossSen);
+    expect(grossVariance.deltaSen).toBe(prevGrossSen - newPrevGrossSen); // 50000
+    expect(grossVariance.direction).toBe("UP");
+    expect(grossVariance.deltaBps).not.toBeNull();
+    expect(grossVariance.deltaBps).toBeGreaterThan(0);
+
+    // net: UP (same mutation applied to net_sen)
+    const netVariance = line.rootVariances?.net;
+    expect(netVariance).toBeDefined();
+    expect(netVariance.direction).toBe("UP");
+    expect(netVariance.deltaSen).toBeGreaterThan(0);
+
+    // A root that was NOT mutated (e.g. epfEe) should be SAME with deltaSen 0
+    // (both runs were computed from identical params, so statutory roots match).
+    const epfEeVariance = line.rootVariances?.epfEe;
+    expect(epfEeVariance).toBeDefined();
+    expect(epfEeVariance.deltaSen).toBe(0);
+    expect(epfEeVariance.direction).toBe("SAME");
+
+    // rootVariances must be null on a line with no prior run
+    const prevRunRes = await app.request(
+      `/v1/pay-runs/${PREV_RUN_ID}/workspace`,
+      { headers: { Authorization: "Bearer admin" } }
+    );
+    const prevRunBody = await prevRunRes.json();
+    for (const l of prevRunBody.lines) {
+      expect(l.rootVariances).toBeNull();
+    }
   });
 });

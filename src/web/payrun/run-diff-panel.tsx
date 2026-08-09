@@ -1,7 +1,7 @@
 /**
  * Run-level diff panel — summarises which employees changed vs the prior run.
- * Uses workspace-loaded data only; no additional fetch. `EmployeeVarianceDto`
- * carries direction but not a bps figure, so the badge shows direction only.
+ * Uses workspace-loaded data only; no additional fetch. The badge reads
+ * `rootVariances.net` from the server, so direction and bps are both real.
  */
 import { DeltaBadge } from "@/components/payroll/delta-badge";
 import type { EmployeeLineDto } from "@/web/api/payroll-api";
@@ -37,15 +37,8 @@ function RunDiffPanel({ lines }: RunDiffPanelProps) {
                   {line.employeeName}
                 </td>
                 <td className="px-2 py-1.5">
-                  {line.variance ? (
-                    <DeltaBadge
-                      variance={{
-                        previousSen: null,
-                        deltaSen: null,
-                        deltaBps: null,
-                        direction: line.variance.direction,
-                      }}
-                    />
+                  {line.variance != null && line.rootVariances?.net != null ? (
+                    <DeltaBadge variance={line.rootVariances.net} />
                   ) : null}
                 </td>
                 <td className="px-4 py-1.5">

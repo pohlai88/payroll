@@ -81,6 +81,7 @@ export interface EmployeeLineDto {
   readonly roots: Record<string, RootValue>;
   readonly previousRoots: Record<string, RootValue> | null;
   readonly variance: EmployeeVarianceDto | null;
+  readonly rootVariances: Record<string, VarianceDto> | null;
   readonly findingsCount: number;
 }
 
@@ -242,6 +243,32 @@ function computeEmployeeVariance(
   };
 }
 
+function computeRootVariance(
+  current: RootValue,
+  previous: RootValue
+): VarianceDto {
+  const currentSen = current.sen ?? 0;
+  const previousSen = previous.sen ?? 0;
+  const deltaSen = currentSen - previousSen;
+  return {
+    previousSen,
+    deltaSen,
+    deltaBps: roundBps(deltaSen, previousSen),
+    direction: directionOf(deltaSen),
+  };
+}
+
+function computeRootVariances(
+  current: Record<RootKey, RootValue>,
+  previous: Record<RootKey, RootValue>
+): Record<RootKey, VarianceDto> {
+  const result = {} as Record<RootKey, VarianceDto>;
+  for (const key of ROOT_KEYS) {
+    result[key] = computeRootVariance(current[key], previous[key]);
+  }
+  return result;
+}
+
 function actionAvailabilityFor(status: string): ActionAvailability {
   return {
     canRecompute: status === "DRAFT",
@@ -384,6 +411,10 @@ export async function loadWorkspaceView(
         previousRoots === null
           ? null
           : computeEmployeeVariance(roots, previousRoots),
+      rootVariances:
+        previousRoots === null
+          ? null
+          : computeRootVariances(roots, previousRoots),
       findingsCount: findingsCountByLine.get(line.id) ?? 0,
     };
   });

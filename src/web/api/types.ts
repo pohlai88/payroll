@@ -230,6 +230,7 @@ export interface EmployeeLineDto {
   readonly roots: Readonly<Record<string, RootValue>>;
   readonly previousRoots: Readonly<Record<string, RootValue>> | null;
   readonly variance: EmployeeVarianceDto | null;
+  readonly rootVariances: Readonly<Record<string, VarianceDto>> | null;
   readonly findingsCount: number;
 }
 
