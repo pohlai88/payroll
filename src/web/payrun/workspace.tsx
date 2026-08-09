@@ -57,7 +57,8 @@ function WorkspacePage() {
     []
   );
   // Bumped by ReleasePanel/BatchDrawer in a later task to force PaymentsPanel to refetch.
-  const [paymentsRefreshKey, _setPaymentsRefreshKey] = useState(0);
+  // biome-ignore lint/correctness/noUnusedVariables: setter is bumped by ReleasePanel/BatchDrawer in Task 4 of the Phase 7 plan
+  const [paymentsRefreshKey, setPaymentsRefreshKey] = useState(0);
 
   const reload = useCallback(async () => {
     if (runId === undefined) {
