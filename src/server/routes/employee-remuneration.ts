@@ -29,7 +29,7 @@ type PayLineRow = typeof payLines.$inferSelect;
 
 function aggregateAnnualTotals(
   lines: PayLineRow[],
-  eligibleRuns: { month: number }[],
+  eligibleRuns: { id: string; month: number }[],
   year: number,
   defaultEmployeeCode: string
 ) {
@@ -63,9 +63,20 @@ function aggregateAnnualTotals(
     cp38Sen += line.cp38Sen ?? 0;
   }
 
-  const months = eligibleRuns
-    .map((r) => `${year}-${String(r.month).padStart(2, "0")}`)
+  const runMonthMap = new Map(eligibleRuns.map((r) => [r.id, r.month]));
+  const seenRunIds = new Set<string>();
+  const seenMonths = new Set<number>();
+  for (const line of lines) {
+    seenRunIds.add(line.runId);
+    const month = runMonthMap.get(line.runId);
+    if (month !== undefined) {
+      seenMonths.add(month);
+    }
+  }
+  const months = [...seenMonths]
+    .map((m) => `${year}-${String(m).padStart(2, "0")}`)
     .sort((a, b) => a.localeCompare(b));
+  const runsIncluded = [...seenRunIds].sort((a, b) => a.localeCompare(b));
 
   return {
     grossSen,
@@ -79,6 +90,7 @@ function aggregateAnnualTotals(
     employeeName,
     employeeCode,
     months,
+    runsIncluded,
   };
 }
 
@@ -90,7 +102,10 @@ export function employeeRemunerationRoutes(db: Database) {
       const employeeId = c.req.param("employeeId");
       const year = Number(c.req.param("year"));
       if (!Number.isInteger(year) || year < 2000 || year > 2999) {
-        return c.json({ code: "VALIDATION_ERROR", message: "invalid year" }, 400);
+        return c.json(
+          { code: "VALIDATION_ERROR", message: "invalid year" },
+          400
+        );
       }
 
       const [employment] = await db
@@ -147,6 +162,7 @@ export function employeeRemunerationRoutes(db: Database) {
         employeeName: "Unknown",
         employeeCode: employmentEmployeeCode,
         months: [] as string[],
+        runsIncluded: [] as string[],
       };
 
       if (eligibleRunIds.length > 0) {
@@ -179,7 +195,7 @@ export function employeeRemunerationRoutes(db: Database) {
         employeeId,
         employeeName: totals.employeeName,
         employeeCode: totals.employeeCode,
-        runsIncluded: eligibleRunIds,
+        runsIncluded: totals.runsIncluded,
         months: totals.months,
         grossSen: totals.grossSen,
         netSen: totals.netSen,

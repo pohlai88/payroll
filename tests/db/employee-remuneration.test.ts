@@ -95,13 +95,13 @@ async function insertApprovedRuns() {
     await db.execute(sql`
       INSERT INTO pay_runs (id, company_id, year, month, period_start, period_end, working_days, rule_pack_id, status)
       VALUES (${runId}, ${COMPANY_ID}, 2026, ${Number(month)},
-              ${"2026-" + month + "-01"}, ${"2026-" + month + "-30"}, 26, ${rulePackId}, 'DRAFT')`);
+              ${`2026-${month}-01`}, ${`2026-${month}-30`}, 26, ${rulePackId}, 'DRAFT')`);
     await db.execute(sql`
       INSERT INTO pay_lines (id, run_id, employment_id, employee_snapshot, working_days, period_end,
         gross_sen, net_sen, deductions_total_sen, epf_wages_sen, socso_wages_sen, eis_wages_sen,
         epf_ee_sen, epf_er_sen, socso_ee_core_sen, socso_ee_skbbk_sen, socso_er_sen,
         eis_ee_sen, eis_er_sen, pcb_net_sen, cp38_sen, zakat_sen, other_deductions_sen, hrdf_sen, employer_cost_sen)
-      VALUES (gen_random_uuid(), ${runId}, ${EMP_ID}, ${snap}::jsonb, 26, ${"2026-" + month + "-30"},
+      VALUES (gen_random_uuid(), ${runId}, ${EMP_ID}, ${snap}::jsonb, 26, ${`2026-${month}-30`},
               500000, 433500, 66500, 500000, 500000, 500000,
               55000, 65000, 4750, 0, 9375, 1750, 1750, 5000, 0, 0, 0, 0, 65000)`);
     await db.execute(
@@ -152,7 +152,37 @@ describe("GET /v1/employees/:employeeId/remuneration-summary/:year", () => {
     expect(body.epfEeSen).toBe(110000); // 55000 × 2
     // DRAFT run (999999 gross) must NOT be included
     expect(body.grossSen).not.toBe(1999999);
-    expect(body.runsIncluded).toHaveLength(2);
+    expect(body.months).toEqual(["2026-06", "2026-07"]);
+    expect(body.runsIncluded).toEqual(["REM-2026-06", "REM-2026-07"]);
+  });
+
+  it("excludes approved runs with no pay line for this employee", async () => {
+    const app = adminApp();
+    await makeAdmin(ADMIN_EMAIL);
+    await insertApprovedRuns();
+    // May run is APPROVED but employee has no pay line (e.g. joined after May)
+    await db.execute(sql`
+      INSERT INTO pay_runs (id, company_id, year, month, period_start, period_end, working_days, rule_pack_id, status)
+      VALUES ('REM-2026-05', ${COMPANY_ID}, 2026, 5, '2026-05-01', '2026-05-31', 26, ${rulePackId}, 'DRAFT')`);
+    await db.execute(
+      sql`UPDATE pay_runs SET status = 'REVIEWED' WHERE id = 'REM-2026-05'`
+    );
+    await db.execute(
+      sql`UPDATE pay_runs SET status = 'APPROVED' WHERE id = 'REM-2026-05'`
+    );
+
+    const res = await app.request(
+      `/v1/employees/${EMP_ID}/remuneration-summary/2026`,
+      {
+        headers: { Authorization: "Bearer admin" },
+      }
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.grossSen).toBe(1000000);
+    expect(body.months).toEqual(["2026-06", "2026-07"]);
+    expect(body.runsIncluded).toEqual(["REM-2026-06", "REM-2026-07"]);
+    expect(body.runsIncluded).not.toContain("REM-2026-05");
   });
 
   it("returns zero totals when no approved runs (not error)", async () => {
