@@ -36,13 +36,13 @@ function PayslipDocument({ dto, lang }: PayslipDocumentProps) {
     <div
       style={{
         position: "relative",
-        background: "#ffffff",
+        background: "white",
         color: "var(--doc-ink)",
         fontFamily: "Geist, system-ui, sans-serif",
         fontSize: "0.875rem",
         maxWidth: "210mm",
         margin: "0 auto",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+        boxShadow: "0 2px 8px var(--doc-rule-hairline)",
       }}
     >
       <DocumentStatusMark documentStatus={dto.documentStatus} lang={lang} />
