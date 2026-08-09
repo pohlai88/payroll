@@ -18,6 +18,7 @@ import { payRunRoutes } from "./routes/pay-run";
 import { payRunControlRoutes } from "./routes/pay-run-control";
 import { payRunDiffRoutes } from "./routes/pay-run-diff";
 import { payRunPayslipRoutes } from "./routes/pay-run-payslip";
+import { employeeRemunerationRoutes } from "./routes/employee-remuneration";
 import { payRunReportRoutes } from "./routes/pay-run-reports";
 import { payRunWorkspaceRoutes } from "./routes/pay-run-workspace";
 
@@ -57,6 +58,7 @@ export function createApp(deps: AppDeps): Hono {
   v1.route("/", payRunPayslipRoutes(deps.db));
   v1.route("/", payRunDiffRoutes(deps.db));
   v1.route("/", payRunReportRoutes(deps.db));
+  v1.route("/", employeeRemunerationRoutes(deps.db));
   v1.onError((error, c) => handleRouteError(c, error));
 
   app.route("/v1", v1);
