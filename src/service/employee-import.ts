@@ -447,9 +447,7 @@ export async function importEmployeeRows(
     const companyKey = (raw["Payroll Company Code"] ?? "").trim();
     const codeKey = (raw["Employee Code"] ?? "").trim();
     const fileKey =
-      companyKey !== "" && codeKey !== ""
-        ? `${companyKey}\0${codeKey}`
-        : null;
+      companyKey !== "" && codeKey !== "" ? `${companyKey}\0${codeKey}` : null;
     if (fileKey !== null && duplicateKeys.has(fileKey)) {
       failed += 1;
       rows.push({

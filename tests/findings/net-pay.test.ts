@@ -71,7 +71,10 @@ async function setupRun(): Promise<string> {
     actor: "tester@example.com",
   });
   await recomputeRun(db, RUN_ID, "tester@example.com");
-  const [line] = await db.select().from(payLines).where(eq(payLines.runId, RUN_ID));
+  const [line] = await db
+    .select()
+    .from(payLines)
+    .where(eq(payLines.runId, RUN_ID));
   return line!.id;
 }
 

@@ -245,14 +245,13 @@ describe("EIS_AGE_HISTORY_UNRESOLVED", () => {
         )
       );
     expect(finding).toBeDefined();
-    expect(finding?.severity).toBe("BLOCKING");
-    expect(finding?.evidence).toMatchObject({
+    expect(finding!.severity).toBe("BLOCKING");
+    expect(finding!.evidence).toMatchObject({
       eisPriorContribution: null,
       periodEnd: "2026-07-31",
     });
-    expect((finding?.evidence as { age: number }).age).toBeGreaterThanOrEqual(
-      57
-    );
+    const evidence = finding!.evidence as { age: number };
+    expect(evidence.age).toBeGreaterThanOrEqual(57);
   });
 });
 
@@ -275,21 +274,24 @@ describe("STATUTORY_STEP_SHIFT", () => {
       .select()
       .from(anomalyFindings)
       .where(eq(anomalyFindings.runId, RUN_A));
-    for (const f of findings) {
-      if (
-        f.status === "OPEN" &&
-        f.severity !== "BLOCKING" &&
-        f.severity !== "INFO" &&
-        (f.blocks as string[]).includes("APPROVAL")
-      ) {
-        await acknowledgeRunFinding(
-          db,
-          f.id,
-          "tester@example.com",
-          f.severity === "WARNING" ? "ok" : undefined
-        );
-      }
-    }
+    await Promise.all(
+      findings
+        .filter(
+          (f) =>
+            f.status === "OPEN" &&
+            f.severity !== "BLOCKING" &&
+            f.severity !== "INFO" &&
+            (f.blocks as string[]).includes("APPROVAL")
+        )
+        .map((f) =>
+          acknowledgeRunFinding(
+            db,
+            f.id,
+            "tester@example.com",
+            f.severity === "WARNING" ? "ok" : undefined
+          )
+        )
+    );
     const [june] = await db.select().from(payRuns).where(eq(payRuns.id, RUN_A));
     await reviewRun(db, RUN_A, "tester@example.com", june!.calcRevision!);
     await approveRun(db, RUN_A, "tester@example.com", june!.calcRevision!);
@@ -402,21 +404,24 @@ describe("prior baseline status eligibility", () => {
       .select()
       .from(anomalyFindings)
       .where(eq(anomalyFindings.runId, RUN_A));
-    for (const f of findings) {
-      if (
-        f.status === "OPEN" &&
-        f.severity !== "BLOCKING" &&
-        f.severity !== "INFO" &&
-        (f.blocks as string[]).includes("APPROVAL")
-      ) {
-        await acknowledgeRunFinding(
-          db,
-          f.id,
-          "tester@example.com",
-          f.severity === "WARNING" ? "ok" : undefined
-        );
-      }
-    }
+    await Promise.all(
+      findings
+        .filter(
+          (f) =>
+            f.status === "OPEN" &&
+            f.severity !== "BLOCKING" &&
+            f.severity !== "INFO" &&
+            (f.blocks as string[]).includes("APPROVAL")
+        )
+        .map((f) =>
+          acknowledgeRunFinding(
+            db,
+            f.id,
+            "tester@example.com",
+            f.severity === "WARNING" ? "ok" : undefined
+          )
+        )
+    );
     const [june] = await db.select().from(payRuns).where(eq(payRuns.id, RUN_A));
     await reviewRun(db, RUN_A, "tester@example.com", june!.calcRevision!);
     await approveRun(db, RUN_A, "tester@example.com", june!.calcRevision!);

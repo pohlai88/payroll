@@ -10,9 +10,9 @@ import { anomalyFindings, findingEvents } from "@/db/schema/findings";
 import { employments } from "@/db/schema/parties";
 import { payLineItems, payLines, payRuns, pcbEntries } from "@/db/schema/run";
 import {
-  detected,
   detectBankDetailsMissing,
   detectEisAgeHistoryUnresolved,
+  detected,
   detectMissingStatutoryNo,
   detectNetNegative,
   detectNetVarianceVsPrior,
@@ -509,11 +509,7 @@ async function upsertRunFindings(
     const gateRelevant =
       prev.severity !== "INFO" && (prev.blocks?.length ?? 0) > 0;
 
-    if (
-      revisionChanged &&
-      prev.status === "ACKNOWLEDGED" &&
-      gateRelevant
-    ) {
+    if (revisionChanged && prev.status === "ACKNOWLEDGED" && gateRelevant) {
       const priorAck = {
         ackActor: prev.ackActor,
         ackAt: prev.ackAt?.toISOString() ?? null,

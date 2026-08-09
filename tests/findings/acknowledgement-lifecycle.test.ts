@@ -105,7 +105,11 @@ async function setupMissingStatutory(): Promise<{
   if (finding === undefined) {
     throw new Error("expected MISSING_STATUTORY_NO finding");
   }
-  expect(finding.severity).toBe("REVIEW");
+  if (finding.severity !== "REVIEW") {
+    throw new Error(
+      `expected MISSING_STATUTORY_NO severity REVIEW, got ${finding.severity}`
+    );
+  }
   return { revision: run.calcRevision, findingId: finding.id };
 }
 

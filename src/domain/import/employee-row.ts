@@ -7,8 +7,8 @@
  * import script share so the two can never drift out of sync.
  */
 
-import { parseRM } from "@/domain/money";
 import { isIsoDate } from "@/domain/date";
+import { parseRM } from "@/domain/money";
 
 export type PayBasisValue = "MONTHLY" | "DAILY" | "HOURLY";
 

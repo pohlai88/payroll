@@ -82,24 +82,24 @@ async function ackApprovalBlockers(runId: string): Promise<void> {
     .select()
     .from(anomalyFindings)
     .where(eq(anomalyFindings.runId, runId));
-  for (const f of findings) {
-    if (
-      f.status !== "OPEN" ||
-      f.severity === "BLOCKING" ||
-      f.severity === "INFO"
-    ) {
-      continue;
-    }
-    if (!(f.blocks as string[]).includes("APPROVAL")) {
-      continue;
-    }
-    await acknowledgeRunFinding(
-      db,
-      f.id,
-      "tester@example.com",
-      f.severity === "WARNING" ? "ok" : undefined
-    );
-  }
+  await Promise.all(
+    findings
+      .filter(
+        (f) =>
+          f.status === "OPEN" &&
+          f.severity !== "BLOCKING" &&
+          f.severity !== "INFO" &&
+          (f.blocks as string[]).includes("APPROVAL")
+      )
+      .map((f) =>
+        acknowledgeRunFinding(
+          db,
+          f.id,
+          "tester@example.com",
+          f.severity === "WARNING" ? "ok" : undefined
+        )
+      )
+  );
 }
 
 async function approveRunId(runId: string): Promise<void> {
@@ -307,12 +307,14 @@ describe("EMPLOYEE_OMITTED", () => {
       .where(
         and(eq(payLines.runId, RUN_AUG), eq(payLines.employmentId, EMP_OLD))
       );
-    for (const line of oldLines) {
-      await db.execute(
-        sql`DELETE FROM pay_line_items WHERE line_id = ${line.id}`
-      );
-      await db.execute(sql`DELETE FROM pay_lines WHERE id = ${line.id}`);
-    }
+    await Promise.all(
+      oldLines.map(async (line) => {
+        await db.execute(
+          sql`DELETE FROM pay_line_items WHERE line_id = ${line.id}`
+        );
+        await db.execute(sql`DELETE FROM pay_lines WHERE id = ${line.id}`);
+      })
+    );
     await scanRunFindings(db, RUN_AUG);
 
     const omitted = await db

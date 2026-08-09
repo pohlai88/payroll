@@ -149,7 +149,7 @@ describe("detectStatutoryZeroWithWages", () => {
       RUN
     );
     expect(f?.evidence).toMatchObject({ schemes: ["epf"] });
-    expect((f?.evidence.schemes as string[])).not.toContain("socso");
+    expect(f?.evidence.schemes as string[]).not.toContain("socso");
   });
 });
 

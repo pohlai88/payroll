@@ -108,8 +108,12 @@ describe("scan-revision binding", () => {
       .set({ findingsScannedRevision: null })
       .where(eq(payRuns.id, RUN_ID));
 
-    for (const gate of ["REVIEW", "APPROVAL", "RELEASE", "CLOSE"] as const) {
-      const result = await evaluateGate(db, RUN_ID, gate);
+    const gateResults = await Promise.all(
+      (["REVIEW", "APPROVAL", "RELEASE", "CLOSE"] as const).map((gate) =>
+        evaluateGate(db, RUN_ID, gate)
+      )
+    );
+    for (const result of gateResults) {
       expect(result.ok).toBe(false);
       expect(result.issues.some((i) => i.code === "SCAN_INCOMPLETE")).toBe(
         true

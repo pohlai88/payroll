@@ -139,7 +139,7 @@ export function detectStatutoryStepShift(
   baseline: PriorLineBaseline,
   runId: string
 ): DetectedFinding | null {
-  if (!wagesSimilar(line, baseline) || !statutoryStepShift(line, baseline)) {
+  if (!(wagesSimilar(line, baseline) && statutoryStepShift(line, baseline))) {
     return null;
   }
   return detected("STATUTORY_STEP_SHIFT", runId, line.lineId, {
@@ -215,7 +215,7 @@ export function detectEisAgeHistoryUnresolved(
   ) {
     return null;
   }
-  const dob = line.employeeSnapshot.dob;
+  const { dob } = line.employeeSnapshot;
   const age = typeof dob === "string" ? ageAt(dob, periodEnd) : null;
   return detected("EIS_AGE_HISTORY_UNRESOLVED", runId, line.lineId, {
     eisPriorContribution: null,
@@ -307,7 +307,10 @@ export function detectBankDetailsMissing(
   return null;
 }
 
-function netVariancePct(absVarianceSen: number, baselineNetSen: number): number {
+function netVariancePct(
+  absVarianceSen: number,
+  baselineNetSen: number
+): number {
   if (baselineNetSen === 0) {
     return absVarianceSen > 0 ? 1 : 0;
   }

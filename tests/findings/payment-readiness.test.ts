@@ -79,20 +79,24 @@ async function approveCleanFindings(revision: string): Promise<void> {
     .select()
     .from(anomalyFindings)
     .where(eq(anomalyFindings.runId, RUN_ID));
-  for (const f of findings) {
-    if (f.severity === "BLOCKING" || f.severity === "INFO" || f.status !== "OPEN") {
-      continue;
-    }
-    if (!(f.blocks as string[]).includes("APPROVAL")) {
-      continue;
-    }
-    await acknowledgeRunFinding(
-      db,
-      f.id,
-      "tester@example.com",
-      f.severity === "WARNING" ? "ok" : undefined
-    );
-  }
+  await Promise.all(
+    findings
+      .filter(
+        (f) =>
+          f.severity !== "BLOCKING" &&
+          f.severity !== "INFO" &&
+          f.status === "OPEN" &&
+          (f.blocks as string[]).includes("APPROVAL")
+      )
+      .map((f) =>
+        acknowledgeRunFinding(
+          db,
+          f.id,
+          "tester@example.com",
+          f.severity === "WARNING" ? "ok" : undefined
+        )
+      )
+  );
   await reviewRun(db, RUN_ID, "tester@example.com", revision);
   await approveRun(db, RUN_ID, "tester@example.com", revision);
 }
@@ -189,24 +193,24 @@ describe("BANK_DETAILS_CHANGED", () => {
       .select()
       .from(anomalyFindings)
       .where(eq(anomalyFindings.runId, runId));
-    for (const f of findings) {
-      if (
-        f.severity === "BLOCKING" ||
-        f.severity === "INFO" ||
-        f.status !== "OPEN"
-      ) {
-        continue;
-      }
-      if (!(f.blocks as string[]).includes("APPROVAL")) {
-        continue;
-      }
-      await acknowledgeRunFinding(
-        db,
-        f.id,
-        "tester@example.com",
-        f.severity === "WARNING" ? "ok" : undefined
-      );
-    }
+    await Promise.all(
+      findings
+        .filter(
+          (f) =>
+            f.severity !== "BLOCKING" &&
+            f.severity !== "INFO" &&
+            f.status === "OPEN" &&
+            (f.blocks as string[]).includes("APPROVAL")
+        )
+        .map((f) =>
+          acknowledgeRunFinding(
+            db,
+            f.id,
+            "tester@example.com",
+            f.severity === "WARNING" ? "ok" : undefined
+          )
+        )
+    );
     const [run] = await db.select().from(payRuns).where(eq(payRuns.id, runId));
     await reviewRun(db, runId, "tester@example.com", run!.calcRevision!);
     await approveRun(db, runId, "tester@example.com", run!.calcRevision!);
