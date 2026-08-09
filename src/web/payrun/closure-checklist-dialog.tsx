@@ -34,7 +34,11 @@ function descriptionFor(
   if (loading) {
     return "Evaluating closure checklist…";
   }
-  if (checklist?.every((c) => c.ok)) {
+  if (
+    checklist !== null &&
+    checklist.length > 0 &&
+    checklist.every((c) => c.ok)
+  ) {
     return "All checklist items pass. Confirm to close the run.";
   }
   return "One or more checklist items are not satisfied.";
@@ -50,7 +54,11 @@ function ClosureChecklistDialog({
   onConfirm,
 }: ClosureChecklistDialogProps) {
   const canConfirm = Boolean(
-    checklist?.every((c) => c.ok) && !loading && !submitting
+    checklist !== null &&
+      checklist.length > 0 &&
+      checklist.every((c) => c.ok) &&
+      !loading &&
+      !submitting
   );
 
   const handleOpenChange = useCallback(
