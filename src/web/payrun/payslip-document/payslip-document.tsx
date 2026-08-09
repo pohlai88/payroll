@@ -10,7 +10,6 @@
  */
 import "./payslip-print.css";
 import type { Lang } from "@/domain/derive/i18n/render";
-import type { PayslipDocumentDto } from "./types";
 import { AuditAnnex } from "./audit-annex";
 import { DeductionsSection } from "./deductions-section";
 import { DocumentStatusMark } from "./document-status-mark";
@@ -21,6 +20,7 @@ import { NetPayConclusion } from "./net-pay-conclusion";
 import { PayEquation } from "./pay-equation";
 import { PayslipHeader } from "./payslip-header";
 import { StatutoryWageBasis } from "./statutory-wage-basis";
+import type { PayslipDocumentDto } from "./types";
 import { YtdSummary } from "./ytd-summary";
 
 // Re-export the DTO type for consumers
@@ -36,7 +36,7 @@ function PayslipDocument({ dto, lang }: PayslipDocumentProps) {
     <div
       style={{
         position: "relative",
-        background: "white",
+        background: "var(--doc-fill-paper)",
         color: "var(--doc-ink)",
         fontFamily: "Geist, system-ui, sans-serif",
         fontSize: "0.875rem",

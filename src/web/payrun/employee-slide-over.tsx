@@ -162,7 +162,7 @@ function EmployeeSlideOver({
             <div className="flex justify-end px-4 pt-2 pb-1">
               <a
                 className="text-muted-foreground text-xs underline-offset-2 hover:underline"
-                href={`/pay-runs/${runId}/payslip/${line.employeeId}`}
+                href={`/pay-runs/${runId}/payslip/${line.lineId}`}
               >
                 Open full payslip →
               </a>

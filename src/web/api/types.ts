@@ -223,6 +223,7 @@ export interface EmployeeVarianceDto {
 }
 
 export interface EmployeeLineDto {
+  readonly lineId: string;
   readonly employeeId: string;
   readonly employeeCode: string;
   readonly employeeName: string;

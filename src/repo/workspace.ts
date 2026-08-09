@@ -73,6 +73,7 @@ export interface RootValue {
 }
 
 export interface EmployeeLineDto {
+  readonly lineId: string;
   readonly employeeId: string;
   readonly employeeCode: string;
   readonly employeeName: string;
@@ -373,6 +374,7 @@ export async function loadWorkspaceView(
     const roots = buildRootsFromLine(line);
     const previousRoots = prevRootsByEmployment.get(line.employmentId) ?? null;
     return {
+      lineId: line.id,
       employeeId: line.employmentId,
       employeeCode: snapshot.id ?? line.employmentId,
       employeeName: snapshot.name ?? "Unknown",
