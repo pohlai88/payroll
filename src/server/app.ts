@@ -11,6 +11,7 @@ import { type AuthVariables, authMiddleware } from "./auth/middleware";
 import { handleRouteError } from "./errors";
 import { adminUserRoutes } from "./routes/admin-users";
 import { employeeImportRoutes } from "./routes/employee-import";
+import { employeeRemunerationRoutes } from "./routes/employee-remuneration";
 import { employeeRoutes } from "./routes/employees";
 import { healthRoutes } from "./routes/health";
 import { meRoutes } from "./routes/me";
@@ -18,7 +19,6 @@ import { payRunRoutes } from "./routes/pay-run";
 import { payRunControlRoutes } from "./routes/pay-run-control";
 import { payRunDiffRoutes } from "./routes/pay-run-diff";
 import { payRunPayslipRoutes } from "./routes/pay-run-payslip";
-import { employeeRemunerationRoutes } from "./routes/employee-remuneration";
 import { payRunReportRoutes } from "./routes/pay-run-reports";
 import { payRunWorkspaceRoutes } from "./routes/pay-run-workspace";
 

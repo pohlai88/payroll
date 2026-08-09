@@ -126,3 +126,34 @@ Task 6: complete (commits 474ad09..605b489, review Approved after gate-evidence 
 
 Final minor fix: 1d317a2 (table use client, sidebar tokens, theme toggle label)
 
+
+# SDD Progress Ledger — Phase 8C Reports Portal
+
+Plan: docs/superpowers/plans/2026-08-09-phase8c-reports.md
+Branch: phase2-persistence
+Base before Task 1: d9763fd6164712012e865d34a60814da0abfbba5
+Note: bash unavailable; task-brief/review-package done via PowerShell.
+
+## Pre-flight scan
+
+Scanned plan (3 tasks) for internal contradictions and Global Constraints conflicts: none found. Proceeding.
+
+## Tasks
+
+Task 1: complete (commits 55674d3..318c7bb, review Approved)
+- Note: an unrelated concurrent commit 55674d3 (Phase 8B run-diff route, not part of this plan)
+  landed on the branch during dispatch; review base adjusted to exclude it from the diff.
+- Minor (logged): statutory `sum()` helper key type not narrowed to numeric columns
+  (pay-run-reports.ts:144); exception report loads all run lines instead of filtering by
+  lineIds (pay-run-reports.ts:196); exception report test doesn't seed a finding to exercise
+  enrichment path.
+
+Task 2: complete (commits de13ce0..763ad50 implement, b9b6283..a2a61ac fix, review Approved after fix)
+- Note: further unrelated concurrent commits (Phase 8B compare panel/diff tab, lint cleanup,
+  docs reconciliation) landed on the branch during dispatch; review bases adjusted each time
+  to isolate this task's own commits.
+- Important (fixed): `months`/`runsIncluded` were scoped to all company-level eligible runs
+  instead of the employee's actual pay lines; fixed in a2a61ac with a regression test for an
+  approved run with no pay line for the employee.
+- Minor (logged, not fixed): employeeCode/employeeName from snapshot is non-deterministic on
+  iteration order (no ORDER BY); year param accepts "2026.0"-style strings (benign).

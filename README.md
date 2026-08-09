@@ -13,7 +13,7 @@ Rebuilt from scratch. Documentation roles:
 |---|---|---|
 | Authoritative doctrine / current architecture | `docs/architecture/` (`payroll-architecture.md`, `presentation-facade.md`, payslip docs) | What exists in `src/` / `db/` and what the UI may rely on |
 | Living implementation / status | this README; approved specs under `docs/superpowers/specs/` for shipped slices | Phase table, how to run, feature contracts |
-| Active plans | recent `docs/superpowers/plans/` for unfinished work | Phase 8 reports / bilingual payslip / run-diff UI and Phase 9 Vercel deploy are open; 4C, 5B, 5C, and 6–7 plans are complete |
+| Active plans | recent `docs/superpowers/plans/` for unfinished work | 8C reports SPA portal (Task 3) is open; Phase 9 Vercel deploy pending; 4C, 5B, 5C, 6–7, 8A, and 8B plans are complete |
 | Historical / archive | Plan1 control-foundation plans & handoff; `c:\JackProject\_payroll-v1-backup` | Prior SQLite/Next rebuild — not current authority |
 | Design system (Phase 4+) | `docs/palette/` + `src/web/styles.css` | Straits colour/grid/print contracts; 4C projects tokens into the Vite SPA |
 
@@ -26,8 +26,8 @@ Rebuilt from scratch. Documentation roles:
 | 4 · Vite SPA shell | 4A auth + 4B import + 4C design-system foundation done |
 | 5 · Payroll UI + derivation drawer | 5A mutation envelope done; **5B payroll workspace SPA done**; **5C control SPA done** — findings panel, gate-check review/approve, `/control` cross-run overview |
 | 6 · Findings, gates, approval | done (API/service + 5C SPA wire-up) |
-| 7 · Release, payments, closure, R2 artifacts | done (backend + Hono; SPA wiring later) |
-| 8 · Import, reports, bilingual payslip, run diff | create-only import done (4B); reports / bilingual payslip / run-diff UI pending |
+| 7 · Release, payments, closure, R2 artifacts | **done** — backend + Hono + SPA fully wired: payments panel, release/batch drawer, artifacts panel, closure checklist, control gate |
+| 8 · Import, reports, bilingual payslip, run diff | create-only import done (4B); **8A bilingual payslip done**; **8B run-diff UI done** — Compare panel + graph diff tab; 8C report server routes done (payment register, statutory summary, exception, annual remuneration), **SPA reports portal pending** |
 | 9 · Vercel deploy | pending |
 
 Phase 2 closed: Docker/Neon Postgres via one `pg` driver, Drizzle schema and
@@ -108,8 +108,37 @@ Phase 6: findings, gates, and `DRAFT → REVIEWED → APPROVED` control layer
 `docs/superpowers/specs/2026-08-08-phase6-findings-gates-approval-design.md`.
 
 Phase 7: payments, release, distribution, reconciliation, closure manifest, and
-R2 artifact store over Hono (`PAY_RUN`). No SPA. Spec:
+R2 artifact store over Hono (`PAY_RUN`). SPA fully wired: payments panel (hold/
+unhold/withdraw/distribute), release/batch drawer (preview → commit), artifacts
+panel, closure checklist dialog, and RELEASE gate on the control screen. Spec:
 `docs/superpowers/specs/2026-08-08-phase6-7-control-backend-design.md`.
+
+Phase 8A: bilingual production payslip. Full-page EN/MS payslip document at
+`/pay-runs/:runId/payslip/:lineId`, served by `GET .../payslip` read facade.
+KWSP-aligned `PayslipDocumentDto` from immutable `payLines` snapshot data and
+`payLineItems`. `--doc-*` token–isolated document components (14 files), YTD
+scoped to `companyId + employmentId + calendarYear`, DRAFT_PREVIEW watermark,
+provisional YTD label, audit annex with `rulePackId` + approval provenance.
+Slide-over upgraded with "Open full payslip →" link. Spec §3:
+`docs/superpowers/specs/2026-08-09-phase8-reports-payslip-diff-design.md`.
+Plan: `docs/superpowers/plans/2026-08-09-phase8a-bilingual-payslip.md`.
+
+Phase 8B: run-diff UI. `GET .../lines/:lineId/diff` compares a line's derivation
+graph against the linked prior run via `diffGraphs()`, returning flat
+`NodeDiffRow[]` (VALUE/ADDED/REMOVED/STRUCTURE/CITATION). A "Compare" toggle in
+the workspace header shows a run-level panel of changed employees; a "Diff" tab
+in the employee slide-over lazy-loads the per-employee graph diff. Both are
+gated on `previousRoots !== null`, so a first run of its lineage shows neither.
+Spec §4: `docs/superpowers/specs/2026-08-09-phase8-reports-payslip-diff-design.md`.
+Plan: `docs/superpowers/plans/2026-08-09-phase8b-run-diff.md`.
+
+Phase 8C (server routes): payment register, statutory summary, and exception
+reports over `GET /v1/pay-runs/:runId/reports/:type`; annual remuneration
+summary (explicitly not Form EA/C.P.8A) over
+`GET /v1/companies/:companyId/employees/:employmentId/remuneration/:year`,
+scoped to `APPROVED`/`CLOSED` runs only. Every report DTO carries a
+`reportMeta` provenance envelope. SPA reports portal (Task 3) not yet built.
+Plan: `docs/superpowers/plans/2026-08-09-phase8c-reports.md`.
 
 ## The golden master
 
@@ -150,6 +179,7 @@ Rounding lives in exactly one place, `src/domain/money.ts`:
 - `roundHalfUpSen` — half up to the sen
 - `mulDivSen` — proration, half up to the sen
 - `pctRoundUpToRinggitSen` — KWSP above-ceiling rule: round **up** to the whole ringgit
+- `roundBps` — basis-point variance: `(delta / previous) × 10 000`, null when previous is zero
 
 ## PCB / MTD is never calculated
 
