@@ -4,14 +4,14 @@
  * @hub src/server/routes/pay-run-control.ts
  *
  * Control screen — cross-run findings/gate overview.
- * Studio: empty-state-01 + statistics-card-03 summary strip.
+ * Studio: empty-state-01 + statistics-with-status (12) summary strip.
  */
 
 import { AlertTriangleIcon, ShieldCheckIcon, TimerIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import EmptyState01 from "@/components/shadcn-studio/blocks/empty-state-01/empty-state-01";
-import StatisticsCard from "@/components/shadcn-studio/blocks/statistics-card-03";
+import StatisticsWithStatus from "@/components/shadcn-studio/blocks/statistics-with-status";
 import { formatApiError } from "@/web/api/format-error";
 import type {
   FindingRow,
@@ -255,30 +255,29 @@ function ControlPage() {
       />
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatisticsCard
-          badgeContent="Scope"
-          changePercentage="—"
+        <StatisticsWithStatus
+          caption={rows.length > 0 ? "In current scope" : "Nothing in scope"}
           icon={<ShieldCheckIcon />}
+          status={rows.length > 0 ? "pending" : "neutral"}
           title="Runs in view"
-          trend="up"
           value={String(rows.length)}
         />
-        <StatisticsCard
-          badgeContent="Gates"
-          changePercentage="—"
+        <StatisticsWithStatus
+          caption={
+            pendingCount > 0 ? "Awaiting a gate decision" : "Nothing awaiting"
+          }
           icon={<TimerIcon />}
-          iconClassName="bg-status-warn-fill text-status-warn-ink"
+          status={pendingCount > 0 ? "attention" : "ok"}
           title="Pending review/approval"
-          trend="up"
           value={String(pendingCount)}
         />
-        <StatisticsCard
-          badgeContent="Findings"
-          changePercentage="—"
+        <StatisticsWithStatus
+          caption={
+            blockedCount > 0 ? "Blocked by findings" : "No blocking findings"
+          }
           icon={<AlertTriangleIcon />}
-          iconClassName="bg-destructive/10 text-destructive"
+          status={blockedCount > 0 ? "risk" : "ok"}
           title="Gate blocked"
-          trend="down"
           value={String(blockedCount)}
         />
       </div>

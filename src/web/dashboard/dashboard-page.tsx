@@ -4,7 +4,8 @@
  * @hub src/server/routes/pay-run.ts
  *
  * Home dashboard — Studio analytics blocks wired to getPayRuns:
- * statistics-category-card (18), chart-total-orders (03), widget-payment-history (14).
+ * statistics-with-status (12), statistics-category-card (18),
+ * chart-total-orders (03), widget-payment-history (14).
  */
 
 import {
@@ -17,11 +18,14 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import TotalOrdersCard from "@/components/shadcn-studio/blocks/chart-total-orders";
-import StatisticsCard from "@/components/shadcn-studio/blocks/statistics-card-02";
 import StatisticsCategoryCard from "@/components/shadcn-studio/blocks/statistics-category-card";
+import StatisticsWithStatus, {
+  type StatisticStatus,
+} from "@/components/shadcn-studio/blocks/statistics-with-status";
 import PaymentHistoryCard from "@/components/shadcn-studio/blocks/widget-payment-history";
 import type { ChartConfig } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
+import { countClosed, countOpen, deriveBuckets } from "@/lib/pay-run-status";
 import type { PayRunSummary } from "@/web/api/payroll-api";
 import { payrollApi } from "@/web/api/payroll-api";
 import { useScopeContext } from "@/web/context/scope-context";
@@ -40,52 +44,6 @@ function formatReportingMonthLabel(value: string): string {
     month: "long",
     year: "numeric",
   }).format(new Date(year, month - 1, 1));
-}
-
-interface StatusBuckets {
-  draft: number;
-  computed: number;
-  reviewed: number;
-  approved: number;
-  sealed: number;
-  released: number;
-  other: number;
-}
-
-function bucketStatus(status: string): keyof StatusBuckets {
-  switch (status) {
-    case "DRAFT":
-      return "draft";
-    case "COMPUTED":
-      return "computed";
-    case "REVIEWED":
-      return "reviewed";
-    case "APPROVED":
-      return "approved";
-    case "SEALED":
-      return "sealed";
-    case "RELEASED":
-      return "released";
-    default:
-      return "other";
-  }
-}
-
-function deriveBuckets(runs: readonly PayRunSummary[]): StatusBuckets {
-  const buckets: StatusBuckets = {
-    draft: 0,
-    computed: 0,
-    reviewed: 0,
-    approved: 0,
-    sealed: 0,
-    released: 0,
-    other: 0,
-  };
-  for (const run of runs) {
-    const key = bucketStatus(run.status);
-    buckets[key] += 1;
-  }
-  return buckets;
 }
 
 function DashboardPage() {
@@ -124,13 +82,8 @@ function DashboardPage() {
 
   const buckets = useMemo(() => deriveBuckets(visibleRuns), [visibleRuns]);
 
-  const openRuns =
-    buckets.draft +
-    buckets.computed +
-    buckets.reviewed +
-    buckets.approved +
-    buckets.other;
-  const closedRuns = buckets.sealed + buckets.released;
+  const openRuns = countOpen(buckets);
+  const closedRuns = countClosed(buckets);
   const employeeTotal = useMemo(
     () => visibleRuns.reduce((sum, run) => sum + run.employeeCount, 0),
     [visibleRuns]
@@ -140,6 +93,22 @@ function DashboardPage() {
       ? 0
       : Math.round((closedRuns / visibleRuns.length) * 100);
 
+  // Governance valence for the KPI row: a count alone doesn't tell an approver
+  // whether anything is owed. Empty scope reads neutral, not "on track".
+  const hasRuns = visibleRuns.length > 0;
+  const openRunsStatus: StatisticStatus = (() => {
+    if (!hasRuns) {
+      return "neutral";
+    }
+    return openRuns > 0 ? "attention" : "ok";
+  })();
+  const closedRunsStatus: StatisticStatus = (() => {
+    if (!hasRuns) {
+      return "neutral";
+    }
+    return closedRuns > 0 ? "ok" : "attention";
+  })();
+
   const monthLabel = formatReportingMonthLabel(reportingMonth);
 
   // Status-valence tokens for lifecycle outcome; categorical chart-* for stage depth.
@@ -147,11 +116,11 @@ function DashboardPage() {
     value: { label: "Runs" },
     open: {
       label: "Open",
-      color: "var(--status-warn-ink)",
+      color: "var(--foreground)",
     },
     sealed: {
       label: "Sealed",
-      color: "var(--status-ok-ink)",
+      color: "var(--secondary-foreground)",
     },
     released: {
       label: "Released",
@@ -212,29 +181,39 @@ function DashboardPage() {
           ))
         ) : (
           <>
-            <StatisticsCard
+            <StatisticsWithStatus
+              caption={monthLabel}
               icon={<ReceiptTextIcon />}
-              showPeriodFilter={false}
+              status={hasRuns ? "pending" : "neutral"}
               title="Pay runs"
               value={String(visibleRuns.length)}
             />
-            <StatisticsCard
+            <StatisticsWithStatus
+              caption={
+                hasRuns
+                  ? `${String(openRuns)} of ${String(visibleRuns.length)} in pipeline`
+                  : "Nothing in scope"
+              }
               icon={<AlertTriangleIcon />}
-              iconClassName="bg-status-warn-fill text-status-warn-ink"
-              showPeriodFilter={false}
+              status={openRunsStatus}
               title="Open runs"
               value={String(openRuns)}
             />
-            <StatisticsCard
+            <StatisticsWithStatus
+              caption={
+                hasRuns
+                  ? `${String(sealedShare)}% of runs closed`
+                  : "No runs yet"
+              }
               icon={<CheckCircle2Icon />}
-              iconClassName="bg-status-ok-fill text-status-ok-ink"
-              showPeriodFilter={false}
+              status={closedRunsStatus}
               title="Sealed / released"
               value={String(closedRuns)}
             />
-            <StatisticsCard
+            <StatisticsWithStatus
+              caption={`Across ${String(visibleRuns.length)} ${visibleRuns.length === 1 ? "run" : "runs"}`}
               icon={<UsersIcon />}
-              showPeriodFilter={false}
+              status={employeeTotal > 0 ? "ok" : "neutral"}
               title="Employees on runs"
               value={String(employeeTotal)}
             />
@@ -290,12 +269,12 @@ function DashboardPage() {
                   {
                     label: "Open",
                     value: openRuns,
-                    color: "bg-status-warn-ink",
+                    color: "bg-chart-1",
                   },
                   {
                     label: "Sealed",
                     value: buckets.sealed,
-                    color: "bg-status-ok-ink",
+                    color: "bg-chart-2",
                   },
                   {
                     label: "Released",

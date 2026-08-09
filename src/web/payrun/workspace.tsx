@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "wouter";
 import { isRunStatus } from "@/components/payroll/status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAsyncLoad } from "@/hooks/use-async-load";
 import { formatApiError } from "@/web/api/format-error";
 import type {
@@ -40,6 +41,39 @@ import { PaymentsPanel } from "./panels/payments-panel";
 import { ReleasePanel } from "./panels/release-panel";
 import { RunHeader } from "./panels/run-header";
 import { TotalsStrip } from "./panels/totals-strip";
+
+/**
+ * Mirrors the loaded layout (header band → totals strip → panels → grid) so the
+ * page does not reflow when data arrives.
+ */
+function WorkspaceSkeleton() {
+  return (
+    <div className="-m-6 flex flex-col gap-4">
+      <div className="border-b bg-card px-6 py-5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="space-y-2">
+            <Skeleton className="h-7 w-64 rounded-lg" />
+            <Skeleton className="h-4 w-40 rounded-lg" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-9 w-28 rounded-lg" />
+            <Skeleton className="h-9 w-28 rounded-lg" />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-4 px-6 pb-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {(["t-a", "t-b", "t-c", "t-d"] as const).map((key) => (
+            <Skeleton className="h-24 w-full rounded-xl" key={key} />
+          ))}
+        </div>
+        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-96 w-full rounded-xl" />
+      </div>
+    </div>
+  );
+}
 
 function WorkspacePage() {
   const { runId } = useParams<{ runId: string }>();
@@ -399,17 +433,15 @@ function WorkspacePage() {
   }
 
   if (loading && view === null) {
-    return (
-      <div className="flex h-64 items-center justify-center text-muted-foreground text-sm">
-        Loading workspace…
-      </div>
-    );
+    return <WorkspaceSkeleton />;
   }
 
   if (error !== null || view === null) {
     return (
-      <div className="flex h-64 items-center justify-center text-destructive text-sm">
-        {error ?? "Pay run not found"}
+      <div className="flex h-64 items-center justify-center px-6">
+        <p className="text-destructive text-sm" role="alert">
+          {error ?? "Pay run not found"}
+        </p>
       </div>
     );
   }
@@ -429,7 +461,9 @@ function WorkspacePage() {
 
       <div className="flex flex-col gap-4 px-6 pb-6">
         {recomputeError === null ? null : (
-          <p className="text-destructive text-sm">{recomputeError}</p>
+          <p className="text-destructive text-sm" role="alert">
+            {recomputeError}
+          </p>
         )}
 
         <TotalsStrip tiles={view.totals} />

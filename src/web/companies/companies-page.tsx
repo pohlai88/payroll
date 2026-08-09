@@ -4,7 +4,7 @@
  * @hub src/server/routes/admin-companies.ts
  *
  * Companies — multicompany directory for SYSTEM_ADMIN.
- * Studio blocks: statistics-component-03, form-layout-01 (company-form),
+ * Studio blocks: statistics-with-status (12), form-layout-01 (company-form),
  * empty-state-01, datatable-company.
  */
 
@@ -18,7 +18,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import CompanyDatatable from "@/components/shadcn-studio/blocks/datatable-company";
 import EmptyState01 from "@/components/shadcn-studio/blocks/empty-state-01/empty-state-01";
 import CompanyForm from "@/components/shadcn-studio/blocks/form-layout-01/company-form";
-import StatisticsCard from "@/components/shadcn-studio/blocks/statistics-card-03";
+import StatisticsWithStatus, {
+  type StatCard,
+} from "@/components/shadcn-studio/blocks/statistics-with-status";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -142,6 +144,35 @@ function CompaniesPage() {
     );
   }
 
+  // Hoisted out of JSX so the render stays flat: each tile owns its own
+  // governance valence rather than repeating ternaries inline.
+  const statCards: readonly StatCard[] = [
+    {
+      title: "Companies",
+      value: stats.total,
+      icon: <Building2Icon />,
+      status: stats.total > 0 ? "pending" : "neutral",
+      caption:
+        stats.total === 1
+          ? "1 legal entity"
+          : `${String(stats.total)} legal entities`,
+    },
+    {
+      title: "HRDF on",
+      value: stats.hrdfOn,
+      icon: <PercentIcon />,
+      status: stats.hrdfOn > 0 ? "ok" : "neutral",
+      caption: stats.hrdfOn > 0 ? "Levy enabled" : "No company has the levy on",
+    },
+    {
+      title: "HRDF off",
+      value: stats.hrdfOff,
+      icon: <Building2Icon />,
+      status: stats.hrdfOff > 0 ? "attention" : "ok",
+      caption: stats.hrdfOff > 0 ? "Exempt from levy" : "All companies covered",
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <PageTitle
@@ -162,40 +193,20 @@ function CompaniesPage() {
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {companies === null ? (
-          Array.from({ length: 3 }, (_, index) => (
-            <Skeleton className="h-36 w-full rounded-xl" key={index} />
-          ))
-        ) : (
-          <>
-            <StatisticsCard
-              badgeContent="Group"
-              changePercentage={`${String(stats.total)} legal entities`}
-              icon={<Building2Icon />}
-              title="Companies"
-              trend="up"
-              value={String(stats.total)}
-            />
-            <StatisticsCard
-              badgeContent="Levy"
-              changePercentage={`${String(stats.hrdfOn)} enabled`}
-              icon={<PercentIcon />}
-              iconClassName="bg-status-ok-fill text-status-ok-ink"
-              title="HRDF on"
-              trend="up"
-              value={String(stats.hrdfOn)}
-            />
-            <StatisticsCard
-              badgeContent="Exempt"
-              changePercentage={`${String(stats.hrdfOff)} without levy`}
-              icon={<Building2Icon />}
-              iconClassName="bg-muted text-muted-foreground"
-              title="HRDF off"
-              trend={stats.hrdfOff > 0 ? "down" : "up"}
-              value={String(stats.hrdfOff)}
-            />
-          </>
-        )}
+        {companies === null
+          ? Array.from({ length: 3 }, (_, index) => (
+              <Skeleton className="h-36 w-full rounded-xl" key={index} />
+            ))
+          : statCards.map((card) => (
+              <StatisticsWithStatus
+                caption={card.caption}
+                icon={card.icon}
+                key={card.title}
+                status={card.status}
+                title={card.title}
+                value={String(card.value)}
+              />
+            ))}
       </div>
 
       {companies === null ? (

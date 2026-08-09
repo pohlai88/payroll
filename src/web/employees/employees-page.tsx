@@ -5,17 +5,27 @@
  *
  * Employees — searchable roster (`GET /v1/employees`, scoped by
  * `ScopeContext`) with the create-only import panel underneath.
- * Studio: datatable-employee + empty-state-01 + file-upload-01.
+ * Studio: statistics-with-status (12) + datatable-employee + empty-state-01
+ * + file-upload-01.
  */
 
-import { SearchIcon, UsersIcon } from "lucide-react";
+import {
+  SearchIcon,
+  UserCheckIcon,
+  UserMinusIcon,
+  UsersIcon,
+} from "lucide-react";
 import type { ChangeEvent } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import EmployeeDatatable from "@/components/shadcn-studio/blocks/datatable-employee";
 import EmptyState01 from "@/components/shadcn-studio/blocks/empty-state-01/empty-state-01";
+import StatisticsWithStatus, {
+  type StatCard,
+} from "@/components/shadcn-studio/blocks/statistics-with-status";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatApiError } from "@/web/api/format-error";
 import { payrollApi } from "@/web/api/payroll-api";
 import type { EmployeeSummary } from "@/web/api/types";
@@ -101,6 +111,43 @@ function EmployeesPage() {
     }
   }, []);
 
+  const activeCount = visibleEmployees.filter(
+    (employee) => employee.status === "ACTIVE"
+  ).length;
+  const terminatedCount = visibleEmployees.length - activeCount;
+  const isFiltered = search.trim() !== "";
+  const hasEmployees = visibleEmployees.length > 0;
+
+  // Counts describe the *visible* roster, so the caption says so when a search
+  // is narrowing it — otherwise the numbers read as a whole-company headcount.
+  const scopeCaption = isFiltered
+    ? "Matching current search"
+    : "In current scope";
+  const statCards: readonly StatCard[] = [
+    {
+      title: "Employees",
+      value: visibleEmployees.length,
+      icon: <UsersIcon />,
+      status: hasEmployees ? "pending" : "neutral",
+      caption: hasEmployees ? scopeCaption : "Nothing in scope",
+    },
+    {
+      title: "Active",
+      value: activeCount,
+      icon: <UserCheckIcon />,
+      status: activeCount > 0 ? "ok" : "neutral",
+      caption: activeCount > 0 ? "On the payroll" : "No active employees",
+    },
+    {
+      title: "Terminated",
+      value: terminatedCount,
+      icon: <UserMinusIcon />,
+      status: terminatedCount > 0 ? "attention" : "ok",
+      caption:
+        terminatedCount > 0 ? "Check final pay treatment" : "None terminated",
+    },
+  ];
+
   return (
     <div className="flex flex-col gap-6">
       <PageTitle
@@ -120,6 +167,23 @@ function EmployeesPage() {
       />
 
       {error !== null && <p className="text-destructive text-sm">{error}</p>}
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        {loading
+          ? (["emp-a", "emp-b", "emp-c"] as const).map((key) => (
+              <Skeleton className="h-28 w-full rounded-xl" key={key} />
+            ))
+          : statCards.map((card) => (
+              <StatisticsWithStatus
+                caption={card.caption}
+                icon={card.icon}
+                key={card.title}
+                status={card.status}
+                title={card.title}
+                value={String(card.value)}
+              />
+            ))}
+      </div>
 
       {!loading && visibleEmployees.length === 0 ? (
         <EmptyState01

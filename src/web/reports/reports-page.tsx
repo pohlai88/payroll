@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatApiError } from "@/web/api/format-error";
 import {
@@ -61,26 +62,31 @@ type ReportType =
 const REPORT_TYPES: Array<{
   id: ReportType;
   label: string;
+  description: string;
   icon: ReactNode;
 }> = [
   {
     id: "payment-register",
     label: "Payment Register",
+    description: "Net pay per employee for one run, as paid.",
     icon: <BarChart2Icon />,
   },
   {
     id: "statutory-summary",
     label: "Statutory Summary",
+    description: "EPF, SOCSO, EIS and PCB totals for one run.",
     icon: <FileTextIcon />,
   },
   {
     id: "exception-report",
     label: "Exception Report",
+    description: "Lines that need a human decision before close.",
     icon: <AlertTriangleIcon />,
   },
   {
     id: "annual-remuneration",
-    label: "Annual Remuneration",
+    label: "Annual Remuneration Summary",
+    description: "Year-to-date remuneration for one employee.",
     icon: <CalendarIcon />,
   },
 ];
@@ -236,6 +242,10 @@ function ReportsPage() {
     setSelectedYear(Number(event.currentTarget.value));
   }, []);
 
+  const activeReport = REPORT_TYPES.find((rt) => rt.id === activeType);
+  const activeLabel = activeReport?.label ?? "Report";
+  const activeDescription = activeReport?.description ?? "";
+
   return (
     <div className="space-y-6">
       <PageTitle
@@ -272,6 +282,14 @@ function ReportsPage() {
 
         <div className="flex-1 space-y-4 overflow-auto p-6">
           <TabsContent className="mt-0 space-y-4" value={activeType}>
+            <header className="space-y-1">
+              <h2 className="font-semibold text-lg tracking-tight">
+                {activeLabel}
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                {activeDescription}
+              </p>
+            </header>
             <ReportFilters
               activeType={activeType}
               filteredEmps={filteredEmps}
@@ -403,10 +421,23 @@ interface ReportBodyProps {
 
 function ReportBody({ activeType, data, loading, error }: ReportBodyProps) {
   if (loading) {
-    return <p className="text-muted-foreground text-sm">Loading…</p>;
+    // Skeletons rather than a bare "Loading…" so the panel keeps its shape and
+    // matches the loading language used on every other page.
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-8 w-64 rounded-lg" />
+        {(["row-a", "row-b", "row-c", "row-d", "row-e"] as const).map((key) => (
+          <Skeleton className="h-10 w-full rounded-lg" key={key} />
+        ))}
+      </div>
+    );
   }
   if (error) {
-    return <p className="text-destructive text-sm">{error}</p>;
+    return (
+      <p className="text-destructive text-sm" role="alert">
+        {error}
+      </p>
+    );
   }
   if (data && activeType === "payment-register") {
     return <PaymentRegister data={data as PaymentRegisterDto} />;

@@ -161,7 +161,7 @@ function RunControlCard({
           </div>
         )}
         {seal === null || seal.problems.length === 0 ? null : (
-          <ul className="space-y-1 rounded-md bg-status-bad-fill p-2 text-status-bad-ink text-xs">
+          <ul className="space-y-1 rounded-md bg-destructive/10 p-2 text-destructive text-xs">
             {seal.problems.map((problem) => (
               <li key={problem}>{problem}</li>
             ))}
@@ -172,7 +172,9 @@ function RunControlCard({
         gateResult.issues.length > 0 ? (
           <ul className="space-y-1 rounded-md border bg-muted/30 p-2 text-xs">
             {gateResult.issues.slice(0, 3).map((issue) => (
-              <li key={`${issue.code}-${issue.message}`}>
+              <li
+                key={`${issue.kind}-${issue.code}-${issue.findingId ?? issue.lineId ?? issue.message}`}
+              >
                 <span className="font-mono text-muted-foreground">
                   {issue.code}
                 </span>
