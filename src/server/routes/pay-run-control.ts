@@ -71,6 +71,7 @@ export function payRunControlRoutes(
       const rows = await db
         .select({
           lineId: linePayments.lineId,
+          employmentId: payLines.employmentId,
           state: linePayments.state,
           holdReason: linePayments.holdReason,
           releaseBatchId: linePayments.releaseBatchId,
