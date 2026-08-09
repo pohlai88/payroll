@@ -10,13 +10,20 @@ import { anomalyFindings, findingEvents } from "@/db/schema/findings";
 import { employments } from "@/db/schema/parties";
 import { payLineItems, payLines, payRuns, pcbEntries } from "@/db/schema/run";
 import {
-  NET_VARIANCE_ABS_SEN,
-  NET_VARIANCE_PCT,
-  OT_HOURS_OUTLIER,
-  OT_PAY_VS_BASIC_RATIO,
-  ruleDef,
-  VARIABLE_ITEM_SPIKE_SEN,
-} from "@/domain/findings/catalog";
+  detected,
+  detectBankDetailsMissing,
+  detectEisAgeHistoryUnresolved,
+  detectMissingStatutoryNo,
+  detectNetNegative,
+  detectNetVarianceVsPrior,
+  detectNetZero,
+  detectOtOutlier,
+  detectPcbUnverified,
+  detectStatutoryStepShift,
+  detectStatutoryZeroWithWages,
+  detectVariableItemSpike,
+  type LineFindingInput,
+} from "@/domain/findings/detect-line";
 import { fingerprintOf } from "@/domain/findings/fingerprint";
 import type { DetectedFinding } from "@/domain/findings/types";
 import { ControlError } from "./control-errors";
@@ -25,20 +32,7 @@ import { scanRunTransferFindings } from "./findings";
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 type DbOrTx = Database | Transaction;
 
-interface LineScanRow {
-  readonly lineId: string;
-  readonly employmentId: string;
-  readonly netSen: number | null;
-  readonly epfEeSen: number | null;
-  readonly socsoEeCoreSen: number | null;
-  readonly socsoErSen: number | null;
-  readonly eisEeSen: number | null;
-  readonly eisErSen: number | null;
-  readonly epfWagesSen: number | null;
-  readonly socsoWagesSen: number | null;
-  readonly eisWagesSen: number | null;
-  readonly employeeSnapshot: Record<string, unknown>;
-}
+type LineScanRow = LineFindingInput;
 
 /**
  * Full catalog scan for a run. Rejects once APPROVED/CLOSED.
@@ -275,152 +269,63 @@ async function detectRunFindings(
   const priorByEmployment = prior?.byEmployment ?? new Map();
 
   for (const line of lineRows) {
-    const snap = line.employeeSnapshot;
     const emp = empById.get(line.employmentId);
-    const pcbApplicable = snap.pcbApplicable !== false;
     const pcb = pcbByLine.get(line.lineId);
-
-    if (pcbApplicable && (pcb === undefined || !pcb.verified)) {
-      out.push(
-        detected("PCB_UNVERIFIED", run.id, line.lineId, {
-          pcbAmountSen: pcb?.pcbAmountSen ?? null,
-          verified: pcb?.verified ?? false,
-        })
-      );
-    }
-
-    if (line.netSen !== null && line.netSen < 0) {
-      out.push(
-        detected("NET_NEGATIVE", run.id, line.lineId, { netSen: line.netSen })
-      );
-    }
-    if (line.netSen === 0) {
-      out.push(
-        detected("NET_ZERO", run.id, line.lineId, { netSen: line.netSen })
-      );
-    }
-
     const baseline = priorByEmployment.get(line.employmentId);
-    if (
-      baseline !== undefined &&
-      line.netSen !== null &&
-      baseline.netSen !== null
-    ) {
-      const abs = Math.abs(line.netSen - baseline.netSen);
-      const pct = netVariancePct(abs, baseline.netSen);
-      if (abs > NET_VARIANCE_ABS_SEN && pct > NET_VARIANCE_PCT) {
-        out.push(
-          detected("NET_VARIANCE_VS_PRIOR", run.id, line.lineId, {
-            netSen: line.netSen,
-            baselineNetSen: baseline.netSen,
-            baselineRunId: prior?.runId ?? null,
-            absVarianceSen: abs,
-            pct,
-          })
-        );
-      }
 
-      if (wagesSimilar(line, baseline) && statutoryStepShift(line, baseline)) {
-        out.push(
-          detected("STATUTORY_STEP_SHIFT", run.id, line.lineId, {
-            epfEeSen: line.epfEeSen,
-            baselineEpfEeSen: baseline.epfEeSen,
-            socsoEeCoreSen: line.socsoEeCoreSen,
-            baselineSocsoEeCoreSen: baseline.socsoEeCoreSen,
-            eisEeSen: line.eisEeSen,
-            baselineEisEeSen: baseline.eisEeSen,
-          })
-        );
+    const pcbFinding = detectPcbUnverified(line, pcb, run.id);
+    if (pcbFinding) {
+      out.push(pcbFinding);
+    }
+    const netNeg = detectNetNegative(line, run.id);
+    if (netNeg) {
+      out.push(netNeg);
+    }
+    const netZero = detectNetZero(line, run.id);
+    if (netZero) {
+      out.push(netZero);
+    }
+
+    if (baseline !== undefined) {
+      const variance = detectNetVarianceVsPrior(
+        line,
+        baseline,
+        prior?.runId ?? null,
+        run.id
+      );
+      if (variance) {
+        out.push(variance);
+      }
+      const step = detectStatutoryStepShift(line, baseline, run.id);
+      if (step) {
+        out.push(step);
       }
     }
 
-    const epfApplicable = snap.epfApplicable !== false;
-    const socsoApplicable = snap.socsoApplicable !== false;
-    const eisApplicable = snap.eisApplicable !== false;
-
-    // Scheme-specific wage bases — not baseRateSen (variable-only earnings must count).
-    // SOCSO/EIS employer-only categories: ER > 0 with EE === 0 is legitimate, not a finding.
-    const zeroSchemes: string[] = [];
-    if (
-      epfApplicable &&
-      (line.epfWagesSen ?? 0) > 0 &&
-      (line.epfEeSen ?? 0) === 0
-    ) {
-      zeroSchemes.push("epf");
-    }
-    if (
-      socsoApplicable &&
-      (line.socsoWagesSen ?? 0) > 0 &&
-      (line.socsoEeCoreSen ?? 0) === 0 &&
-      (line.socsoErSen ?? 0) === 0
-    ) {
-      zeroSchemes.push("socso");
-    }
-    if (
-      eisApplicable &&
-      (line.eisWagesSen ?? 0) > 0 &&
-      (line.eisEeSen ?? 0) === 0 &&
-      (line.eisErSen ?? 0) === 0
-    ) {
-      zeroSchemes.push("eis");
-    }
-    if (zeroSchemes.length > 0) {
-      out.push(
-        detected("STATUTORY_ZERO_WITH_WAGES", run.id, line.lineId, {
-          schemes: zeroSchemes,
-          epfEeSen: line.epfEeSen,
-          socsoEeCoreSen: line.socsoEeCoreSen,
-          eisEeSen: line.eisEeSen,
-          epfWagesSen: line.epfWagesSen,
-          socsoWagesSen: line.socsoWagesSen,
-          eisWagesSen: line.eisWagesSen,
-        })
-      );
+    const zero = detectStatutoryZeroWithWages(line, run.id);
+    if (zero) {
+      out.push(zero);
     }
 
-    if (
-      eisApplicable &&
-      emp?.eisPriorContribution === null &&
-      isAge57Plus(snap)
-    ) {
-      out.push(
-        detected("EIS_AGE_HISTORY_UNRESOLVED", run.id, line.lineId, {
-          eisPriorContribution: null,
-          age: snap.age ?? null,
-        })
-      );
+    const eisAge = detectEisAgeHistoryUnresolved(
+      line,
+      emp?.eisPriorContribution,
+      run.periodEnd,
+      run.id
+    );
+    if (eisAge) {
+      out.push(eisAge);
     }
 
     const lineItems = itemsByLine.get(line.lineId) ?? [];
     for (const item of lineItems) {
-      if (item.itemCodeSnap === "OT") {
-        const hours = Number(item.quantity ?? 0);
-        const otPay = item.resolvedAmountSen ?? 0;
-        const basic = Number(snap.baseRateSen ?? 0);
-        if (
-          hours > OT_HOURS_OUTLIER ||
-          (basic > 0 && otPay > basic * OT_PAY_VS_BASIC_RATIO)
-        ) {
-          out.push(
-            detected("OT_OUTLIER", run.id, line.lineId, {
-              hours,
-              otPaySen: otPay,
-              basicSen: basic,
-            })
-          );
-        }
+      const ot = detectOtOutlier(line, item, run.id);
+      if (ot) {
+        out.push(ot);
       }
-      if (
-        item.itemCodeSnap !== "BASIC" &&
-        item.itemCodeSnap !== "OT" &&
-        (item.resolvedAmountSen ?? 0) > VARIABLE_ITEM_SPIKE_SEN
-      ) {
-        out.push(
-          detected("VARIABLE_ITEM_SPIKE", run.id, line.lineId, {
-            itemCode: item.itemCodeSnap,
-            amountSen: item.resolvedAmountSen,
-          })
-        );
+      const spike = detectVariableItemSpike(line, item, run.id);
+      if (spike) {
+        out.push(spike);
       }
     }
 
@@ -443,33 +348,18 @@ async function detectRunFindings(
     }
 
     if (emp !== undefined) {
-      const missing: string[] = [];
-      if (epfApplicable && blank(emp.epfNo)) {
-        missing.push("epfNo");
-      }
-      if (socsoApplicable && blank(emp.socsoNo)) {
-        missing.push("socsoNo");
-      }
-      if (pcbApplicable && blank(emp.tin)) {
-        missing.push("tin");
-      }
-      if (missing.length > 0) {
-        out.push(
-          detected("MISSING_STATUTORY_NO", run.id, line.lineId, { missing })
-        );
+      const missing = detectMissingStatutoryNo(line, emp, run.id);
+      if (missing) {
+        out.push(missing);
       }
 
-      const account = emp.bankAccountNo?.trim() ?? "";
-      const bank = emp.bankName?.trim() ?? "";
-      if (account === "" || bank === "") {
-        out.push(
-          detected("BANK_DETAILS_MISSING", run.id, line.lineId, {
-            bankName: bank || null,
-            bankAccountNo: account || null,
-          })
-        );
+      const bankMissing = detectBankDetailsMissing(line, emp, run.id);
+      if (bankMissing) {
+        out.push(bankMissing);
       } else {
-        const changed = await bankDetailsChanged(db, line.lineId, {
+        const account = emp.bankAccountNo?.trim() ?? "";
+        const bank = emp.bankName?.trim() ?? "";
+        const changed = await bankDetailsChanged(db, line.employmentId, {
           bank,
           account,
         });
@@ -512,25 +402,6 @@ async function detectRunFindings(
   }
 
   return out;
-}
-
-function detected(
-  ruleId: string,
-  runId: string,
-  lineId: string | null,
-  evidence: Record<string, unknown>
-): DetectedFinding {
-  const def = ruleDef(ruleId);
-  return {
-    ruleId,
-    severity: def.severity,
-    blocks: def.blocks,
-    title: def.title,
-    detail: def.title,
-    evidence,
-    runId,
-    lineId,
-  };
 }
 
 async function upsertRunFindings(
@@ -821,65 +692,6 @@ function employmentActiveInPeriod(
   return true;
 }
 
-function netVariancePct(
-  absVarianceSen: number,
-  baselineNetSen: number
-): number {
-  if (baselineNetSen === 0) {
-    return absVarianceSen > 0 ? 1 : 0;
-  }
-  return absVarianceSen / Math.abs(baselineNetSen);
-}
-
-function wagesSimilar(
-  line: LineScanRow,
-  baseline: { epfEeSen: number | null; netSen: number | null }
-): boolean {
-  // Proxy: nets within 10% → wages considered similar for step-shift rule
-  if (
-    line.netSen === null ||
-    baseline.netSen === null ||
-    baseline.netSen === 0
-  ) {
-    return false;
-  }
-  const pct =
-    Math.abs(line.netSen - baseline.netSen) / Math.abs(baseline.netSen);
-  return pct <= 0.1;
-}
-
-function statutoryStepShift(
-  line: LineScanRow,
-  baseline: {
-    epfEeSen: number | null;
-    socsoEeCoreSen: number | null;
-    eisEeSen: number | null;
-  }
-): boolean {
-  const steps = (a: number | null, b: number | null) => {
-    if (a === null || b === null || a === b) {
-      return false;
-    }
-    // Band tables are discrete; any non-equal contribution with similar wages
-    // is treated as ≥1 step for REVIEW severity.
-    return true;
-  };
-  return (
-    steps(line.epfEeSen, baseline.epfEeSen) ||
-    steps(line.socsoEeCoreSen, baseline.socsoEeCoreSen) ||
-    steps(line.eisEeSen, baseline.eisEeSen)
-  );
-}
-
-function isAge57Plus(snap: Record<string, unknown>): boolean {
-  const { age } = snap;
-  return typeof age === "number" && age >= 57;
-}
-
-function blank(value: string | null | undefined): boolean {
-  return value === null || value === undefined || value.trim() === "";
-}
-
 async function employmentHasPriorLine(
   db: DbOrTx,
   employmentId: string,
@@ -900,15 +712,18 @@ async function employmentHasPriorLine(
 
 async function bankDetailsChanged(
   db: DbOrTx,
-  lineId: string,
+  employmentId: string,
   current: { bank: string; account: string }
 ): Promise<boolean> {
+  // Compare against the latest PAID attempt for this employment on any prior
+  // line — payment_attempts.line_id is the paid run's line, not the current one.
   const [prior] = await db
     .select({ bankSnapshot: paymentAttempts.bankSnapshot })
     .from(paymentAttempts)
+    .innerJoin(payLines, eq(paymentAttempts.lineId, payLines.id))
     .where(
       and(
-        eq(paymentAttempts.lineId, lineId),
+        eq(payLines.employmentId, employmentId),
         eq(paymentAttempts.status, "PAID")
       )
     )

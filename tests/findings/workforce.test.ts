@@ -327,3 +327,71 @@ describe("EMPLOYEE_OMITTED", () => {
     expect(omitted.some((f) => f.evidence.employmentId === EMP_OLD)).toBe(true);
   });
 });
+
+describe("EMPLOYEE_IN_OVERLAPPING_RUNS", () => {
+  it("detects the same employment in two open runs for the same month", async () => {
+    const RUN_REG = "WF-OV-REG-2026-09";
+    const RUN_OFF = "WF-OV-OFF-2026-09";
+    await createRun(db, {
+      runId: RUN_REG,
+      companyId: COMPANY_ID,
+      rulePackId,
+      year: 2026,
+      month: 9,
+      periodStart: "2026-09-01",
+      periodEnd: "2026-09-30",
+      workingDays: 22,
+      paidDays: 22,
+      actor: "tester@example.com",
+    });
+    await recomputeRun(db, RUN_REG, "tester@example.com");
+
+    // Second regular-period peer: insert a DRAFT sibling run sharing the month
+    // via raw SQL (createRun would collide on unique company/year/month/type).
+    await db.execute(sql`
+      INSERT INTO pay_runs (
+        id, company_id, year, month, period_start, period_end, working_days,
+        rule_pack_id, rule_pack_hash, status, run_type, offcycle_reason, calc_revision)
+      SELECT
+        ${RUN_OFF}, company_id, year, month, period_start, period_end, working_days,
+        rule_pack_id, rule_pack_hash, 'DRAFT', 'OFFCYCLE', 'CORRECTION', calc_revision
+      FROM pay_runs WHERE id = ${RUN_REG}`);
+
+    const { payLines } = await import("@/db/schema/run");
+    const [src] = await db
+      .select()
+      .from(payLines)
+      .where(
+        and(eq(payLines.runId, RUN_REG), eq(payLines.employmentId, EMP_OLD))
+      );
+    expect(src).toBeDefined();
+
+    await db.execute(sql`
+      INSERT INTO pay_lines (
+        id, run_id, employment_id, employee_snapshot, working_days, paid_days,
+        period_end, net_sen, epf_ee_sen, socso_ee_core_sen, eis_ee_sen,
+        epf_wages_sen, socso_wages_sen, eis_wages_sen, gross_sen)
+      VALUES (
+        gen_random_uuid(), ${RUN_OFF}, ${EMP_OLD}, ${JSON.stringify(src!.employeeSnapshot)}::jsonb,
+        ${src!.workingDays}, ${src!.paidDays}, ${src!.periodEnd},
+        ${src!.netSen}, ${src!.epfEeSen}, ${src!.socsoEeCoreSen}, ${src!.eisEeSen},
+        ${src!.epfWagesSen}, ${src!.socsoWagesSen}, ${src!.eisWagesSen}, ${src!.grossSen})`);
+
+    await scanRunFindings(db, RUN_REG);
+
+    const overlaps = await db
+      .select()
+      .from(anomalyFindings)
+      .where(
+        and(
+          eq(anomalyFindings.runId, RUN_REG),
+          eq(anomalyFindings.ruleId, "EMPLOYEE_IN_OVERLAPPING_RUNS")
+        )
+      );
+    expect(overlaps.length).toBeGreaterThan(0);
+    expect(overlaps[0]?.evidence).toMatchObject({
+      employmentId: EMP_OLD,
+      otherRunId: RUN_OFF,
+    });
+  });
+});

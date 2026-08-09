@@ -1,7 +1,6 @@
 /**
  * P0D — every catalog ruleId must appear in the tested-rule registry.
- * Fill TESTED_* as detector suites land; this fails CI when a rule is added
- * without assurance coverage being registered.
+ * Fails CI when a catalog rule is added without registering assurance coverage.
  */
 
 import { describe, expect, it } from "vitest";
@@ -12,21 +11,27 @@ import {
 
 /**
  * Rules with dedicated positive/negative/boundary/evidence coverage under
- * tests/findings/ (or transfer suites). Expand as suites land — do not invent
- * IDs that are not in the catalog.
+ * tests/findings/ (or transfer suites). IDs must match the catalog exactly.
  */
 const TESTED_PAYRUN_RULES = new Set([
-  "NEW_EMPLOYEE",
-  "EMPLOYEE_OMITTED",
-  "STATUTORY_ZERO_WITH_WAGES",
   "NET_VARIANCE_VS_PRIOR",
+  "NET_ZERO",
+  "NET_NEGATIVE",
+  "PCB_UNVERIFIED",
+  "EIS_AGE_HISTORY_UNRESOLVED",
+  "STATUTORY_STEP_SHIFT",
+  "STATUTORY_ZERO_WITH_WAGES",
+  "EMPLOYEE_OMITTED",
+  "EMPLOYEE_IN_OVERLAPPING_RUNS",
+  "OT_OUTLIER",
+  "VARIABLE_ITEM_SPIKE",
+  "NEW_EMPLOYEE",
   "MISSING_STATUTORY_NO",
   "BANK_DETAILS_MISSING",
-  "PCB_UNVERIFIED", // control/gate coverage via phase6 + scan machinery
+  "BANK_DETAILS_CHANGED",
 ]);
 
 const TESTED_TRANSFER_RULES = new Set([
-  // Covered by tests/db/transfer-findings.test.ts + domain transfer-rules tests
   "TRANSFER_OVERLAP_DATES",
   "PERSON_IN_BOTH_EMPLOYERS",
   "TRANSFER_FINAL_PAY_MISSING",
@@ -50,13 +55,10 @@ describe("findings catalog coverage registry", () => {
     }
   });
 
-  it("tracks progress toward full pay-run catalog coverage", () => {
-    const catalog = PAYRUN_ANOMALY_RULES.map((r) => r.ruleId).sort();
-    const missing = catalog.filter((id) => !TESTED_PAYRUN_RULES.has(id));
-    // Soft progress gate: document remaining work without blocking ship until
-    // P0D is complete. Flip to expect(missing).toEqual([]) when suites land.
-    expect(missing.length).toBeLessThan(catalog.length);
-    expect(TESTED_PAYRUN_RULES.size).toBeGreaterThanOrEqual(6);
+  it("covers every pay-run anomaly rule", () => {
+    expect([...TESTED_PAYRUN_RULES].sort()).toEqual(
+      PAYRUN_ANOMALY_RULES.map((r) => r.ruleId).sort()
+    );
   });
 
   it("covers every transfer anomaly rule", () => {

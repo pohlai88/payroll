@@ -2,9 +2,10 @@
  * P0A — RELEASE line-scoped partial release vs run-scoped fail-closed.
  */
 
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { anomalyFindings } from "@/db/schema/findings";
+import { employments } from "@/db/schema/parties";
 import { payLines, payRuns } from "@/db/schema/run";
 import {
   approveRun,
@@ -13,7 +14,7 @@ import {
   reviewRun,
 } from "@/service/payrun";
 import { previewRelease } from "@/service/release";
-import { acknowledgeRunFinding } from "@/service/run-findings";
+import { acknowledgeRunFinding, scanRunFindings } from "@/service/run-findings";
 import { seed } from "../../scripts/seed";
 import { ALL_TABLES, connectTestDatabase } from "../db/harness/database";
 
@@ -176,5 +177,184 @@ describe("release controls", () => {
     const preview = await previewRelease(db, RUN_ID, ids);
     expect(preview.eligible).toHaveLength(0);
     expect(preview.excluded).toHaveLength(ids.length);
+  });
+});
+
+describe("BANK_DETAILS_CHANGED", () => {
+  const RUN_PRIOR = "REL-BANK-2026-06";
+  const RUN_CURR = "REL-BANK-2026-07";
+
+  async function approveRunFindings(runId: string): Promise<void> {
+    const findings = await db
+      .select()
+      .from(anomalyFindings)
+      .where(eq(anomalyFindings.runId, runId));
+    for (const f of findings) {
+      if (
+        f.severity === "BLOCKING" ||
+        f.severity === "INFO" ||
+        f.status !== "OPEN"
+      ) {
+        continue;
+      }
+      if (!(f.blocks as string[]).includes("APPROVAL")) {
+        continue;
+      }
+      await acknowledgeRunFinding(
+        db,
+        f.id,
+        "tester@example.com",
+        f.severity === "WARNING" ? "ok" : undefined
+      );
+    }
+    const [run] = await db.select().from(payRuns).where(eq(payRuns.id, runId));
+    await reviewRun(db, runId, "tester@example.com", run!.calcRevision!);
+    await approveRun(db, runId, "tester@example.com", run!.calcRevision!);
+  }
+
+  it("detects bank change vs last PAID attempt for the employment", async () => {
+    await createRun(db, {
+      runId: RUN_PRIOR,
+      companyId: COMPANY_ID,
+      rulePackId,
+      year: 2026,
+      month: 6,
+      periodStart: "2026-06-01",
+      periodEnd: "2026-06-30",
+      workingDays: 22,
+      paidDays: 22,
+      actor: "tester@example.com",
+    });
+    await recomputeRun(db, RUN_PRIOR, "tester@example.com");
+    await approveRunFindings(RUN_PRIOR);
+
+    const [priorLine] = await db
+      .select()
+      .from(payLines)
+      .where(
+        and(eq(payLines.runId, RUN_PRIOR), eq(payLines.employmentId, EMP_B))
+      );
+    expect(priorLine).toBeDefined();
+
+    const batchId = "rel-bank-batch-1";
+    await db.execute(sql`
+      INSERT INTO release_batches (
+        id, run_id, method, status, total_sen, line_count, created_by)
+      VALUES (
+        ${batchId}, ${RUN_PRIOR}, 'BANK', 'SETTLED',
+        ${priorLine!.netSen ?? 0}, 1, 'tester@example.com')`);
+    await db.execute(sql`
+      INSERT INTO payment_attempts (
+        batch_id, line_id, amount_sen, bank_snapshot, status, settled_at)
+      VALUES (
+        ${batchId}, ${priorLine!.id}, ${priorLine!.netSen ?? 0},
+        ${JSON.stringify({ bank: "MAYBANK", account: "9999888877", name: "WORKER B" })}::jsonb,
+        'PAID', NOW())`);
+
+    await db
+      .update(employments)
+      .set({ bankName: "CIMB", bankAccountNo: "1122334455" })
+      .where(eq(employments.id, EMP_B));
+
+    await createRun(db, {
+      runId: RUN_CURR,
+      companyId: COMPANY_ID,
+      rulePackId,
+      year: 2026,
+      month: 7,
+      periodStart: "2026-07-01",
+      periodEnd: "2026-07-31",
+      workingDays: 22,
+      paidDays: 22,
+      actor: "tester@example.com",
+    });
+    await recomputeRun(db, RUN_CURR, "tester@example.com");
+
+    const changed = await db
+      .select()
+      .from(anomalyFindings)
+      .where(
+        and(
+          eq(anomalyFindings.runId, RUN_CURR),
+          eq(anomalyFindings.ruleId, "BANK_DETAILS_CHANGED")
+        )
+      );
+    expect(changed.length).toBeGreaterThan(0);
+    expect(changed[0]?.evidence).toMatchObject({
+      bank: "CIMB",
+      account: "1122334455",
+    });
+    expect(changed[0]?.blocks).toEqual(expect.arrayContaining(["RELEASE"]));
+  });
+
+  it("does not detect when bank matches last PAID snapshot", async () => {
+    await createRun(db, {
+      runId: RUN_PRIOR,
+      companyId: COMPANY_ID,
+      rulePackId,
+      year: 2026,
+      month: 6,
+      periodStart: "2026-06-01",
+      periodEnd: "2026-06-30",
+      workingDays: 22,
+      paidDays: 22,
+      actor: "tester@example.com",
+    });
+    await recomputeRun(db, RUN_PRIOR, "tester@example.com");
+    await approveRunFindings(RUN_PRIOR);
+
+    const [priorLine] = await db
+      .select()
+      .from(payLines)
+      .where(
+        and(eq(payLines.runId, RUN_PRIOR), eq(payLines.employmentId, EMP_B))
+      );
+
+    const batchId = "rel-bank-batch-2";
+    await db.execute(sql`
+      INSERT INTO release_batches (
+        id, run_id, method, status, total_sen, line_count, created_by)
+      VALUES (
+        ${batchId}, ${RUN_PRIOR}, 'BANK', 'SETTLED',
+        ${priorLine!.netSen ?? 0}, 1, 'tester@example.com')`);
+    await db.execute(sql`
+      INSERT INTO payment_attempts (
+        batch_id, line_id, amount_sen, bank_snapshot, status, settled_at)
+      VALUES (
+        ${batchId}, ${priorLine!.id}, ${priorLine!.netSen ?? 0},
+        ${JSON.stringify({ bank: "MAYBANK", account: "9999888877", name: "WORKER B" })}::jsonb,
+        'PAID', NOW())`);
+
+    // Reset EMP_B bank in case prior test mutated it
+    await db
+      .update(employments)
+      .set({ bankName: "MAYBANK", bankAccountNo: "9999888877" })
+      .where(eq(employments.id, EMP_B));
+
+    await createRun(db, {
+      runId: RUN_CURR,
+      companyId: COMPANY_ID,
+      rulePackId,
+      year: 2026,
+      month: 7,
+      periodStart: "2026-07-01",
+      periodEnd: "2026-07-31",
+      workingDays: 22,
+      paidDays: 22,
+      actor: "tester@example.com",
+    });
+    await recomputeRun(db, RUN_CURR, "tester@example.com");
+    await scanRunFindings(db, RUN_CURR);
+
+    const changed = await db
+      .select()
+      .from(anomalyFindings)
+      .where(
+        and(
+          eq(anomalyFindings.runId, RUN_CURR),
+          eq(anomalyFindings.ruleId, "BANK_DETAILS_CHANGED")
+        )
+      );
+    expect(changed).toHaveLength(0);
   });
 });
