@@ -15,13 +15,13 @@ import {
   type AdminCompaniesResponse,
   type AdminCompanyRow,
   type AdminUserRoleBody,
-  type AdminUsersResponse,
   type AdminUserRow,
+  type AdminUsersResponse,
   type AnnualRemunerationSummaryDto,
   ApiClientError,
   type ApiErrorBody,
+  type ArtifactDownload,
   type ArtifactsListResponse,
-  type ArtifactType,
   type CloseRunResponse,
   type ClosureChainResponse,
   type ClosureChecklistResponse,
@@ -36,6 +36,7 @@ import {
   type GetBatchResponse,
   type ImportReportResponse,
   type InviteAdminUserBody,
+  type LineDerivationDto,
   type MeResponse,
   type OkResponse,
   type PaymentRegisterDto,
@@ -55,6 +56,7 @@ import {
   type StoreArtifactResponse,
   type UpdateAdminCompanyBody,
   type UpdateAdminUserBody,
+  type UploadArtifactType,
   type WithdrawalReason,
 } from "./types";
 
@@ -375,7 +377,7 @@ export function createApiClient(deps: ApiClientDeps) {
         readonly filename: string;
         readonly mimeType: string;
         readonly base64: string;
-        readonly type: ArtifactType;
+        readonly type: UploadArtifactType;
       }
     ) =>
       requestJson<StoreArtifactResponse>(`/v1/pay-runs/${runId}/artifacts`, {
@@ -386,6 +388,18 @@ export function createApiClient(deps: ApiClientDeps) {
       requestJson<SignedArtifactUrlResponse>(
         `/v1/pay-runs/${runId}/artifacts/${artifactId}/url`
       ),
+    downloadArtifact: async (
+      runId: string,
+      artifactId: string
+    ): Promise<ArtifactDownload> => {
+      const response = await requestRaw(
+        `/v1/pay-runs/${runId}/artifacts/${artifactId}/content`
+      );
+      const disposition = response.headers.get("Content-Disposition") ?? "";
+      const match = /filename="([^"]+)"/.exec(disposition);
+      const filename = match?.[1] ?? "artifact.bin";
+      return { blob: await response.blob(), filename };
+    },
     getClosureChecklist: (runId: string) =>
       requestJson<ClosureChecklistResponse>(
         `/v1/pay-runs/${runId}/closure-checklist`
@@ -408,6 +422,15 @@ export function createApiClient(deps: ApiClientDeps) {
       ),
     getLineDiff: (runId: string, lineId: string) =>
       requestJson<RunLineDiffDto>(`/v1/pay-runs/${runId}/lines/${lineId}/diff`),
+    getLineDerivation: (runId: string, lineId: string, root?: string) => {
+      const qs =
+        root === undefined || root === ""
+          ? ""
+          : `?root=${encodeURIComponent(root)}`;
+      return requestJson<LineDerivationDto>(
+        `/v1/pay-runs/${runId}/lines/${lineId}/derivation${qs}`
+      );
+    },
     // Report endpoints
     getPaymentRegister: (runId: string) =>
       requestJson<PaymentRegisterDto>(

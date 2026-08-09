@@ -120,11 +120,11 @@ function SidebarNav() {
                   </SidebarMenuItem>
                 );
               })}
-              {!authReady ? (
+              {authReady ? null : (
                 <SidebarMenuItem>
                   <Skeleton className="h-8 w-full rounded-md" />
                 </SidebarMenuItem>
-              ) : null}
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

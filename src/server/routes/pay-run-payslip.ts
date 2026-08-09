@@ -8,6 +8,7 @@ import { Hono } from "hono";
 import type { Database } from "@/db/client";
 import { companies } from "@/db/schema/parties";
 import { payLineItems, payLines, payRuns } from "@/db/schema/run";
+import { sumNullableSen } from "@/domain/sum-nullable-sen";
 import type { AuthVariables } from "../auth/middleware";
 import { handleRouteError } from "../errors";
 import { requirePayRunAccess } from "./pay-run-access";
@@ -57,15 +58,16 @@ function buildRootsRecord(
     socsoEr: { sen: line.socsoErSen, notApplicable: false },
     eisEe: { sen: line.eisEeSen, notApplicable: false },
     eisEr: { sen: line.eisErSen, notApplicable: false },
-    pcbNet: { sen: line.pcbNetSen, notApplicable: line.pcbNetSen === null },
+    // null sen = unknown (not entered / pending), not statute N/A.
+    pcbNet: { sen: line.pcbNetSen, notApplicable: false },
     cp38: { sen: line.cp38Sen, notApplicable: false },
     zakat: { sen: line.zakatSen, notApplicable: false },
     otherDeductions: { sen: line.otherDeductionsSen, notApplicable: false },
     deductionsTotal: {
       sen: line.deductionsTotalSen,
-      notApplicable: line.deductionsTotalSen === null,
+      notApplicable: false,
     },
-    net: { sen: line.netSen, notApplicable: line.netSen === null },
+    net: { sen: line.netSen, notApplicable: false },
     hrdf: { sen: line.hrdfSen, notApplicable: false },
     employerCost: { sen: line.employerCostSen, notApplicable: false },
   };
@@ -214,6 +216,7 @@ export function payRunPayslipRoutes(db: Database) {
         pcbNetSen: number;
         cp38Sen: number;
         isProvisional: boolean;
+        incomplete: boolean;
       } | null = null;
 
       if (finalizedRunIds.length > 0 || isProvisional) {
@@ -230,38 +233,79 @@ export function payRunPayslipRoutes(db: Database) {
                 )
             : [];
 
-        const sum = (key: keyof typeof payLines.$inferSelect) =>
-          ytdLines.reduce(
-            (acc, l) => acc + ((l[key] as number | null) ?? 0),
-            0
-          );
+        const sumField = (key: keyof (typeof ytdLines)[number]) =>
+          sumNullableSen(ytdLines.map((l) => l[key] as number | null));
+        const finalizedGross = sumField("grossSen");
+        const finalizedNet = sumField("netSen");
+        const finalizedEpfEe = sumField("epfEeSen");
+        const finalizedEpfEr = sumField("epfErSen");
+        const finalizedSocso = sumField("socsoEeCoreSen");
+        const finalizedEis = sumField("eisEeSen");
+        const finalizedPcb = sumField("pcbNetSen");
+        const finalizedCp38 = sumField("cp38Sen");
+        const finalizedIncomplete =
+          finalizedGross.incomplete ||
+          finalizedNet.incomplete ||
+          finalizedEpfEe.incomplete ||
+          finalizedEpfEr.incomplete ||
+          finalizedSocso.incomplete ||
+          finalizedEis.incomplete ||
+          finalizedPcb.incomplete ||
+          finalizedCp38.incomplete;
 
-        const finalizedYtd = {
-          grossSen: sum("grossSen"),
-          netSen: sum("netSen"),
-          epfEeSen: sum("epfEeSen"),
-          epfErSen: sum("epfErSen"),
-          socsoEeCoreSen: sum("socsoEeCoreSen"),
-          eisEeSen: sum("eisEeSen"),
-          pcbNetSen: sum("pcbNetSen"),
-          cp38Sen: sum("cp38Sen"),
+        const addCurrent = (
+          base: { sum: number; incomplete: boolean },
+          current: number | null
+        ) => {
+          const merged = sumNullableSen([base.sum, current]);
+          return {
+            sum: merged.sum,
+            incomplete: base.incomplete || merged.incomplete,
+          };
         };
 
         if (isProvisional) {
+          const gross = addCurrent(finalizedGross, line.grossSen);
+          const net = addCurrent(finalizedNet, line.netSen);
+          const epfEe = addCurrent(finalizedEpfEe, line.epfEeSen);
+          const epfEr = addCurrent(finalizedEpfEr, line.epfErSen);
+          const socso = addCurrent(finalizedSocso, line.socsoEeCoreSen);
+          const eis = addCurrent(finalizedEis, line.eisEeSen);
+          const pcb = addCurrent(finalizedPcb, line.pcbNetSen);
+          const cp38 = addCurrent(finalizedCp38, line.cp38Sen);
           ytd = {
-            grossSen: finalizedYtd.grossSen + (line.grossSen ?? 0),
-            netSen: finalizedYtd.netSen + (line.netSen ?? 0),
-            epfEeSen: finalizedYtd.epfEeSen + (line.epfEeSen ?? 0),
-            epfErSen: finalizedYtd.epfErSen + (line.epfErSen ?? 0),
-            socsoEeCoreSen:
-              finalizedYtd.socsoEeCoreSen + (line.socsoEeCoreSen ?? 0),
-            eisEeSen: finalizedYtd.eisEeSen + (line.eisEeSen ?? 0),
-            pcbNetSen: finalizedYtd.pcbNetSen + (line.pcbNetSen ?? 0),
-            cp38Sen: finalizedYtd.cp38Sen + (line.cp38Sen ?? 0),
+            grossSen: gross.sum,
+            netSen: net.sum,
+            epfEeSen: epfEe.sum,
+            epfErSen: epfEr.sum,
+            socsoEeCoreSen: socso.sum,
+            eisEeSen: eis.sum,
+            pcbNetSen: pcb.sum,
+            cp38Sen: cp38.sum,
             isProvisional: true,
+            incomplete:
+              gross.incomplete ||
+              net.incomplete ||
+              epfEe.incomplete ||
+              epfEr.incomplete ||
+              socso.incomplete ||
+              eis.incomplete ||
+              pcb.incomplete ||
+              cp38.incomplete,
           };
         } else {
-          ytd = { ...finalizedYtd, isProvisional: false };
+          ytd = {
+            grossSen: finalizedGross.sum,
+            netSen: finalizedNet.sum,
+            epfEeSen: finalizedEpfEe.sum,
+            epfErSen: finalizedEpfEr.sum,
+            socsoEeCoreSen: finalizedSocso.sum,
+            eisEeSen: finalizedEis.sum,
+            pcbNetSen: finalizedPcb.sum,
+            cp38Sen: finalizedCp38.sum,
+            isProvisional: false,
+            incomplete: finalizedIncomplete,
+          };
         }
       }
 

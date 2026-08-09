@@ -6,7 +6,14 @@ import { createHash } from "node:crypto";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { MemoryArtifactStore } from "@/domain/artifacts/store";
-import { setArtifactStore, storeAttachedEvidence } from "@/service/artifacts";
+import {
+  readRunArtifactContent,
+  setArtifactStore,
+  signedArtifactUrl,
+  storeArtifact,
+  storeAttachedEvidence,
+} from "@/service/artifacts";
+import { ControlError } from "@/service/control-errors";
 import { commitTransfer } from "@/service/transfer";
 import {
   ALL_TABLES,
@@ -107,5 +114,57 @@ describe("storeAttachedEvidence", () => {
       sql`SELECT evidence_artifact_id FROM transfers WHERE id = ${transferId}`
     );
     expect(row.rows[0]?.evidence_artifact_id).toBe(stored.id);
+  });
+});
+
+describe("run-scoped artifact access", () => {
+  const RUN_A = "ART-SCOPE-A";
+  const RUN_B = "ART-SCOPE-B";
+
+  beforeEach(async () => {
+    await db.execute(sql`
+      INSERT INTO pay_runs (
+        id, company_id, rule_pack_id, year, month,
+        period_start, period_end, working_days, status, created_by)
+      VALUES
+        (${RUN_A}, ${COMPANY_A}, ${RULE_PACK}, 2026, 7,
+         '2026-07-01', '2026-07-31', 22, 'DRAFT', 'artifacts-test'),
+        (${RUN_B}, ${COMPANY_A}, ${RULE_PACK}, 2026, 8,
+         '2026-08-01', '2026-08-31', 22, 'DRAFT', 'artifacts-test')`);
+  });
+
+  it("rejects signed URL and content when runId does not own the artifact", async () => {
+    const stored = await storeArtifact(db, {
+      runId: RUN_A,
+      type: "EVIDENCE",
+      filename: "owned.txt",
+      body: new TextEncoder().encode("owned"),
+      mimeType: "text/plain",
+      createdBy: "artifacts-test",
+      source: "ATTACHED",
+    });
+
+    const urlErr = await signedArtifactUrl(db, RUN_B, stored.id, store).then(
+      () => null,
+      (error: unknown) => error
+    );
+    expect(urlErr).toBeInstanceOf(ControlError);
+    expect((urlErr as ControlError).code).toBe("NOT_FOUND");
+
+    const contentErr = await readRunArtifactContent(
+      db,
+      RUN_B,
+      stored.id,
+      store
+    ).then(
+      () => null,
+      (error: unknown) => error
+    );
+    expect(contentErr).toBeInstanceOf(ControlError);
+    expect((contentErr as ControlError).code).toBe("NOT_FOUND");
+
+    const ok = await readRunArtifactContent(db, RUN_A, stored.id, store);
+    expect(new TextDecoder().decode(ok.body)).toBe("owned");
+    expect(ok.filename).toBe("owned.txt");
   });
 });

@@ -53,15 +53,24 @@ Feature Progress:
 - [ ] 11. Tests + .env.example if needed
 ```
 
-Follow [references/feature-checklist.md](references/feature-checklist.md). Paths: [references/layer-map.md](references/layer-map.md). Gold path: [references/companies-trace.md](references/companies-trace.md).
+Follow [references/feature-checklist.md](references/feature-checklist.md). Paths: [references/layer-map.md](references/layer-map.md). Gold path: [references/companies-trace.md](references/companies-trace.md). Decision tree / DoD: [references/continuous-dev.md](references/continuous-dev.md). Templates: [references/extension-patterns.md](references/extension-patterns.md).
 
 ## Mode B — Drift audit
 
 1. Read [references/drift-audit.md](references/drift-audit.md).
-2. Inventory DTO / client↔route / nav↔page / schema↔repo / auth mismatches.
-3. Report severity + files; fix schema → repo → service → route → types/`client.ts` → page/nav.
+2. Cross-check live inventory in [references/feature-surface-map.md](references/feature-surface-map.md).
+3. Inventory DTO / client↔route / nav↔page / schema↔repo / auth mismatches.
+4. Report severity + files; fix schema → repo → service → route → types/`client.ts` → page/nav.
 
 DTO skew: extend service JSON first, mirror `types.ts` with sync comment, then UI. No `as any`.
+
+## Continuous development
+
+For ongoing increments (not greenfield discovery):
+
+1. [references/continuous-dev.md](references/continuous-dev.md) — decision tree, layer contracts, debt protocol, increment DoD
+2. [references/extension-patterns.md](references/extension-patterns.md) — copy-paste templates (admin CRUD, tenant CRUD, workspace, artifacts, domain, nav)
+3. [references/feature-surface-map.md](references/feature-surface-map.md) — current API/SPA/DTO inventory + layering grades
 
 ## Where things live
 
@@ -90,3 +99,6 @@ DTO skew: extend service JSON first, mirror `types.ts` with sync comment, then U
 - [feature-checklist.md](references/feature-checklist.md) — create steps
 - [drift-audit.md](references/drift-audit.md) — audit + DTO example
 - [companies-trace.md](references/companies-trace.md) — gold path
+- [continuous-dev.md](references/continuous-dev.md) — decision tree, contracts, debt, DoD
+- [extension-patterns.md](references/extension-patterns.md) — copy-paste feature templates
+- [feature-surface-map.md](references/feature-surface-map.md) — live API/SPA/DTO inventory

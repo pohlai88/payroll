@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { computeLine } from "@/domain/calc/compose";
+import { pcbNet } from "@/domain/calc/pcb";
 import { type DeriveOptions, deriveLine } from "@/domain/derive/emit";
 import { readSen } from "@/domain/derive/graph";
 import { renderLabel } from "@/domain/derive/i18n/render";
@@ -13,10 +14,11 @@ import {
 } from "../helpers";
 
 /**
- * PCB is the one figure the engine never calculates, so it is also the one most
- * able to put an unexplained number on a payslip. These cases pin the three
- * states apart: a zero that statute explains, a genuine unknown that must block
- * net pay, and an entered figure that must be deducted whatever the flag says.
+ * PCB dual-path: evidenced override / draft entry, offline computerized MTD
+ * (P-SPEC-2026), or unknown. These cases pin the states apart: a zero that
+ * statute explains, a genuine unknown that must block net pay, an entered
+ * figure that must be deducted, and a COMPUTED figure that cites the
+ * computerized specification — never `MY.PCB.EXTERNAL_ONLY`.
  */
 
 const RULE_PACK_ID = "MY-STATUTORY-2026-06";
@@ -127,6 +129,53 @@ describe("PCB in the derivation graph", () => {
     expect(readSen(graph, "pcbNet")).toBe(0);
     expect(readSen(graph, "zakat")).toBe(25_000);
     assertMirrors(graph, computeLine(opts));
+    assertGraphInvariants(graph);
+  });
+
+  it("mirrors offline COMPUTED PCB and cites the computerized specification", () => {
+    const pcb = {
+      pcbAmountSen: null,
+      zakatOffsetSen: 0,
+      cp38Sen: 0,
+      verified: false,
+      taxProfile: {
+        residence: "RESIDENT" as const,
+        category: 3 as const,
+        disabledIndividual: false,
+        disabledSpouse: false,
+        qualifyingChildUnits: 0,
+      },
+      monthContext: {
+        ySen: 0,
+        kSen: 0,
+        y1Sen: 550_000,
+        k1Sen: 60_500,
+        n: 11,
+        xSen: 0,
+        zSen: 0,
+        accumulatedLpSen: 0,
+        lp1Sen: 0,
+      },
+    };
+    const opts = optionsFor({ pcb });
+    const resolved = pcbNet(pcb);
+    expect(resolved.path).toBe("COMPUTED");
+    expect(resolved.netPcbSen).not.toBeNull();
+
+    const graph = deriveLine(opts);
+    const engine = computeLine(opts);
+
+    expect(engine.pcbNetSen).toBe(resolved.netPcbSen);
+    expect(readSen(graph, "pcbNet")).toBe(resolved.netPcbSen);
+
+    const declared = graph.nodes["line.pcb.declared"];
+    expect(declared?.kind).toBe("CALCULATION");
+    expect(declared?.citations[0]?.ruleId).toBe("MY.PCB.COMPUTERIZED");
+    expect(declared?.citations[0]?.sourceRef).toBe("S4");
+    expect(declared?.flags).toContain("UNVERIFIED");
+    expect(renderLabel(declared!.detail!, "en")).toMatch(/P-SPEC-2026/);
+
+    assertMirrors(graph, engine);
     assertGraphInvariants(graph);
   });
 });

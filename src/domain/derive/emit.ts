@@ -1467,23 +1467,64 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
     );
   }
 
-  function emitPcbApplicable(): NodeId {
+  function emitPcbDeclaredComputed(): NodeId {
+    const month = pcbForNet?.monthContext;
+    if (month == null || pcbRes.grossPcbSen == null) {
+      throw new Error(
+        "COMPUTED PCB requires month context and a settled gross"
+      );
+    }
+    const y1Id = g.add({
+      kind: "INPUT",
+      id: "line.pcb.y1",
+      label: label("pcb.y1"),
+      value: sen(month.y1Sen),
+      inputs: [],
+      citations: [],
+      origin: "LINE_ENTRY",
+      fieldPath: "pcb.monthContext.y1Sen",
+    });
+    const k1Id = g.add({
+      kind: "INPUT",
+      id: "line.pcb.k1",
+      label: label("pcb.k1"),
+      value: sen(month.k1Sen),
+      inputs: [],
+      citations: [],
+      origin: "LINE_ENTRY",
+      fieldPath: "pcb.monthContext.k1Sen",
+    });
+    return g.add({
+      kind: "CALCULATION",
+      id: "line.pcb.declared",
+      op: "MAX",
+      label: label("pcb.declared"),
+      value: sen(pcbRes.grossPcbSen),
+      detail: label("pcb.declared.computed", {
+        source: p.text("P-SPEC-2026"),
+      }),
+      operands: [
+        { o: "LITERAL", value: sen(pcbRes.grossPcbSen) },
+        { o: "LITERAL", value: sen(0) },
+      ],
+      inputs: [
+        { nodeId: y1Id, role: "Y1" },
+        { nodeId: k1Id, role: "K1" },
+      ],
+      citations: [cite("S4", "MY.PCB.COMPUTERIZED")],
+      flags: ["UNVERIFIED"],
+    });
+  }
+
+  function emitPcbDeclaredExternal(): NodeId {
     const pcbStatus = ((): "VERIFIED" | "UNVERIFIED" | "NOT_ENTERED" => {
       if (pcbRes.grossPcbSen == null) {
         return "NOT_ENTERED";
       }
-      if (pcbRes.path === "COMPUTED") {
-        return "UNVERIFIED";
-      }
       return pcbRes.verified ? "VERIFIED" : "UNVERIFIED";
     })();
-
-    const declaredSource =
-      pcbRes.path === "COMPUTED"
-        ? "P-SPEC-2026"
-        : (opts.pcbSource ?? "manual entry");
-
-    const declaredId = g.add({
+    const declaredSource = opts.pcbSource ?? "manual entry";
+    return g.add({
       kind: "EXTERNAL_VERIFIED",
       id: "line.pcb.declared",
       label: label("pcb.declared"),
@@ -1496,8 +1537,7 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
               source: p.text(declaredSource),
               status: p.enum("VERIFICATION_STATUS", pcbStatus),
             }),
-      source:
-        pcbRes.path === "COMPUTED" ? "P-SPEC-2026" : (opts.pcbSource ?? null),
+      source: opts.pcbSource ?? null,
       verificationStatus: pcbStatus,
       ...(opts.pcbEvidenceRef === undefined
         ? {}
@@ -1506,6 +1546,13 @@ export function deriveLine(opts: DeriveOptions): DerivationGraph {
       citations: [cite("S4", "MY.PCB.EXTERNAL_ONLY")],
       flags: pcbStatus === "VERIFIED" ? [] : [pcbStatus],
     });
+  }
+
+  function emitPcbApplicable(): NodeId {
+    const declaredId =
+      pcbRes.path === "COMPUTED"
+        ? emitPcbDeclaredComputed()
+        : emitPcbDeclaredExternal();
 
     return g.add({
       kind: "CALCULATION",

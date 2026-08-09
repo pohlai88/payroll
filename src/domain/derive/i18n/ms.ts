@@ -142,6 +142,10 @@ export const MS: Record<MessageKey, string> = {
   "pcb.declared.notEntered":
     "Belum dimasukkan — gaji bersih tidak dapat ditentukan",
   "pcb.declared.entered": "Direkodkan daripada {source}, {status}",
+  "pcb.declared.computed":
+    "Dikira daripada spesifikasi PCB berkomputer LHDN 2026 ({source})",
+  "pcb.y1": "Saraan biasa bulan semasa (Y1)",
+  "pcb.k1": "KWSP bulan semasa terhadap Y1 (K1)",
   "pcb.zakat": "Tolakan zakat",
   "pcb.net": "PCB / MTD selepas zakat",
   "pcb.net.detail":

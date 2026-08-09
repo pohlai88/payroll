@@ -22,7 +22,7 @@ const badgeVariants = cva(
         success:
           "bg-status-ok-fill text-status-ok-ink [a]:hover:bg-status-ok-fill/80",
         warning:
-          "bg-status-warn-fill text-status-warn-ink border-status-warn-border [a]:hover:bg-status-warn-fill/80",
+          "border-status-warn-border bg-status-warn-fill text-status-warn-ink [a]:hover:bg-status-warn-fill/80",
         info: "bg-status-info-fill text-status-info-ink [a]:hover:bg-status-info-fill/80",
         bad: "bg-status-bad-fill text-status-bad-ink [a]:hover:bg-status-bad-fill/80",
       },

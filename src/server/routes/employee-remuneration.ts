@@ -9,6 +9,7 @@ import { Hono } from "hono";
 import type { Database } from "@/db/client";
 import { companies, employments } from "@/db/schema/parties";
 import { payLines, payRuns } from "@/db/schema/run";
+import { sumNullableSen } from "@/domain/sum-nullable-sen";
 import { requirePermission } from "@/service/rbac";
 import type { AuthVariables } from "../auth/middleware";
 import { handleRouteError } from "../errors";
@@ -34,14 +35,6 @@ function aggregateAnnualTotals(
   year: number,
   defaultEmployeeCode: string
 ) {
-  let grossSen = 0;
-  let netSen = 0;
-  let epfEeSen = 0;
-  let epfErSen = 0;
-  let socsoEeCoreSen = 0;
-  let eisEeSen = 0;
-  let pcbNetSen = 0;
-  let cp38Sen = 0;
   let employeeName = "Unknown";
   let employeeCode = defaultEmployeeCode;
 
@@ -53,16 +46,16 @@ function aggregateAnnualTotals(
     if (snap.id) {
       employeeCode = snap.id;
     }
-
-    grossSen += line.grossSen ?? 0;
-    netSen += line.netSen ?? 0;
-    epfEeSen += line.epfEeSen ?? 0;
-    epfErSen += line.epfErSen ?? 0;
-    socsoEeCoreSen += line.socsoEeCoreSen ?? 0;
-    eisEeSen += line.eisEeSen ?? 0;
-    pcbNetSen += line.pcbNetSen ?? 0;
-    cp38Sen += line.cp38Sen ?? 0;
   }
+
+  const gross = sumNullableSen(lines.map((l) => l.grossSen));
+  const net = sumNullableSen(lines.map((l) => l.netSen));
+  const epfEe = sumNullableSen(lines.map((l) => l.epfEeSen));
+  const epfEr = sumNullableSen(lines.map((l) => l.epfErSen));
+  const socsoEe = sumNullableSen(lines.map((l) => l.socsoEeCoreSen));
+  const eisEe = sumNullableSen(lines.map((l) => l.eisEeSen));
+  const pcb = sumNullableSen(lines.map((l) => l.pcbNetSen));
+  const cp38 = sumNullableSen(lines.map((l) => l.cp38Sen));
 
   const runMonthMap = new Map(eligibleRuns.map((r) => [r.id, r.month]));
   const seenRunIds = new Set<string>();
@@ -80,14 +73,23 @@ function aggregateAnnualTotals(
   const runsIncluded = [...seenRunIds].sort((a, b) => a.localeCompare(b));
 
   return {
-    grossSen,
-    netSen,
-    epfEeSen,
-    epfErSen,
-    socsoEeCoreSen,
-    eisEeSen,
-    pcbNetSen,
-    cp38Sen,
+    grossSen: gross.sum,
+    netSen: net.sum,
+    epfEeSen: epfEe.sum,
+    epfErSen: epfEr.sum,
+    socsoEeCoreSen: socsoEe.sum,
+    eisEeSen: eisEe.sum,
+    pcbNetSen: pcb.sum,
+    cp38Sen: cp38.sum,
+    incomplete:
+      gross.incomplete ||
+      net.incomplete ||
+      epfEe.incomplete ||
+      epfEr.incomplete ||
+      socsoEe.incomplete ||
+      eisEe.incomplete ||
+      pcb.incomplete ||
+      cp38.incomplete,
     employeeName,
     employeeCode,
     months,
@@ -169,6 +171,7 @@ export function employeeRemunerationRoutes(db: Database) {
         eisEeSen: 0,
         pcbNetSen: 0,
         cp38Sen: 0,
+        incomplete: false,
         employeeName: "Unknown",
         employeeCode: employmentEmployeeCode,
         months: [] as string[],
@@ -215,6 +218,7 @@ export function employeeRemunerationRoutes(db: Database) {
         eisEeSen: totals.eisEeSen,
         pcbNetSen: totals.pcbNetSen,
         cp38Sen: totals.cp38Sen,
+        incomplete: totals.incomplete,
         limitationNotice: LIMITATION_NOTICE,
         disclaimer: DISCLAIMER,
       });

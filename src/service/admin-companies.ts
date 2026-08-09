@@ -10,7 +10,7 @@ import { companies } from "@/db/schema/parties";
 import { listAllCompanies } from "@/repo/rbac";
 import { requireSystemAdmin } from "./rbac";
 
-export type CompanyDirectoryRow = {
+export interface CompanyDirectoryRow {
   readonly id: string;
   readonly code: string;
   readonly name: string;
@@ -20,7 +20,7 @@ export type CompanyDirectoryRow = {
   readonly hrdfEnabled: boolean;
   readonly hrdfLevyPct: string;
   readonly createdAt: string;
-};
+}
 
 function toDirectoryRow(row: CompanyRow): CompanyDirectoryRow {
   return {
@@ -45,7 +45,7 @@ export async function listAdminCompanies(
   return rows.map(toDirectoryRow);
 }
 
-export type CreateCompanyInput = {
+export interface CreateCompanyInput {
   readonly actorUserId: string;
   readonly code: string;
   readonly name: string;
@@ -54,7 +54,7 @@ export type CreateCompanyInput = {
   readonly lhdnNo?: string | null;
   readonly hrdfEnabled?: boolean;
   readonly hrdfLevyPct?: string;
-};
+}
 
 export async function createAdminCompany(
   db: Database,
@@ -84,7 +84,7 @@ export async function createAdminCompany(
   return toDirectoryRow(row);
 }
 
-export type UpdateCompanyInput = {
+export interface UpdateCompanyInput {
   readonly actorUserId: string;
   readonly companyId: string;
   readonly name?: string;
@@ -93,7 +93,7 @@ export type UpdateCompanyInput = {
   readonly lhdnNo?: string | null;
   readonly hrdfEnabled?: boolean;
   readonly hrdfLevyPct?: string;
-};
+}
 
 export async function updateAdminCompany(
   db: Database,

@@ -29,8 +29,13 @@ export class ControlError extends Error {
   readonly code: ControlErrorCode;
   readonly status: number;
 
-  constructor(code: ControlErrorCode, message: string, status?: number) {
-    super(message);
+  constructor(
+    code: ControlErrorCode,
+    message: string,
+    status?: number,
+    options?: ErrorOptions
+  ) {
+    super(message, options);
     this.name = "ControlError";
     this.code = code;
     this.status = status ?? defaultStatusFor(code);

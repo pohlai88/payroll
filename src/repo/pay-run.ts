@@ -126,9 +126,9 @@ export async function listPayRunSummaries(
       and(
         filters.companyId
           ? eq(payRuns.companyId, filters.companyId)
-          : filters.companyIds !== undefined
-            ? inArray(payRuns.companyId, [...filters.companyIds])
-            : undefined,
+          : filters.companyIds === undefined
+            ? undefined
+            : inArray(payRuns.companyId, [...filters.companyIds]),
         filters.reportingMonth
           ? eq(
               sql`${payRuns.year}::text || '-' || lpad(${payRuns.month}::text, 2, '0')`,
@@ -331,20 +331,18 @@ function assemblePcbInput(
     return base;
   }
 
-  const ytdAcc = ytd ?? {
-    ySen: 0,
-    kSen: 0,
-    xSen: 0,
-    zSen: 0,
-    accumulatedLpSen: 0,
-  };
+  // Profile without a YTD row: do not invent zero accumulators — that would
+  // silently produce a false COMPUTED MTD. OVERRIDE / ENTERED still work.
+  if (ytd === null) {
+    return base;
+  }
 
   return {
     ...base,
     taxProfile: toTaxProfile(profileRow),
     monthContext: buildPcbMonthContext({
       periodEndIso: periodEnd,
-      ytd: ytdAcc,
+      ytd,
       y1Sen: entry?.y1Sen ?? 0,
       k1Sen: 0,
       ytSen: entry?.ytSen ?? 0,

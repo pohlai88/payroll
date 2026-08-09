@@ -1,13 +1,20 @@
 /**
  * Store hashed artifacts in R2 (or injectable store) and persist metadata.
+ * Run-scoped HTTP entrypoints use *ForActor (PAY_RUN RBAC). Internal writers
+ * (release/close/timestamp) call storeArtifact without AuthZ.
  */
 
 import { createHash, randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
 import type { Database } from "@/db/client";
-import { artifacts } from "@/db/schema/artifacts";
+import type { ArtifactRow } from "@/db/schema/artifacts";
 import { LocalFsArtifactStore } from "@/domain/artifacts/local-fs-store";
 import type { ArtifactStore } from "@/domain/artifacts/store";
+import {
+  getArtifactRowById,
+  insertArtifactRow,
+  listArtifactRowsByRunId,
+} from "@/repo/artifacts";
+import { requirePayRunPermission } from "@/service/payrun";
 import { ControlError } from "./control-errors";
 
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
@@ -23,6 +30,39 @@ export type ArtifactType =
   | "EXCEPTION_REPORT"
   | "TIMESTAMP_TOKEN";
 
+/** JSON list row for HTTP — dates as ISO strings (not Drizzle `Date`). */
+export interface ArtifactListItem {
+  readonly id: string;
+  readonly runId: string | null;
+  readonly entityType: ArtifactRow["entityType"];
+  readonly entityId: string | null;
+  readonly type: ArtifactRow["type"];
+  readonly relativePath: string;
+  readonly sha256: string;
+  readonly byteSize: number;
+  readonly mimeType: string;
+  readonly source: ArtifactRow["source"];
+  readonly createdBy: string;
+  readonly createdAt: string;
+}
+
+function toArtifactListItem(row: ArtifactRow): ArtifactListItem {
+  return {
+    id: row.id,
+    runId: row.runId,
+    entityType: row.entityType,
+    entityId: row.entityId,
+    type: row.type,
+    relativePath: row.relativePath,
+    sha256: row.sha256,
+    byteSize: row.byteSize,
+    mimeType: row.mimeType,
+    source: row.source,
+    createdBy: row.createdBy,
+    createdAt: row.createdAt.toISOString(),
+  };
+}
+
 export interface StoreArtifactInput {
   readonly runId: string;
   readonly type: ArtifactType;
@@ -32,7 +72,6 @@ export interface StoreArtifactInput {
   readonly createdBy: string;
   readonly source?: "ATTACHED" | "GENERATED";
   readonly entityId?: string | null;
-  readonly lineId?: string | null;
 }
 
 let defaultStore: ArtifactStore | null = null;
@@ -72,7 +111,7 @@ export async function storeArtifact(
     contentType: input.mimeType,
   });
 
-  await db.insert(artifacts).values({
+  await insertArtifactRow(db, {
     id,
     runId: input.runId,
     entityType: "PAY_RUN",
@@ -89,27 +128,68 @@ export async function storeArtifact(
   return { id, sha256, relativePath };
 }
 
-export async function listRunArtifacts(db: Database, runId: string) {
-  return await db.select().from(artifacts).where(eq(artifacts.runId, runId));
+export async function listRunArtifacts(
+  db: Database,
+  runId: string
+): Promise<ArtifactListItem[]> {
+  const rows = await listArtifactRowsByRunId(db, runId);
+  return rows.map(toArtifactListItem);
+}
+
+/** Load an artifact that belongs to `runId`, or NOT_FOUND (no cross-run leak). */
+export async function requireRunArtifact(
+  db: Database,
+  runId: string,
+  artifactId: string
+): Promise<ArtifactRow> {
+  const row = await getArtifactRowById(db, artifactId);
+  if (row === null || row.runId !== runId) {
+    throw new ControlError("NOT_FOUND", `no such artifact: ${artifactId}`);
+  }
+  return row;
+}
+
+function filenameFromRelativePath(relativePath: string): string {
+  return relativePath.split("/").pop() ?? relativePath;
 }
 
 export async function signedArtifactUrl(
   db: Database,
+  runId: string,
   artifactId: string,
   store: ArtifactStore = getArtifactStore()
 ): Promise<{ url: string; filename: string }> {
-  const [row] = await db
-    .select()
-    .from(artifacts)
-    .where(eq(artifacts.id, artifactId))
-    .limit(1);
-  if (row === undefined) {
-    throw new ControlError("NOT_FOUND", `no such artifact: ${artifactId}`);
-  }
+  const row = await requireRunArtifact(db, runId, artifactId);
   const url = await store.signedGetUrl(row.relativePath);
   return {
     url,
-    filename: row.relativePath.split("/").pop() ?? row.relativePath,
+    filename: filenameFromRelativePath(row.relativePath),
+  };
+}
+
+/** Bytes for authenticated SPA download (works for local FS and R2). */
+export async function readRunArtifactContent(
+  db: Database,
+  runId: string,
+  artifactId: string,
+  store: ArtifactStore = getArtifactStore()
+): Promise<{
+  readonly body: Uint8Array;
+  readonly mimeType: string;
+  readonly filename: string;
+}> {
+  const row = await requireRunArtifact(db, runId, artifactId);
+  const body = await store.get(row.relativePath);
+  if (body === null) {
+    throw new ControlError(
+      "NOT_FOUND",
+      `artifact bytes missing: ${artifactId}`
+    );
+  }
+  return {
+    body,
+    mimeType: row.mimeType,
+    filename: filenameFromRelativePath(row.relativePath),
   };
 }
 
@@ -169,7 +249,7 @@ export async function storeAttachedEvidence(
     contentType: input.mimeType,
   });
 
-  await db.insert(artifacts).values({
+  await insertArtifactRow(db, {
     id,
     runId: input.runId ?? null,
     entityType: input.entityType,
@@ -190,14 +270,57 @@ export async function storeAttachedEvidence(
 export async function requireArtifact(
   db: DbOrTx,
   artifactId: string
-): Promise<typeof artifacts.$inferSelect> {
-  const [row] = await db
-    .select()
-    .from(artifacts)
-    .where(eq(artifacts.id, artifactId))
-    .limit(1);
-  if (row === undefined) {
+): Promise<ArtifactRow> {
+  const row = await getArtifactRowById(db, artifactId);
+  if (row === null) {
     throw new ControlError("NOT_FOUND", `no such artifact: ${artifactId}`);
   }
   return row;
+}
+
+// --- Actor-gated entrypoints (HTTP / SPA) ---
+
+export async function listRunArtifactsForActor(
+  db: Database,
+  actorUserId: string,
+  runId: string
+): Promise<ArtifactListItem[]> {
+  await requirePayRunPermission(db, actorUserId, "READ", runId);
+  return await listRunArtifacts(db, runId);
+}
+
+export async function storeArtifactForActor(
+  db: Database,
+  actorUserId: string,
+  input: StoreArtifactInput,
+  store: ArtifactStore = getArtifactStore()
+): Promise<{ id: string; sha256: string; relativePath: string }> {
+  await requirePayRunPermission(db, actorUserId, "UPDATE", input.runId);
+  return await storeArtifact(db, input, store);
+}
+
+export async function signedArtifactUrlForActor(
+  db: Database,
+  actorUserId: string,
+  runId: string,
+  artifactId: string,
+  store: ArtifactStore = getArtifactStore()
+): Promise<{ url: string; filename: string }> {
+  await requirePayRunPermission(db, actorUserId, "READ", runId);
+  return await signedArtifactUrl(db, runId, artifactId, store);
+}
+
+export async function readRunArtifactContentForActor(
+  db: Database,
+  actorUserId: string,
+  runId: string,
+  artifactId: string,
+  store: ArtifactStore = getArtifactStore()
+): Promise<{
+  readonly body: Uint8Array;
+  readonly mimeType: string;
+  readonly filename: string;
+}> {
+  await requirePayRunPermission(db, actorUserId, "READ", runId);
+  return await readRunArtifactContent(db, runId, artifactId, store);
 }

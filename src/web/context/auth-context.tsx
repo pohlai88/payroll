@@ -18,8 +18,8 @@ import {
   useMemo,
   useState,
 } from "react";
-import type { MeResponse } from "@/web/api/payroll-api";
 import { formatApiError } from "@/web/api/format-error";
+import type { MeResponse } from "@/web/api/payroll-api";
 import { payrollApi } from "@/web/api/payroll-api";
 import { signOutAuth } from "@/web/auth/client";
 import { isSystemAdminPresentation } from "@/web/auth/is-system-admin";

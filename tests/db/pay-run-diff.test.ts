@@ -1,3 +1,8 @@
+/**
+ * GET /v1/pay-runs/:runId/lines/:lineId/diff — compute-on-read graph diff.
+ * Uses createRun + recompute so employeeSnapshot matches the Zod wall.
+ */
+
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { roles, userRoleAssignments, users } from "@/db/schema/rbac";
@@ -6,6 +11,7 @@ import { assignUserToRole, createUser, getRoleByCode } from "@/repo/rbac";
 import { createApp } from "@/server/app";
 import { AuthError } from "@/server/auth/errors";
 import type { NeonAuthClaims, VerifyJwt } from "@/server/auth/jwt";
+import { createRun, recomputeRun } from "@/service/payrun";
 import { seed } from "../../scripts/seed";
 import { ALL_TABLES, connectTestDatabase } from "./harness/database";
 
@@ -33,7 +39,7 @@ beforeAll(async () => {
     INSERT INTO employments (id, person_id, company_id, employee_code, join_date, pay_basis, base_rate_sen,
       epf_applicable, socso_applicable, eis_applicable, pcb_applicable)
     VALUES (${EMP_ID}, ${PERSON_ID}, ${COMPANY_ID}, 'D001', '2020-01-01',
-            'MONTHLY', 500000, false, false, false, false)`);
+            'MONTHLY', 500000, true, true, true, false)`);
 });
 
 beforeEach(async () => {
@@ -88,70 +94,65 @@ function adminApp() {
   });
 }
 
-/**
- * Runs must be inserted as DRAFT — `pay_lines_immutable_past_approval` blocks
- * any INSERT into pay_lines once the run is APPROVED/CLOSED — then advanced
- * through the lifecycle (DRAFT -> REVIEWED -> APPROVED) after lines exist.
- */
-async function insertRuns() {
+async function createLinkedRuns(): Promise<string> {
   await makeAdmin(ADMIN_EMAIL);
-  const snap = JSON.stringify({ id: "D001", name: "DIFF WORKER" });
 
-  // Run A (prior)
-  await db.execute(sql`
-    INSERT INTO pay_runs (id, company_id, year, month, period_start, period_end, working_days, rule_pack_id, status)
-    VALUES (${RUN_A}, ${COMPANY_ID}, 2026, 6, '2026-06-01', '2026-06-30', 26, ${rulePackId}, 'DRAFT')`);
-  await db.execute(sql`
-    INSERT INTO pay_lines (id, run_id, employment_id, employee_snapshot, working_days, period_end, gross_sen, net_sen,
-      deductions_total_sen, epf_wages_sen, socso_wages_sen, eis_wages_sen,
-      epf_ee_sen, epf_er_sen, socso_ee_core_sen, socso_ee_skbbk_sen, socso_er_sen,
-      eis_ee_sen, eis_er_sen, pcb_net_sen, cp38_sen, zakat_sen, other_deductions_sen, hrdf_sen, employer_cost_sen,
-      trace)
-    VALUES (gen_random_uuid(), ${RUN_A}, ${EMP_ID}, ${snap}::jsonb, 26, '2026-06-30',
-            400000, 344000, 56000, 400000, 400000, 400000,
-            44000, 52000, 3800, 0, 7500, 1400, 1400, 4000, 0, 0, 0, 0, 52000,
-            '{"nodes":{},"order":[]}'::jsonb)`);
+  await createRun(db, {
+    runId: RUN_A,
+    companyId: COMPANY_ID,
+    rulePackId,
+    year: 2026,
+    month: 6,
+    periodStart: "2026-06-01",
+    periodEnd: "2026-06-30",
+    workingDays: 26,
+    paidDays: 26,
+    actor: "diff-test",
+  });
+  const prior = await recomputeRun(db, RUN_A, "diff-test");
+  expect(prior.failures).toEqual([]);
+  expect(prior.computed).toBe(1);
+
+  await createRun(db, {
+    runId: RUN_B,
+    companyId: COMPANY_ID,
+    rulePackId,
+    year: 2026,
+    month: 7,
+    periodStart: "2026-07-01",
+    periodEnd: "2026-07-31",
+    workingDays: 26,
+    paidDays: 26,
+    actor: "diff-test",
+  });
+  const current = await recomputeRun(db, RUN_B, "diff-test");
+  expect(current.failures).toEqual([]);
+  expect(current.computed).toBe(1);
+
   await db.execute(
-    sql`UPDATE pay_runs SET status = 'REVIEWED' WHERE id = ${RUN_A}`
-  );
-  await db.execute(
-    sql`UPDATE pay_runs SET status = 'APPROVED' WHERE id = ${RUN_A}`
+    sql`UPDATE pay_runs SET linked_run_id = ${RUN_A} WHERE id = ${RUN_B}`
   );
 
-  // Run B (current, linked to A) — inserted DRAFT, lines added, then approved.
-  await db.execute(sql`
-    INSERT INTO pay_runs (id, company_id, year, month, period_start, period_end, working_days, rule_pack_id, status, linked_run_id)
-    VALUES (${RUN_B}, ${COMPANY_ID}, 2026, 7, '2026-07-01', '2026-07-31', 26, ${rulePackId}, 'DRAFT', ${RUN_A})`);
-  const lineResult = await db.execute(sql`
-    INSERT INTO pay_lines (id, run_id, employment_id, employee_snapshot, working_days, period_end, gross_sen, net_sen,
-      deductions_total_sen, epf_wages_sen, socso_wages_sen, eis_wages_sen,
-      epf_ee_sen, epf_er_sen, socso_ee_core_sen, socso_ee_skbbk_sen, socso_er_sen,
-      eis_ee_sen, eis_er_sen, pcb_net_sen, cp38_sen, zakat_sen, other_deductions_sen, hrdf_sen, employer_cost_sen,
-      trace)
-    VALUES (gen_random_uuid(), ${RUN_B}, ${EMP_ID}, ${snap}::jsonb, 26, '2026-07-31',
-            500000, 433500, 66500, 500000, 500000, 500000,
-            55000, 65000, 4750, 0, 9375, 1750, 1750, 5000, 0, 0, 0, 0, 65000,
-            '{"nodes":{},"order":[]}'::jsonb)
-    RETURNING id`);
-  await db.execute(
-    sql`UPDATE pay_runs SET status = 'REVIEWED' WHERE id = ${RUN_B}`
+  const lines = await db.execute<{ id: string }>(
+    sql`SELECT id FROM pay_lines WHERE run_id = ${RUN_B}`
   );
-  await db.execute(
-    sql`UPDATE pay_runs SET status = 'APPROVED' WHERE id = ${RUN_B}`
-  );
-  return (lineResult.rows[0] as { id: string }).id;
+  const id = lines.rows[0]?.id;
+  if (id === undefined) {
+    throw new Error("expected a pay line after recompute");
+  }
+  return id;
 }
 
 describe("GET /v1/pay-runs/:runId/lines/:lineId/diff", () => {
   it("returns 401 without token", async () => {
-    const lineId = await insertRuns();
+    const lineId = await createLinkedRuns();
     const app = adminApp();
     const res = await app.request(`/v1/pay-runs/${RUN_B}/lines/${lineId}/diff`);
     expect(res.status).toBe(401);
   });
 
   it("returns RunLineDiffDto with priorRunId when linkedRunId exists", async () => {
-    const lineId = await insertRuns();
+    const lineId = await createLinkedRuns();
     const app = adminApp();
     const res = await app.request(
       `/v1/pay-runs/${RUN_B}/lines/${lineId}/diff`,
@@ -166,34 +167,39 @@ describe("GET /v1/pay-runs/:runId/lines/:lineId/diff", () => {
     expect(body.priorRunId).toBe(RUN_A);
     expect(body.employmentId).toBe(EMP_ID);
     expect(Array.isArray(body.diffs)).toBe(true);
+    // Distinct period ends → at least DATE node value diffs.
+    expect((body.diffs as unknown[]).length).toBeGreaterThan(0);
   });
 
   it("returns priorRunId null when no linkedRunId", async () => {
     await makeAdmin(ADMIN_EMAIL);
-    const snap = JSON.stringify({ id: "D001", name: "DIFF WORKER" });
     const STANDALONE = "DIFF-STANDALONE-2026-08";
-    await db.execute(sql`
-      INSERT INTO pay_runs (id, company_id, year, month, period_start, period_end, working_days, rule_pack_id, status)
-      VALUES (${STANDALONE}, ${COMPANY_ID}, 2026, 8, '2026-08-01', '2026-08-31', 26, ${rulePackId}, 'DRAFT')`);
-    const r = await db.execute(sql`
-      INSERT INTO pay_lines (id, run_id, employment_id, employee_snapshot, working_days, period_end,
-        gross_sen, net_sen, deductions_total_sen, epf_wages_sen, socso_wages_sen, eis_wages_sen,
-        epf_ee_sen, epf_er_sen, socso_ee_core_sen, socso_ee_skbbk_sen, socso_er_sen,
-        eis_ee_sen, eis_er_sen, pcb_net_sen, cp38_sen, zakat_sen, other_deductions_sen, hrdf_sen, employer_cost_sen)
-      VALUES (gen_random_uuid(), ${STANDALONE}, ${EMP_ID}, ${snap}::jsonb, 26, '2026-08-31',
-              500000, 433500, 66500, 500000, 500000, 500000,
-              55000, 65000, 4750, 0, 9375, 1750, 1750, 5000, 0, 0, 0, 0, 65000)
-      RETURNING id`);
-    await db.execute(
-      sql`UPDATE pay_runs SET status = 'REVIEWED' WHERE id = ${STANDALONE}`
+    await createRun(db, {
+      runId: STANDALONE,
+      companyId: COMPANY_ID,
+      rulePackId,
+      year: 2026,
+      month: 8,
+      periodStart: "2026-08-01",
+      periodEnd: "2026-08-31",
+      workingDays: 26,
+      paidDays: 26,
+      actor: "diff-test",
+    });
+    const outcome = await recomputeRun(db, STANDALONE, "diff-test");
+    expect(outcome.failures).toEqual([]);
+
+    const lines = await db.execute<{ id: string }>(
+      sql`SELECT id FROM pay_lines WHERE run_id = ${STANDALONE}`
     );
-    await db.execute(
-      sql`UPDATE pay_runs SET status = 'APPROVED' WHERE id = ${STANDALONE}`
-    );
+    const lineId = lines.rows[0]?.id;
+    if (lineId === undefined) {
+      throw new Error("expected a pay line after recompute");
+    }
+
     const app = adminApp();
-    const lId = (r.rows[0] as { id: string }).id;
     const res = await app.request(
-      `/v1/pay-runs/${STANDALONE}/lines/${lId}/diff`,
+      `/v1/pay-runs/${STANDALONE}/lines/${lineId}/diff`,
       {
         headers: { Authorization: "Bearer admin" },
       }

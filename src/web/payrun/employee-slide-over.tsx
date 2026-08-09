@@ -159,7 +159,11 @@ function EmployeeSlideOver({
           </TabsContent>
 
           <TabsContent className="mt-4" value="derivation">
-            <DerivationDrawer lineId={line.lineId} roots={line.roots} />
+            <DerivationDrawer
+              lineId={line.lineId}
+              roots={line.roots}
+              runId={runId}
+            />
           </TabsContent>
 
           {line.previousRoots !== null && (

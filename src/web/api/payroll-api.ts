@@ -13,6 +13,7 @@ export type {
   ActionAvailability,
   AggregateTile,
   AnnualRemunerationSummaryDto,
+  ArtifactDownload,
   ArtifactRow,
   ArtifactsListResponse,
   ArtifactType,
@@ -21,6 +22,7 @@ export type {
   ClosureChainResponse,
   ClosureChecklistResponse,
   CreatePayRunBody,
+  DerivedNodeDto,
   DistributionChannel,
   EmployeeLineDto,
   EmployeeSummary,
@@ -37,6 +39,7 @@ export type {
   GateResult,
   GetBatchResponse,
   IssuedSeal,
+  LineDerivationDto,
   LinePaymentRow,
   LinePaymentState,
   MeCompany,
@@ -73,6 +76,7 @@ export type {
   StoreArtifactResponse,
   TimestampOutcome,
   TimestampStatus,
+  UploadArtifactType,
   VarianceDto,
   WithdrawalReason,
 } from "./types";
@@ -120,9 +124,8 @@ export const payrollApi = {
     body: Parameters<PayrollApi["revokeUserRole"]>[1]
   ) => getPayrollApi().revokeUserRole(userId, body),
   getAdminCompanies: () => getPayrollApi().getAdminCompanies(),
-  createAdminCompany: (
-    body: Parameters<PayrollApi["createAdminCompany"]>[0]
-  ) => getPayrollApi().createAdminCompany(body),
+  createAdminCompany: (body: Parameters<PayrollApi["createAdminCompany"]>[0]) =>
+    getPayrollApi().createAdminCompany(body),
   updateAdminCompany: (
     companyId: string,
     body: Parameters<PayrollApi["updateAdminCompany"]>[1]
@@ -192,6 +195,8 @@ export const payrollApi = {
   ) => getPayrollApi().uploadArtifact(runId, body),
   getArtifactUrl: (runId: string, artifactId: string) =>
     getPayrollApi().getArtifactUrl(runId, artifactId),
+  downloadArtifact: (runId: string, artifactId: string) =>
+    getPayrollApi().downloadArtifact(runId, artifactId),
   getClosureChecklist: (runId: string) =>
     getPayrollApi().getClosureChecklist(runId),
   closeRun: (runId: string) => getPayrollApi().closeRun(runId),
@@ -202,6 +207,8 @@ export const payrollApi = {
   getPayslipIndex: (runId: string) => getPayrollApi().getPayslipIndex(runId),
   getLineDiff: (runId: string, lineId: string) =>
     getPayrollApi().getLineDiff(runId, lineId),
+  getLineDerivation: (runId: string, lineId: string, root?: string) =>
+    getPayrollApi().getLineDerivation(runId, lineId, root),
   getPaymentRegister: (runId: string) =>
     getPayrollApi().getPaymentRegister(runId),
   getStatutorySummary: (runId: string) =>

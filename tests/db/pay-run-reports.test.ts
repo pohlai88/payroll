@@ -155,6 +155,7 @@ describe("GET /v1/pay-runs/:runId/reports/payment-register", () => {
     const body = (await res.json()) as Record<string, unknown>;
     expect(typeof body.totalNetSen).toBe("number");
     expect(body.totalNetSen).toBe(433500);
+    expect(body.incomplete).toBe(false);
   });
 });
 
@@ -176,6 +177,7 @@ describe("GET /v1/pay-runs/:runId/reports/statutory-summary", () => {
     expect(body.epfEeTotalSen).toBe(55000);
     expect(body.epfErTotalSen).toBe(65000);
     expect(body.pcbNetTotalSen).toBe(5000);
+    expect(body.incomplete).toBe(false);
   });
 });
 

@@ -18,11 +18,7 @@ import {
 } from "../src/db/client";
 import { payItems } from "../src/db/schema/catalog";
 import { employeeCustomFieldDefs } from "../src/db/schema/employee-profile";
-import {
-  companies,
-  employments,
-  persons,
-} from "../src/db/schema/parties";
+import { companies, employments, persons } from "../src/db/schema/parties";
 import { roles } from "../src/db/schema/rbac";
 import {
   eisBands,

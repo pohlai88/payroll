@@ -10,6 +10,10 @@ import type { EmployeeSnapshot, LineInputs } from "./types";
  * see that. Validation happens here, at the domain boundary, and produces
  * structured issues with a field path that an API or form can report.
  *
+ * Gate readiness (`src/service/gates.ts`) has overlapping paid-days / hours
+ * codes (`PAID_DAYS_MISSING` / `HOURS_MISSING`) for workflow blocking — keep
+ * those distinct from these calc `*_INVALID` codes; do not merge the layers.
+ *
  * When a persistence/transport schema (Zod or equivalent) lands, it should
  * either call this or mirror it; the contract is the field paths below.
  */
@@ -27,7 +31,8 @@ export interface ValidationIssue {
     | "HOURS_WORKED_INVALID"
     | "DOB_REQUIRED"
     | "DOB_INVALID"
-    | "PERIOD_END_INVALID";
+    | "PERIOD_END_INVALID"
+    | "EPF_MEMBERSHIP_REQUIRED";
   message: string;
 }
 
@@ -57,11 +62,35 @@ export function validateLineInputs(
   // NONE/NONE/false), and an employee whose EPF part or SOCSO category is set
   // by override bypasses the age band for that scheme — demanding a DOB in
   // either case would be a spurious error. EIS has no override, so it always
-  // needs the age.
+  // needs the age. EPF Part F (post-1998 foreign non-member) does not use age.
+  const epfNeedsAge =
+    employee.epfApplicable &&
+    employee.epfPartOverride === null &&
+    (employee.isMalaysian ||
+      employee.isPermanentResident ||
+      employee.epfMemberBeforeAug1998 === true);
+
   const needsAge =
-    (employee.epfApplicable && employee.epfPartOverride === null) ||
+    epfNeedsAge ||
     (employee.socsoApplicable && employee.socsoCategoryOverride === null) ||
     employee.eisApplicable;
+
+  // Foreign EPF without override: membership must be true or false — null is
+  // not Part F (see classify). Malaysians/PR never consult this flag.
+  if (
+    employee.epfApplicable &&
+    employee.epfPartOverride === null &&
+    !employee.isMalaysian &&
+    !employee.isPermanentResident &&
+    employee.epfMemberBeforeAug1998 === null
+  ) {
+    issues.push({
+      path: "employee.epfMemberBeforeAug1998",
+      code: "EPF_MEMBERSHIP_REQUIRED",
+      message:
+        "EPF membership before August 1998 must be set to true or false for non-Malaysian, non-PR employees; unknown cannot choose Part F vs A/C.",
+    });
+  }
 
   if (employee.dob === null) {
     if (needsAge) {

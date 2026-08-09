@@ -126,7 +126,10 @@ function ChainRow({
         <span className="font-mono text-[11px] text-muted-foreground">
           {shortHash(seal.sealHash)}
         </span>
-        <Badge className="font-mono text-[10px]" variant={seal.ok ? "success" : "bad"}>
+        <Badge
+          className="font-mono text-[10px]"
+          variant={seal.ok ? "success" : "bad"}
+        >
           {seal.ok ? "OK" : "BROKEN"}
         </Badge>
       </div>

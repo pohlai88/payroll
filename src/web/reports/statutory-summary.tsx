@@ -1,10 +1,5 @@
 import { MoneyCell } from "@/components/payroll/money-cell";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import type { StatutorySummaryDto } from "@/web/api/payroll-api";
 
 interface StatutorySummaryProps {
@@ -48,6 +43,12 @@ function StatutorySummary({ data }: StatutorySummaryProps) {
           ))}
         </TableBody>
       </Table>
+      {data.incomplete ? (
+        <p className="text-muted-foreground text-xs">
+          Some figures were unknown and omitted from totals — not treated as
+          zero.
+        </p>
+      ) : null}
       <p className="text-muted-foreground text-xs">
         Generated: {data.reportMeta.generatedAt} · Schema v
         {data.reportMeta.reportSchemaVersion}

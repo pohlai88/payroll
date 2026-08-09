@@ -23,14 +23,14 @@ import {
   visibleAppNavItems,
 } from "./app-nav";
 
-type ShellNavContextValue = {
+interface ShellNavContextValue {
   location: string;
   items: readonly AppNavItem[];
   currentItem: AppNavItem | null;
   authReady: boolean;
   isActive: (item: AppNavItem) => boolean;
   navigateTo: (href: string) => void;
-};
+}
 
 const ShellNavContext = createContext<ShellNavContextValue | null>(null);
 
@@ -43,8 +43,7 @@ function ShellNavProvider({ children }: { children: ReactNode }) {
   // Until permissions resolve, hide admin-only destinations so we never
   // hardcode Admin into the chrome for non-admins (or flash it early).
   const items = useMemo(
-    () =>
-      visibleAppNavItems(authReady && isSystemAdmin, APP_NAV_ITEMS),
+    () => visibleAppNavItems(authReady && isSystemAdmin, APP_NAV_ITEMS),
     [authReady, isSystemAdmin]
   );
 
@@ -59,7 +58,7 @@ function ShellNavProvider({ children }: { children: ReactNode }) {
     if (isMobile) {
       setOpenMobile(false);
     }
-  }, [location, isMobile, setOpenMobile]);
+  }, [isMobile, setOpenMobile]);
 
   const isActive = useCallback(
     (item: AppNavItem) => isAppNavItemActive(location, item),
@@ -89,7 +88,9 @@ function ShellNavProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <ShellNavContext.Provider value={value}>{children}</ShellNavContext.Provider>
+    <ShellNavContext.Provider value={value}>
+      {children}
+    </ShellNavContext.Provider>
   );
 }
 

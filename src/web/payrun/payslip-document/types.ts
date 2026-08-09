@@ -66,6 +66,8 @@ export interface PayslipDocumentDto {
     pcbNetSen: number;
     cp38Sen: number;
     isProvisional: boolean;
+    /** True when any contributor was null (unknown) and omitted from a total. */
+    incomplete: boolean;
   } | null;
   approval: {
     reviewedBy: string | null;

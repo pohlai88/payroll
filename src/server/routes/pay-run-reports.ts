@@ -11,6 +11,7 @@ import { linePayments } from "@/db/schema/control";
 import { anomalyFindings } from "@/db/schema/findings";
 import { companies } from "@/db/schema/parties";
 import { payLines, payRuns } from "@/db/schema/run";
+import { sumNullableSen } from "@/domain/sum-nullable-sen";
 import type { AuthVariables } from "../auth/middleware";
 import { handleRouteError } from "../errors";
 import { requirePayRunAccess } from "./pay-run-access";
@@ -99,9 +100,14 @@ export function payRunReportRoutes(db: Database) {
         };
       });
 
-      const totalNetSen = mapped.reduce((acc, r) => acc + (r.netSen ?? 0), 0);
+      const netAgg = sumNullableSen(mapped.map((r) => r.netSen));
 
-      return c.json({ reportMeta: buildMeta(run), rows: mapped, totalNetSen });
+      return c.json({
+        reportMeta: buildMeta(run),
+        rows: mapped,
+        totalNetSen: netAgg.sum,
+        incomplete: netAgg.incomplete,
+      });
     } catch (error) {
       return handleRouteError(c, error);
     }
@@ -124,22 +130,43 @@ export function payRunReportRoutes(db: Database) {
         .select()
         .from(payLines)
         .where(eq(payLines.runId, runId));
-      const sum = (key: keyof typeof payLines.$inferSelect) =>
-        lines.reduce((acc, l) => acc + ((l[key] as number | null) ?? 0), 0);
+      const sumField = (key: keyof (typeof lines)[number]) =>
+        sumNullableSen(lines.map((l) => l[key] as number | null));
+      const gross = sumField("grossSen");
+      const net = sumField("netSen");
+      const epfEe = sumField("epfEeSen");
+      const epfEr = sumField("epfErSen");
+      const socsoEe = sumField("socsoEeCoreSen");
+      const socsoEr = sumField("socsoErSen");
+      const eisEe = sumField("eisEeSen");
+      const eisEr = sumField("eisErSen");
+      const pcb = sumField("pcbNetSen");
+      const cp38 = sumField("cp38Sen");
 
       return c.json({
         reportMeta: buildMeta(run),
         employeeCount: lines.length,
-        grossTotalSen: sum("grossSen"),
-        netTotalSen: sum("netSen"),
-        epfEeTotalSen: sum("epfEeSen"),
-        epfErTotalSen: sum("epfErSen"),
-        socsoEeCoreTotalSen: sum("socsoEeCoreSen"),
-        socsoErTotalSen: sum("socsoErSen"),
-        eisEeTotalSen: sum("eisEeSen"),
-        eisErTotalSen: sum("eisErSen"),
-        pcbNetTotalSen: sum("pcbNetSen"),
-        cp38TotalSen: sum("cp38Sen"),
+        grossTotalSen: gross.sum,
+        netTotalSen: net.sum,
+        epfEeTotalSen: epfEe.sum,
+        epfErTotalSen: epfEr.sum,
+        socsoEeCoreTotalSen: socsoEe.sum,
+        socsoErTotalSen: socsoEr.sum,
+        eisEeTotalSen: eisEe.sum,
+        eisErTotalSen: eisEr.sum,
+        pcbNetTotalSen: pcb.sum,
+        cp38TotalSen: cp38.sum,
+        incomplete:
+          gross.incomplete ||
+          net.incomplete ||
+          epfEe.incomplete ||
+          epfEr.incomplete ||
+          socsoEe.incomplete ||
+          socsoEr.incomplete ||
+          eisEe.incomplete ||
+          eisEr.incomplete ||
+          pcb.incomplete ||
+          cp38.incomplete,
       });
     } catch (error) {
       return handleRouteError(c, error);

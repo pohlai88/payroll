@@ -4,7 +4,6 @@
  * Route declarations (validated below).
  */
 
-import type { ComponentType } from "react";
 import {
   Building2Icon,
   FileTextIcon,
@@ -14,8 +13,9 @@ import {
   ShieldCheckIcon,
   UsersIcon,
 } from "lucide-react";
+import type { ComponentType } from "react";
 
-export type AppNavItem = {
+export interface AppNavItem {
   readonly id: string;
   readonly label: string;
   readonly href: string;
@@ -23,7 +23,7 @@ export type AppNavItem = {
   readonly adminOnly?: boolean;
   /** Match nested routes under this href (default true except dashboard). */
   readonly matchPrefix?: boolean;
-};
+}
 
 /**
  * Wouter shell paths the signed-in nav may target. Keep in sync with

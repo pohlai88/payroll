@@ -1,36 +1,55 @@
-'use client'
+"use client";
 
-import * as React from 'react'
+import {
+  AnimatePresence,
+  type HTMLMotionProps,
+  motion,
+  type Transition,
+} from "motion/react";
+import {
+  type ComponentProps,
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
+import {
+  ToggleGroup as BaseToggleGroup,
+  ToggleGroupItem as BaseToggleGroupItem,
+} from "@/components/ui/toggle-group";
+import { cn } from "@/lib/utils";
 
-import { type HTMLMotionProps, type Transition, motion, AnimatePresence } from 'motion/react'
-
-import { cn } from '@/lib/utils'
-import { ToggleGroup as BaseToggleGroup, ToggleGroupItem as BaseToggleGroupItem } from '@/components/ui/toggle-group'
-
-type MotionToggleGroupContextProps = {
-  type?: 'single' | 'multiple'
-  transition?: Transition
-  activeClassName?: string
-  globalId: string
+interface MotionToggleGroupContextProps {
+  type?: "single" | "multiple";
+  transition?: Transition;
+  activeClassName?: string;
+  globalId: string;
 }
 
-const MotionToggleGroupContext = React.createContext<MotionToggleGroupContextProps | undefined>(undefined)
+const MotionToggleGroupContext = createContext<
+  MotionToggleGroupContextProps | undefined
+>(undefined);
 
 const useMotionToggleGroup = (): MotionToggleGroupContextProps => {
-  const context = React.useContext(MotionToggleGroupContext)
+  const context = useContext(MotionToggleGroupContext);
 
   if (!context) {
-    throw new Error('useMotionToggleGroup must be used within a ToggleGroup')
+    throw new Error("useMotionToggleGroup must be used within a ToggleGroup");
   }
 
-  return context
-}
+  return context;
+};
 
-type ToggleGroupProps = React.ComponentProps<typeof BaseToggleGroup> & {
-  type?: 'single' | 'multiple'
-  transition?: Transition
-  activeClassName?: string
-}
+type ToggleGroupProps = ComponentProps<typeof BaseToggleGroup> & {
+  type?: "single" | "multiple";
+  transition?: Transition;
+  activeClassName?: string;
+};
 
 function ToggleGroup({
   className,
@@ -38,44 +57,52 @@ function ToggleGroup({
   size,
   children,
   type,
-  transition = { type: 'spring', bounce: 0, stiffness: 200, damping: 25 },
+  transition = { type: "spring", bounce: 0, stiffness: 200, damping: 25 },
   activeClassName,
   value,
   defaultValue,
   onValueChange,
   ...props
 }: ToggleGroupProps) {
-  const globalId = React.useId()
-  const isSingle = type === 'single'
+  const globalId = useId();
+  const isSingle = type === "single";
 
   // For single mode, keep at most one value selected and prevent deselection.
-  const [singleValue, setSingleValue] = React.useState<readonly string[]>(defaultValue ?? value ?? [])
+  const [singleValue, setSingleValue] = useState<readonly string[]>(
+    defaultValue ?? value ?? []
+  );
 
   // Keep in sync when controlled externally (single mode)
-  React.useEffect(() => {
+  useEffect(() => {
     if (isSingle && value !== undefined) {
-      setSingleValue(value)
+      setSingleValue(value);
     }
-  }, [isSingle, value])
+  }, [isSingle, value]);
 
-  const handleSingleValueChange = React.useCallback(
+  const handleSingleValueChange = useCallback(
     (
       newValue: string[],
-      eventDetails: Parameters<NonNullable<React.ComponentProps<typeof BaseToggleGroup>['onValueChange']>>[1]
+      eventDetails: Parameters<
+        NonNullable<ComponentProps<typeof BaseToggleGroup>["onValueChange"]>
+      >[1]
     ) => {
       // Keep only the last selected item; ignore deselect (empty array)
-      if (newValue.length === 0) return
+      if (newValue.length === 0) {
+        return;
+      }
 
-      const last = newValue.at(-1)
-      if (last === undefined) return
+      const last = newValue.at(-1);
+      if (last === undefined) {
+        return;
+      }
 
-      const next = [last]
+      const next = [last];
 
-      setSingleValue(next)
-      onValueChange?.(next, eventDetails)
+      setSingleValue(next);
+      onValueChange?.(next, eventDetails);
     },
     [onValueChange]
-  )
+  );
 
   return (
     <MotionToggleGroupContext.Provider
@@ -83,102 +110,130 @@ function ToggleGroup({
         type,
         transition,
         activeClassName,
-        globalId
+        globalId,
       }}
     >
       {isSingle ? (
         <BaseToggleGroup
-          className={cn('relative', className)}
-          variant={variant}
+          className={cn("relative", className)}
+          onValueChange={handleSingleValueChange}
           size={size}
           value={singleValue}
-          onValueChange={handleSingleValueChange}
+          variant={variant}
           {...props}
         >
           {children}
         </BaseToggleGroup>
       ) : (
         <BaseToggleGroup
-          className={cn('relative', className)}
-          variant={variant}
-          size={size}
-          value={value}
+          className={cn("relative", className)}
           defaultValue={defaultValue}
           onValueChange={onValueChange}
+          size={size}
+          value={value}
+          variant={variant}
           {...props}
         >
           {children}
         </BaseToggleGroup>
       )}
     </MotionToggleGroupContext.Provider>
-  )
+  );
 }
 
-type ToggleGroupItemProps = React.ComponentProps<typeof BaseToggleGroupItem> & {
-  children?: React.ReactNode
-  motionProps?: HTMLMotionProps<'div'>
-  spanProps?: React.ComponentProps<'span'>
-}
+type ToggleGroupItemProps = ComponentProps<typeof BaseToggleGroupItem> & {
+  children?: ReactNode;
+  motionProps?: HTMLMotionProps<"div">;
+  spanProps?: ComponentProps<"span">;
+};
 
-function ToggleGroupItem({ ref, className, children, motionProps, spanProps, ...props }: ToggleGroupItemProps) {
-  const { activeClassName, transition, type, globalId } = useMotionToggleGroup()
-  const itemRef = React.useRef<HTMLButtonElement | null>(null)
+function ToggleGroupItem({
+  ref,
+  className,
+  children,
+  motionProps,
+  spanProps,
+  ...props
+}: ToggleGroupItemProps) {
+  const { activeClassName, transition, type, globalId } =
+    useMotionToggleGroup();
+  const itemRef = useRef<HTMLButtonElement | null>(null);
 
-  React.useImperativeHandle(ref, () => itemRef.current as HTMLButtonElement)
-  const [isActive, setIsActive] = React.useState(false)
+  useImperativeHandle(ref, () => itemRef.current as HTMLButtonElement);
+  const [isActive, setIsActive] = useState(false);
 
-  React.useEffect(() => {
-    const node = itemRef.current
+  useEffect(() => {
+    const node = itemRef.current;
 
-    if (!node) return
+    if (!node) {
+      return;
+    }
 
     const observer = new MutationObserver(() => {
-      setIsActive(node.hasAttribute('data-pressed'))
-    })
+      setIsActive(node.hasAttribute("data-pressed"));
+    });
 
     observer.observe(node, {
       attributes: true,
-      attributeFilter: ['data-pressed']
-    })
+      attributeFilter: ["data-pressed"],
+    });
 
-    setIsActive(node.hasAttribute('data-pressed'))
+    setIsActive(node.hasAttribute("data-pressed"));
 
-    return () => observer.disconnect()
-  }, [])
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <BaseToggleGroupItem
       ref={itemRef}
       {...props}
-      className={cn('relative hover:bg-transparent data-pressed:bg-transparent', className)}
+      className={cn(
+        "relative hover:bg-transparent data-pressed:bg-transparent",
+        className
+      )}
     >
       <motion.div
-        data-slot='toggle-group-item-motion'
+        data-slot="toggle-group-item-motion"
         initial={{ scale: 1 }}
         whileTap={{ scale: 0.9 }}
         {...motionProps}
-        className={cn('relative flex h-full w-full items-center justify-center', motionProps?.className)}
+        className={cn(
+          "relative flex h-full w-full items-center justify-center",
+          motionProps?.className
+        )}
       >
-        <span {...spanProps} data-state={isActive ? 'on' : 'off'} className={cn('relative z-1', spanProps?.className)}>
+        <span
+          {...spanProps}
+          className={cn("relative z-1", spanProps?.className)}
+          data-state={isActive ? "on" : "off"}
+        >
           {children}
         </span>
 
         <AnimatePresence initial={false}>
-          {isActive && type === 'single' && (
+          {isActive && type === "single" && (
             <motion.span
-              layoutId={`active-toggle-group-item-${globalId}`}
-              data-slot='active-toggle-group-item'
-              initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
+              className={cn(
+                "absolute inset-0 z-0 rounded-md bg-muted",
+                activeClassName
+              )}
+              data-slot="active-toggle-group-item"
               exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }}
+              layoutId={`active-toggle-group-item-${globalId}`}
               transition={transition}
-              className={cn('bg-muted absolute inset-0 z-0 rounded-md', activeClassName)}
             />
           )}
         </AnimatePresence>
       </motion.div>
     </BaseToggleGroupItem>
-  )
+  );
 }
 
-export { ToggleGroup, ToggleGroupItem, type ToggleGroupProps, type ToggleGroupItemProps }
+export {
+  ToggleGroup,
+  ToggleGroupItem,
+  type ToggleGroupItemProps,
+  type ToggleGroupProps,
+};

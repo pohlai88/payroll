@@ -27,7 +27,12 @@ function PaymentRegister({ data }: PaymentRegisterProps) {
             {data.reportMeta.runId} · {data.reportMeta.runStatus}
           </p>
         </div>
-        <Button onClick={() => window.print()} size="sm" type="button" variant="outline">
+        <Button
+          onClick={() => window.print()}
+          size="sm"
+          type="button"
+          variant="outline"
+        >
           Print
         </Button>
       </div>
@@ -51,7 +56,9 @@ function PaymentRegister({ data }: PaymentRegisterProps) {
               <TableCell className="text-right">
                 <MoneyCell sen={row.netSen} />
               </TableCell>
-              <TableCell className="text-xs">{row.paymentState ?? "—"}</TableCell>
+              <TableCell className="text-xs">
+                {row.paymentState ?? "—"}
+              </TableCell>
               <TableCell className="font-mono text-xs">
                 {row.maskedBankAccount ?? "—"}
               </TableCell>
@@ -68,6 +75,12 @@ function PaymentRegister({ data }: PaymentRegisterProps) {
           </TableRow>
         </TableFooter>
       </Table>
+      {data.incomplete ? (
+        <p className="text-muted-foreground text-xs">
+          Some net amounts were unknown and omitted from the total — not treated
+          as zero.
+        </p>
+      ) : null}
       <p className="text-muted-foreground text-xs">
         Generated: {data.reportMeta.generatedAt} · Schema v
         {data.reportMeta.reportSchemaVersion}

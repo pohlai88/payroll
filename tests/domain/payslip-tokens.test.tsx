@@ -84,6 +84,7 @@ const FIXTURE_DTO: PayslipDocumentDto = {
     pcbNetSen: 5000,
     cp38Sen: 0,
     isProvisional: false,
+    incomplete: false,
   },
   approval: {
     reviewedBy: "reviewer@example.com",

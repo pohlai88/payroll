@@ -26,9 +26,7 @@ interface RunControlCardProps {
   readonly seal: RunSeal | null;
 }
 
-function gatePillVariant(
-  pill: GatePill
-): "success" | "bad" | "outline" {
+function gatePillVariant(pill: GatePill): "success" | "bad" | "outline" {
   if (pill === "CLEAR") {
     return "success";
   }

@@ -46,8 +46,8 @@ function PayslipPage() {
         }}
       >
         <a
-          href={`/pay-runs/${runId}`}
           className="text-muted-foreground text-sm"
+          href={`/pay-runs/${runId}`}
         >
           ← {lang === "en" ? "Back to workspace" : "Kembali ke ruang kerja"}
         </a>
@@ -90,9 +90,7 @@ function PayslipPage() {
         )}
         {dto !== null && <PayslipDocument dto={dto} lang={lang} />}
         {!(dto !== null || error !== null) && (
-          <div className="p-16 text-center text-muted-foreground">
-            Loading…
-          </div>
+          <div className="p-16 text-center text-muted-foreground">Loading…</div>
         )}
       </div>
     </div>

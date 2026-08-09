@@ -124,11 +124,19 @@ describe("a DAILY employment's items flow through a real run", () => {
     const stored = await db.execute<{
       gross_sen: string;
       net_sen: string | null;
-    }>(sql`SELECT gross_sen, net_sen FROM pay_lines WHERE run_id = ${RUN_ID}`);
+      hrdf_sen: string | null;
+      employer_cost_sen: string | null;
+    }>(
+      sql`SELECT gross_sen, net_sen, hrdf_sen, employer_cost_sen
+          FROM pay_lines WHERE run_id = ${RUN_ID}`
+    );
     const [line] = stored.rows;
     expect(Number(line?.gross_sen)).toBe(EXPECTED_GROSS_SEN);
     // No statutory schemes and no PCB applicable: net is knowable and equals gross.
     expect(Number(line?.net_sen)).toBe(EXPECTED_GROSS_SEN);
+    // Recompute must persist all 19 roots — HRDF off → 0; employer cost = gross.
+    expect(Number(line?.hrdf_sen)).toBe(0);
+    expect(Number(line?.employer_cost_sen)).toBe(EXPECTED_GROSS_SEN);
   });
 
   it("traces the daily proration, not the monthly one", async () => {

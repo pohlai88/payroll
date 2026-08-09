@@ -1,11 +1,9 @@
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-const AvatarFallbackDemo = () => {
-  return (
-    <Avatar>
-      <AvatarFallback>HR</AvatarFallback>
-    </Avatar>
-  )
-}
+const AvatarFallbackDemo = () => (
+  <Avatar>
+    <AvatarFallback>HR</AvatarFallback>
+  </Avatar>
+);
 
-export default AvatarFallbackDemo
+export default AvatarFallbackDemo;

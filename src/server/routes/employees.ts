@@ -41,7 +41,7 @@ export function employeeRoutes(db: Database) {
       }
 
       const scopedCompanyIds =
-        companyId !== undefined ? [companyId] : accessibleIds;
+        companyId === undefined ? accessibleIds : [companyId];
 
       if (scopedCompanyIds.length === 0) {
         return c.json([] satisfies EmployeeSummary[]);

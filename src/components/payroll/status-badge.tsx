@@ -1,6 +1,6 @@
+import type { VariantProps } from "class-variance-authority";
 import { Badge, type badgeVariants } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { VariantProps } from "class-variance-authority";
 
 type RunStatus = "DRAFT" | "REVIEWED" | "APPROVED" | "CLOSED";
 type BadgeVariant = NonNullable<VariantProps<typeof badgeVariants>["variant"]>;
@@ -41,10 +41,7 @@ const STATUS_CONFIG: Record<
 function StatusBadge({ status, className }: StatusBadgeProps) {
   const config = STATUS_CONFIG[status] ?? STATUS_CONFIG.DRAFT;
   return (
-    <Badge
-      className={cn(config.className, className)}
-      variant={config.variant}
-    >
+    <Badge className={cn(config.className, className)} variant={config.variant}>
       {config.glyph} {status}
     </Badge>
   );
@@ -91,9 +88,4 @@ function severityBadgeClass(severity: string): string {
 }
 
 export type { RunStatus, StatusBadgeProps };
-export {
-  isRunStatus,
-  severityBadgeClass,
-  severityBadgeVariant,
-  StatusBadge,
-};
+export { isRunStatus, StatusBadge, severityBadgeClass, severityBadgeVariant };

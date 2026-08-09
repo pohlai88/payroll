@@ -229,26 +229,7 @@ function ReportsPage() {
 
         <main className="flex-1 space-y-4 overflow-auto p-6">
           <div className="flex flex-wrap items-end gap-3">
-            {activeType !== "annual-remuneration" ? (
-              <div className="space-y-1.5">
-                <Label htmlFor="run-picker">Pay Run</Label>
-                <Select
-                  onValueChange={(value) => setSelectedRunId(value ?? "")}
-                  value={selectedRunId === "" ? null : selectedRunId}
-                >
-                  <SelectTrigger className="min-w-56" id="run-picker">
-                    <SelectValue placeholder="— select run —" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filteredRuns.map((r) => (
-                      <SelectItem key={r.id} value={r.id}>
-                        {r.label} ({r.status})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : (
+            {activeType === "annual-remuneration" ? (
               <>
                 <div className="space-y-1.5">
                   <Label htmlFor="emp-picker">Employee</Label>
@@ -281,6 +262,25 @@ function ReportsPage() {
                   />
                 </div>
               </>
+            ) : (
+              <div className="space-y-1.5">
+                <Label htmlFor="run-picker">Pay Run</Label>
+                <Select
+                  onValueChange={(value) => setSelectedRunId(value ?? "")}
+                  value={selectedRunId === "" ? null : selectedRunId}
+                >
+                  <SelectTrigger className="min-w-56" id="run-picker">
+                    <SelectValue placeholder="— select run —" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredRuns.map((r) => (
+                      <SelectItem key={r.id} value={r.id}>
+                        {r.label} ({r.status})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             )}
             <Button onClick={load} type="button">
               Load
@@ -305,11 +305,11 @@ function ReportsPage() {
               data={data as AnnualRemunerationSummaryDto}
             />
           ) : null}
-          {!(data || loading || error) ? (
+          {data || loading || error ? null : (
             <p className="text-muted-foreground text-sm">
               Select a run and click Load to generate a report.
             </p>
-          ) : null}
+          )}
         </main>
       </div>
     </div>

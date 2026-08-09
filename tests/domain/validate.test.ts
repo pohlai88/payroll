@@ -173,6 +173,47 @@ describe("validateLineInputs", () => {
     });
     expect(validateLineInputs(overridden, makeInputs())).toEqual([]);
   });
+
+  it("rejects unknown EPF membership for foreign non-PR employees", () => {
+    const issues = validateLineInputs(
+      makeEmployee({
+        isMalaysian: false,
+        isPermanentResident: false,
+        epfMemberBeforeAug1998: null,
+      }),
+      makeInputs()
+    );
+    expect(issues).toMatchObject([
+      {
+        path: "employee.epfMemberBeforeAug1998",
+        code: "EPF_MEMBERSHIP_REQUIRED",
+      },
+    ]);
+  });
+
+  it("allows null EPF membership for Malaysians (flag unused)", () => {
+    expect(
+      validateLineInputs(
+        makeEmployee({
+          isMalaysian: true,
+          epfMemberBeforeAug1998: null,
+        }),
+        makeInputs()
+      )
+    ).toEqual([]);
+  });
+
+  it("does not demand DOB for EPF-only Part F (membership false)", () => {
+    const foreignPartF = makeEmployee({
+      dob: null,
+      isMalaysian: false,
+      isPermanentResident: false,
+      epfMemberBeforeAug1998: false,
+      socsoApplicable: false,
+      eisApplicable: false,
+    });
+    expect(validateLineInputs(foreignPartF, makeInputs())).toEqual([]);
+  });
 });
 
 describe("computeLineChecked — the wall in front of the tripwire", () => {
@@ -220,6 +261,24 @@ describe("computeLineChecked — the wall in front of the tripwire", () => {
     expect(() => computeLine(makeOpts({}, makeEmployee({ dob: "" })))).toThrow(
       RangeError
     );
+  });
+
+  it("throws rather than soft-zeroing EIS when a null DOB bypasses the wall", () => {
+    // resolveEis used to treat applicable + null age as ineligible (0 EIS).
+    // That under-deducted on a normal-looking line; mirror EPF/SOCSO and crash.
+    expect(() =>
+      computeLine(
+        makeOpts(
+          {},
+          makeEmployee({
+            dob: null,
+            epfApplicable: false,
+            socsoApplicable: false,
+            eisApplicable: true,
+          })
+        )
+      )
+    ).toThrow(/date of birth|age/i);
   });
 
   it("computes a null-DOB employee with no statutory schemes instead of guessing", () => {

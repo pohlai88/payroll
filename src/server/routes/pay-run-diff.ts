@@ -1,6 +1,9 @@
 /**
- * Phase 8 — graph-level run diff read facade.
+ * Graph-level run diff read facade.
  * GET /v1/pay-runs/:runId/lines/:lineId/diff
+ *
+ * Diffs live derivation graphs (compute-on-read). `pay_lines.trace` is a flat
+ * TraceStep[] list and must not be parsed as a DerivationGraph.
  */
 import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
@@ -12,6 +15,8 @@ import type { DerivationGraph } from "@/domain/derive/graph";
 import { formatPct, renderLabel } from "@/domain/derive/i18n/render";
 import type { NodeValue } from "@/domain/derive/value";
 import { formatRM } from "@/domain/money";
+import { ControlError } from "@/service/control-errors";
+import { loadDerivedGraph } from "@/service/line-derivation";
 import type { AuthVariables } from "../auth/middleware";
 import { handleRouteError } from "../errors";
 import { requirePayRunAccess } from "./pay-run-access";
@@ -127,28 +132,6 @@ function mapDiff(diff: NodeDiff, graph: DerivationGraph): NodeDiffRow {
   }
 }
 
-const EMPTY_GRAPH: DerivationGraph = {
-  schemaVersion: 1,
-  rulePackId: "",
-  nodes: {},
-  order: [],
-  roots: {},
-};
-
-function parseTrace(raw: unknown): DerivationGraph {
-  if (!raw || typeof raw !== "object") {
-    return EMPTY_GRAPH;
-  }
-  const g = raw as Partial<DerivationGraph>;
-  return {
-    schemaVersion: 1,
-    rulePackId: g.rulePackId ?? "",
-    nodes: g.nodes ?? {},
-    order: g.order ?? [],
-    roots: g.roots ?? {},
-  };
-}
-
 export function payRunDiffRoutes(db: Database) {
   const app = new Hono<{ Variables: AuthVariables }>();
 
@@ -164,48 +147,29 @@ export function payRunDiffRoutes(db: Database) {
         .where(eq(payRuns.id, runId))
         .limit(1);
       if (!run) {
-        return c.json(
-          { code: "NOT_FOUND", message: `no such run: ${runId}` },
-          404
-        );
+        throw new ControlError("NOT_FOUND", `no such run: ${runId}`);
       }
 
-      const [line] = await db
-        .select({
-          id: payLines.id,
-          employmentId: payLines.employmentId,
-          trace: payLines.trace,
-        })
-        .from(payLines)
-        .where(and(eq(payLines.id, lineId), eq(payLines.runId, runId)))
-        .limit(1);
-      if (!line) {
-        return c.json(
-          { code: "NOT_FOUND", message: `no such line: ${lineId}` },
-          404
-        );
-      }
-
-      const currentGraph = parseTrace(line.trace);
+      const current = await loadDerivedGraph(db, runId, lineId);
       const priorRunId = run.linkedRunId ?? null;
 
       if (!priorRunId) {
         return c.json({
           runId,
           lineId,
-          employmentId: line.employmentId,
+          employmentId: current.employmentId,
           priorRunId: null,
           diffs: [],
         });
       }
 
       const [priorLine] = await db
-        .select({ trace: payLines.trace })
+        .select({ id: payLines.id })
         .from(payLines)
         .where(
           and(
             eq(payLines.runId, priorRunId),
-            eq(payLines.employmentId, line.employmentId)
+            eq(payLines.employmentId, current.employmentId)
           )
         )
         .limit(1);
@@ -214,20 +178,20 @@ export function payRunDiffRoutes(db: Database) {
         return c.json({
           runId,
           lineId,
-          employmentId: line.employmentId,
+          employmentId: current.employmentId,
           priorRunId,
           diffs: [],
         });
       }
 
-      const priorGraph = parseTrace(priorLine.trace);
-      const rawDiffs = diffGraphs(priorGraph, currentGraph);
-      const diffs = rawDiffs.map((d) => mapDiff(d, currentGraph));
+      const prior = await loadDerivedGraph(db, priorRunId, priorLine.id);
+      const rawDiffs = diffGraphs(prior.graph, current.graph);
+      const diffs = rawDiffs.map((d) => mapDiff(d, current.graph));
 
       return c.json({
         runId,
         lineId,
-        employmentId: line.employmentId,
+        employmentId: current.employmentId,
         priorRunId,
         diffs,
       });

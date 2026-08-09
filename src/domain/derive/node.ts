@@ -175,7 +175,11 @@ export interface ProrationNode extends NodeBase {
   readonly citations: readonly [Citation, ...Citation[]];
 }
 
-/** PCB/MTD. Never computed — supplied, evidenced, and possibly unknown. */
+/**
+ * PCB/MTD supplied as an evidenced override or draft entry.
+ * Offline computerized MTD (`COMPUTED` path) uses a `CALCULATION` node instead
+ * and cites `MY.PCB.COMPUTERIZED` / `P-SPEC-2026`.
+ */
 export interface ExternalVerifiedNode extends NodeBase {
   readonly kind: "EXTERNAL_VERIFIED";
   readonly source: string | null;

@@ -1,3 +1,4 @@
+import { ChartNoAxesColumnIncreasingIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import {
   Card,
@@ -7,16 +8,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { ChartNoAxesColumnIncreasingIcon } from "lucide-react";
 
-export type EmptyState01Props = {
+export interface EmptyState01Props {
   description?: string;
   title?: string;
   emptyTitle?: string;
   emptyDetail?: string;
   icon?: ReactNode;
   className?: string;
-};
+}
 
 function EmptyState01({
   description = "Total API requests.",

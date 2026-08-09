@@ -240,14 +240,24 @@ function asserts `Number.isSafeInteger` so precision loss fails loudly.
 
 | Module | Entry point | Does |
 |---|---|---|
+| `types.ts` | — | Engine DTOs (`EmployeeSnapshot`, `LineResult`, `PcbInput`, …) |
+| `version.ts` | `CALC_ENGINE_VERSION` | Stamped on each calculated run |
 | `classify.ts` | `classify()` | age → EPF part, SOCSO category, EIS eligibility, SKBBK window |
 | `resolve-items.ts` | `resolveItems()` / `resolveItem()` | entered item → resolved sen, by rate basis |
 | `proration.ts` | `regularPay()`, `quantityAmount()` | basis-aware regular pay; cites the Employment Act |
-| `wage-base.ts` | `wageBases()` | earnings → EPF / SOCSO / EIS wage bases, per item flags |
+| `wage-base.ts` | `wageBases()` | earnings → EPF / SOCSO / EIS / HRD wage bases, per item flags |
 | `epf.ts` | `epf()` | Third Schedule A/C/E band lookup |
 | `socso.ts` | `socso()` | Act 4 + SKBBK, first/second category |
 | `eis.ts` | `eis()` | Act 800 bands |
-| `pcb.ts` | `pcbNet()` | **assembles a supplied figure. Never computes one** |
+| `pcb.ts` | `pcbNet()` / `resolveGrossPcbSen()` / `computePcb()` | Dual path: verified override → offline LHDN 2026 computerized MTD → entered draft → missing |
+| `pcb-core.ts` | shared compute types | PCB compute result shape |
+| `pcb-normal.ts` | `computePcbNormal()` / `computePcbNonResident()` | Normal + NR 30% |
+| `pcb-additional.ts` | `computePcbAdditional()` | Additional remuneration steps |
+| `pcb-flat15.ts` | REP / KW / C-Suite | Flat 15% regimes |
+| `pcb-context.ts` | `buildPcbMonthContext()` / `splitRemunerationSen()` | Y1/Yt split + month context |
+| `pcb-children.ts` | `qualifyingChildUnits()` | Child-unit helpers |
+| `pcb-tp1.ts` | `sumTp1ClaimsSen()` | TP1 relief caps |
+| `pcb-tables.ts` | Table 1 + relief constants | Loaded from seed, not literals in callers |
 | `validate.ts` | `validateLineInputs()` | structured `ValidationIssue[]` with field paths — `DOB_REQUIRED`, `PAID_DAYS_INVALID`, `HOURS_WORKED_INVALID`, … |
 | `compose.ts` | `computeLineChecked()`, `computeLine()` | the whole line |
 
@@ -378,7 +388,10 @@ through the repository/service layers. Local rebuild: `npm run db:reset`.
 
 1. Money is integer sen everywhere. Rounding lives in one file.
 2. Null means unknown. Never default it to zero.
-3. PCB is supplied and evidenced, never computed. No code path may compute it.
+3. PCB dual-path (S07): verified override → offline computerized MTD from
+   `P-SPEC-2026` → unverified entered amount → missing/`SEN_UNKNOWN`. The UI
+   never recalculates PCB; the server may. Do not claim `LHDN_VERIFIED` or scrape
+   the HTML calculator at runtime.
 4. Snapshot on write — snapshots serve reads; live references are provenance only.
 5. Citation ids and rule ids are additive-only wire formats.
 6. Impossible data is rejected; unusual data is preserved and challenged.

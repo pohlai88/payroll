@@ -3,11 +3,7 @@
  * ⌘K search (dashboard-header-04 patterns) + user menu.
  */
 
-import {
-  CheckIcon,
-  ChevronsUpDownIcon,
-  SearchIcon,
-} from "lucide-react";
+import { CheckIcon, ChevronsUpDownIcon, SearchIcon } from "lucide-react";
 import type { ChangeEvent } from "react";
 import { useCallback, useEffect, useState } from "react";
 import SimpleProfileDropdown from "@/components/shadcn-studio/blocks/dashboard-dropdown-10/simple-profile-dropdown";

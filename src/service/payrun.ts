@@ -942,6 +942,8 @@ function staleLineColumns() {
     otherDeductionsSen: null,
     deductionsTotalSen: null,
     netSen: null,
+    hrdfSen: null,
+    employerCostSen: null,
     trace: null,
     computedAt: null,
   };
@@ -966,6 +968,8 @@ function toLineColumns(result: LineResult) {
     otherDeductionsSen: result.otherDeductionsSen,
     deductionsTotalSen: result.deductionsTotalSen,
     netSen: result.netSen,
+    hrdfSen: result.hrdfLevySen,
+    employerCostSen: result.employerCostSen,
     trace: result.trace,
     computedAt: new Date(),
   };

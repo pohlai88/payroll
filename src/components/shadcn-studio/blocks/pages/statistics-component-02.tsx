@@ -35,23 +35,21 @@ const StatisticsCardData: StatisticsCardProps[] = [
   },
 ];
 
-const StatisticsCardPreview = () => {
-  return (
-    <div className="py-8 sm:py-16 lg:py-24">
-      <div className="mx-auto grid max-w-7xl gap-4 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
-        {StatisticsCardData.map((card) => (
-          <StatisticsCard
-            key={card.title}
-            changePercentage={card.changePercentage}
-            icon={card.icon}
-            showPeriodFilter={card.showPeriodFilter}
-            title={card.title}
-            value={card.value}
-          />
-        ))}
-      </div>
+const StatisticsCardPreview = () => (
+  <div className="py-8 sm:py-16 lg:py-24">
+    <div className="mx-auto grid max-w-7xl gap-4 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-8">
+      {StatisticsCardData.map((card) => (
+        <StatisticsCard
+          changePercentage={card.changePercentage}
+          icon={card.icon}
+          key={card.title}
+          showPeriodFilter={card.showPeriodFilter}
+          title={card.title}
+          value={card.value}
+        />
+      ))}
     </div>
-  );
-};
+  </div>
+);
 
 export default StatisticsCardPreview;

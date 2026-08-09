@@ -2,7 +2,8 @@
  * Company directory table — multicompany party rows for admin management.
  */
 
-import { useMemo, useState } from "react";
+import { Building2Icon, PencilIcon } from "lucide-react";
+import { type ChangeEvent, useCallback, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,13 +16,31 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import type { AdminCompanyRow } from "@/web/api/types";
-import { Building2Icon, PencilIcon } from "lucide-react";
 
-type CompanyDatatableProps = {
+interface CompanyDatatableProps {
   readonly data: readonly AdminCompanyRow[];
   readonly title?: string;
   readonly onEdit?: (company: AdminCompanyRow) => void;
-};
+}
+
+function EditCompanyButton({
+  company,
+  onEdit,
+}: {
+  company: AdminCompanyRow;
+  onEdit: (company: AdminCompanyRow) => void;
+}) {
+  const handleClick = useCallback(() => {
+    onEdit(company);
+  }, [company, onEdit]);
+
+  return (
+    <Button onClick={handleClick} size="sm" type="button" variant="ghost">
+      <PencilIcon className="size-4" />
+      Edit
+    </Button>
+  );
+}
 
 function CompanyDatatable({
   data,
@@ -43,6 +62,13 @@ function CompanyDatatable({
     );
   }, [data, query]);
 
+  const handleQueryChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setQuery(event.currentTarget.value);
+    },
+    []
+  );
+
   return (
     <div className="w-full">
       <div className="flex flex-col gap-4 border-b p-6">
@@ -52,7 +78,7 @@ function CompanyDatatable({
         </div>
         <input
           className="h-9 max-w-sm rounded-md border border-input bg-background px-3 text-sm"
-          onChange={(event) => setQuery(event.currentTarget.value)}
+          onChange={handleQueryChange}
           placeholder="Search code or name…"
           type="search"
           value={query}
@@ -112,15 +138,7 @@ function CompanyDatatable({
                 </TableCell>
                 <TableCell className="pr-4 text-right">
                   {onEdit === undefined ? null : (
-                    <Button
-                      onClick={() => onEdit(company)}
-                      size="sm"
-                      type="button"
-                      variant="ghost"
-                    >
-                      <PencilIcon className="size-4" />
-                      Edit
-                    </Button>
+                    <EditCompanyButton company={company} onEdit={onEdit} />
                   )}
                 </TableCell>
               </TableRow>

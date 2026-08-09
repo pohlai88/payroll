@@ -7,7 +7,8 @@
  *
  * See `docs/superpowers/specs/2026-08-08-internal-group-transfer-design.md`.
  * Findings scan after commit via `scanTransferFindings`. Evidence attaches
- * through `evidenceArtifactId` (hashed artifacts); `evidenceRef` is deprecated.
+ * only through `evidenceArtifactId` (hashed artifacts). Free-text `evidence_ref`
+ * columns remain for historical rows but are no longer written.
  */
 
 import { and, eq, isNull, ne, sql } from "drizzle-orm";
@@ -37,8 +38,7 @@ export interface CommitTransferInput {
   readonly allowOverlap?: boolean;
   /** Required when allowOverlap is true. */
   readonly overlapReason?: string | null;
-  /** @deprecated Prefer `evidenceArtifactId`. */
-  readonly evidenceRef?: string | null;
+  /** Hashed evidence via `storeAttachedEvidence` (TRANSFER or OTHER). */
   readonly evidenceArtifactId?: string | null;
   readonly actor: string;
 
@@ -143,7 +143,7 @@ export async function commitTransfer(
         leaveBenefitTreatmentNote: input.leaveBenefitTreatmentNote ?? null,
         allowedOverlap: input.allowOverlap ?? false,
         overlapReason: input.overlapReason ?? null,
-        evidenceRef: input.evidenceRef ?? null,
+        evidenceRef: null,
         evidenceArtifactId: input.evidenceArtifactId ?? null,
         actor: input.actor,
       })
@@ -367,8 +367,7 @@ export interface RecordPriorEmploymentYtdInput {
   readonly zakatSen?: number;
   readonly verified?: boolean;
   readonly source?: string | null;
-  /** @deprecated Prefer `evidenceArtifactId`. */
-  readonly evidenceRef?: string | null;
+  /** Hashed evidence via `storeAttachedEvidence` (EMPLOYMENT_PRIOR_YTD or OTHER). */
   readonly evidenceArtifactId?: string | null;
   readonly enteredBy: string;
 }
@@ -398,7 +397,7 @@ export async function recordPriorEmploymentYtd(
     zakatSen: input.zakatSen ?? 0,
     verified: input.verified ?? false,
     source: input.source ?? null,
-    evidenceRef: input.evidenceRef ?? null,
+    evidenceRef: null,
     evidenceArtifactId: input.evidenceArtifactId ?? null,
     enteredBy: input.enteredBy,
     enteredAt: now,

@@ -67,7 +67,10 @@ export const transfers = pgTable(
      */
     allowedOverlap: boolean("allowed_overlap").notNull().default(false),
     overlapReason: text("overlap_reason"),
-    /** @deprecated Prefer `evidenceArtifactId`. */
+    /**
+     * Legacy free-text evidence — read-only historical. New writes set null;
+     * use `evidenceArtifactId` via `storeAttachedEvidence`.
+     */
     evidenceRef: text("evidence_ref"),
     /** Hashed evidence via `storeAttachedEvidence`. */
     evidenceArtifactId: uuid("evidence_artifact_id").references(
@@ -116,7 +119,10 @@ export const employmentPriorYtd = pgTable(
     zakatSen: bigint("zakat_sen", { mode: "number" }).notNull().default(0),
     verified: boolean().notNull().default(false),
     source: text(),
-    /** @deprecated Prefer `evidenceArtifactId`. */
+    /**
+     * Legacy free-text evidence — read-only historical. New writes set null;
+     * use `evidenceArtifactId`.
+     */
     evidenceRef: text("evidence_ref"),
     evidenceArtifactId: uuid("evidence_artifact_id").references(
       () => artifacts.id

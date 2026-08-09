@@ -1,10 +1,5 @@
 import { MoneyCell } from "@/components/payroll/money-cell";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import type { AnnualRemunerationSummaryDto } from "@/web/api/payroll-api";
 
 interface AnnualRemunerationSummaryProps {
@@ -59,6 +54,13 @@ function AnnualRemunerationSummary({ data }: AnnualRemunerationSummaryProps) {
           ))}
         </TableBody>
       </Table>
+
+      {data.incomplete ? (
+        <p className="text-muted-foreground text-xs">
+          Some figures were unknown and omitted from totals — not treated as
+          zero.
+        </p>
+      ) : null}
 
       <div className="space-y-1 text-muted-foreground text-xs">
         <p>Months included: {data.months.join(", ") || "—"}</p>

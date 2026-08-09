@@ -13,9 +13,7 @@ describe("requireServerEnv", () => {
       "https://ep.example/neondb/auth/.well-known/jwks.json"
     );
     expect(env.port).toBe(8787);
-    expect(env.corsOrigin).toBe(
-      "http://localhost:5173,http://localhost:5174"
-    );
+    expect(env.corsOrigin).toBe("http://localhost:5173,http://localhost:5174");
     expect(env.r2).toBeNull();
   });
 

@@ -1,15 +1,16 @@
 /**
- * Artifacts panel — lists R2-backed run artifacts (register CSV, manifest,
- * manual evidence) and lets a user manually attach evidence. Type is
- * restricted to EVIDENCE/EXCEPTION_REPORT for manual uploads — the other
- * ArtifactType values (PAYMENT_REGISTER, MANIFEST, CASH_SHEET) are only ever
- * produced by the server (release/close), never hand-picked here.
+ * Artifacts panel — lists run artifacts and attaches manual evidence.
+ * Manual upload types are EVIDENCE / EXCEPTION_REPORT only; other types
+ * (PAYMENT_REGISTER, MANIFEST, TIMESTAMP_TOKEN, …) are server-produced.
+ * Download uses authenticated GET …/content (local FS and R2).
  */
 
+import { FileTextIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 import { HashChip } from "@/components/payroll/hash-chip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Select,
   SelectContent,
@@ -17,9 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { UploadDropZone } from "@/components/ui/upload-drop-zone";
 import { formatApiError } from "@/web/api/format-error";
-import type { ArtifactRow, ArtifactType } from "@/web/api/payroll-api";
+import type { ArtifactRow, UploadArtifactType } from "@/web/api/payroll-api";
 import { payrollApi } from "@/web/api/payroll-api";
 
 interface ArtifactsPanelProps {
@@ -33,7 +35,7 @@ interface ArtifactsPanelProps {
 }
 
 const MANUAL_TYPES: readonly {
-  readonly value: ArtifactType;
+  readonly value: UploadArtifactType;
   readonly label: string;
 }[] = [
   { value: "EVIDENCE", label: "Evidence" },
@@ -85,10 +87,10 @@ function ArtifactsPanel({
   readOnly = false,
 }: ArtifactsPanelProps) {
   const [file, setFile] = useState<File | null>(null);
-  const [type, setType] = useState<ArtifactType>("EVIDENCE");
+  const [type, setType] = useState<UploadArtifactType>("EVIDENCE");
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [linkError, setLinkError] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const handleTypeChange = useCallback((value: string | null) => {
     if (value === "EVIDENCE" || value === "EXCEPTION_REPORT") {
@@ -119,21 +121,24 @@ function ArtifactsPanel({
     }
   }, [file, onUploaded, runId, type]);
 
-  const handleGetLink = useCallback(
+  const handleDownload = useCallback(
     async (artifactId: string) => {
-      setLinkError(null);
-      // Open the tab synchronously inside the click handler so browsers
-      // (Safari/Firefox) don't block it as a popup — the user gesture context
-      // is lost once the async fetch resolves.
-      const tab = window.open("", "_blank", "noopener,noreferrer");
+      setDownloadError(null);
       try {
-        const res = await payrollApi.getArtifactUrl(runId, artifactId);
-        if (tab !== null) {
-          tab.location.href = res.url;
-        }
+        // Bearer /content — do not window.open (noopener orphans a blank tab).
+        const { blob, filename } = await payrollApi.downloadArtifact(
+          runId,
+          artifactId
+        );
+        const objectUrl = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = objectUrl;
+        anchor.download = filename;
+        anchor.rel = "noopener";
+        anchor.click();
+        window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1_000);
       } catch (err) {
-        tab?.close();
-        setLinkError(formatApiError(err, "Link failed"));
+        setDownloadError(formatApiError(err, "Download failed"));
       }
     },
     [runId]
@@ -148,20 +153,30 @@ function ArtifactsPanel({
       {error === null ? null : (
         <p className="px-3 py-2 text-destructive text-sm">{error}</p>
       )}
-      {linkError === null ? null : (
-        <p className="px-3 py-2 text-destructive text-sm">{linkError}</p>
+      {downloadError === null ? null : (
+        <p className="px-3 py-2 text-destructive text-sm">{downloadError}</p>
       )}
 
       {loading && artifacts.length === 0 ? (
-        <p className="px-3 py-4 text-muted-foreground text-sm">
-          Loading artifacts…
-        </p>
+        <div className="flex flex-col gap-2 px-3 py-4">
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-4 w-1/2" />
+        </div>
       ) : null}
 
       {!loading && artifacts.length === 0 ? (
-        <p className="px-3 py-4 text-muted-foreground text-sm">
-          No artifacts yet.
-        </p>
+        <div className="p-3">
+          <EmptyState
+            className="border-0 shadow-none"
+            description={
+              readOnly
+                ? "This run has no stored artifacts."
+                : "Attach evidence below, or wait for generated files after release/close."
+            }
+            icon={<FileTextIcon aria-hidden />}
+            title="No artifacts yet"
+          />
+        </div>
       ) : null}
 
       {artifacts.length > 0 ? (
@@ -170,7 +185,7 @@ function ArtifactsPanel({
             <ArtifactRowView
               artifact={artifact}
               key={artifact.id}
-              onGetLink={handleGetLink}
+              onDownload={handleDownload}
             />
           ))}
         </ul>
@@ -210,13 +225,13 @@ function ArtifactsPanel({
 
 interface ArtifactRowViewProps {
   readonly artifact: ArtifactRow;
-  readonly onGetLink: (artifactId: string) => void;
+  readonly onDownload: (artifactId: string) => void;
 }
 
-function ArtifactRowView({ artifact, onGetLink }: ArtifactRowViewProps) {
+function ArtifactRowView({ artifact, onDownload }: ArtifactRowViewProps) {
   const handleClick = useCallback(
-    () => onGetLink(artifact.id),
-    [artifact.id, onGetLink]
+    () => onDownload(artifact.id),
+    [artifact.id, onDownload]
   );
 
   return (
@@ -237,7 +252,7 @@ function ArtifactRowView({ artifact, onGetLink }: ArtifactRowViewProps) {
         />
       </div>
       <Button onClick={handleClick} size="sm" variant="ghost">
-        Get link
+        Download
       </Button>
     </li>
   );

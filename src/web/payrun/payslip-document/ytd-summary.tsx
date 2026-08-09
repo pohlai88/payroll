@@ -103,6 +103,19 @@ function YtdSummary({ dto, lang }: YtdSummaryProps) {
           ))}
         </tbody>
       </table>
+      {ytd.incomplete ? (
+        <p
+          style={{
+            marginTop: "0.5rem",
+            fontSize: "0.7rem",
+            color: "var(--doc-ink-secondary)",
+          }}
+        >
+          {lang === "en"
+            ? "Some YTD figures were unknown and omitted from totals — not treated as zero."
+            : "Sesetengah angka YTD tidak diketahui dan dikecualikan daripada jumlah — tidak dianggap sifar."}
+        </p>
+      ) : null}
     </div>
   );
 }

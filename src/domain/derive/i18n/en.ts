@@ -139,6 +139,10 @@ export const EN = {
   "pcb.declared": "PCB / MTD as recorded",
   "pcb.declared.notEntered": "Not yet entered — net pay cannot be determined",
   "pcb.declared.entered": "Recorded from {source}, {status}",
+  "pcb.declared.computed":
+    "Computed from the LHDN 2026 computerized MTD specification ({source})",
+  "pcb.y1": "Current-month normal remuneration (Y1)",
+  "pcb.k1": "Current-month EPF against Y1 (K1)",
   "pcb.zakat": "Zakat offset",
   "pcb.net": "PCB / MTD after zakat",
   "pcb.net.detail": "The greater of PCB less zakat of {zakat}, and nil",

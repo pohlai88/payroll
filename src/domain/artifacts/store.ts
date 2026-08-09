@@ -13,7 +13,7 @@ export interface PutObjectInput {
 export interface ArtifactStore {
   put: (input: PutObjectInput) => Promise<void>;
   get: (key: string) => Promise<Uint8Array | null>;
-  /** Short-lived download URL for the future UI agent. */
+  /** Short-lived URL (ops/debug); SPA uses authenticated GET …/content. */
   signedGetUrl: (key: string, expiresInSeconds?: number) => Promise<string>;
 }
 

@@ -72,7 +72,10 @@ function FindingRowView({
   return (
     <li className="flex flex-col gap-2 border-b px-3 py-3 last:border-b-0">
       <div className="flex flex-wrap items-start gap-2">
-        <Badge className="shrink-0" variant={severityBadgeVariant(finding.severity)}>
+        <Badge
+          className="shrink-0"
+          variant={severityBadgeVariant(finding.severity)}
+        >
           {finding.severity}
         </Badge>
         <Badge className="shrink-0 font-mono text-xs" variant="outline">

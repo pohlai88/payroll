@@ -162,7 +162,7 @@ and each has a distinct visual job.
 | `CALCULATION` | no | the operator and its operands, refs resolved to their own nodes |
 | `ROUNDING` | no | pre-rounded value, mode, and `deltaSen`. `NO_OP` when rounding changed nothing |
 | `PRORATION` | no | basis, numerator/denominator, Employment Act citation. A full month reads "no proration applied", never "× 1" |
-| `EXTERNAL_VERIFIED` | yes | PCB only. Amount, source, `verificationStatus`, evidence ref |
+| `EXTERNAL_VERIFIED` | yes | PCB override / draft entry. Amount, source, `verificationStatus`, evidence ref. Offline `COMPUTED` MTD uses `CALCULATION` + `MY.PCB.COMPUTERIZED` instead |
 | `MANUAL_OVERRIDE` | no | computed **and** applied side by side, plus reason, evidence, approver. The computed node stays in the graph as an input |
 | `AGGREGATE` | no | members with their roles — and **excluded members with `because`**. This is the answer to "why isn't my overtime in EPF wages?" |
 | `NOT_APPLICABLE` | yes | a zero with a citation. Renders as "contributes nothing by law", never as a blank or a bare 0.00 |
@@ -199,8 +199,11 @@ system into an unverifiable one.
 3. **Never write prose about a figure.** Labels are `key + params` rendered by
    `renderLabel(label, lang)`. A hardcoded English sentence next to a number is how
    the words drift from the arithmetic, and it makes the Malay payslip impossible.
-4. **Never auto-calculate PCB.** It is `EXTERNAL_VERIFIED` — supplied, evidenced,
-   possibly unknown. There is no code path that computes it and there must not be.
+4. **Never recalculate PCB in the UI.** The browser reads the persisted /
+   server-resolved figure. The server may resolve PCB via evidenced override or
+   offline LHDN 2026 computerized MTD (`COMPUTED`); absent resolution stays
+   `SEN_UNKNOWN` / null — never silently zero. Do not scrape the HTML calculator
+   or claim `LHDN_VERIFIED` without a human IRBM process.
 5. **Never render `NOT_APPLICABLE` as blank.** A zero owed to statute and a zero
    from a failed lookup must not look alike; the whole node kind exists to keep
    them distinguishable.

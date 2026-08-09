@@ -4,12 +4,7 @@
  * `rootVariances.net` from the server, so direction and bps are both real.
  */
 import { DeltaBadge } from "@/components/payroll/delta-badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import type { EmployeeLineDto } from "@/web/api/payroll-api";
 
 interface RunDiffPanelProps {

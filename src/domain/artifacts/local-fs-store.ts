@@ -37,7 +37,7 @@ export class LocalFsArtifactStore implements ArtifactStore {
 
   signedGetUrl(key: string, _expiresInSeconds = 300): Promise<string> {
     const absolute = this.resolve(key);
-    // file:// is enough for local ops; UI will use R2 signed URLs in prod.
+    // file:// for local/debug; SPA downloads via authenticated GET …/content.
     return Promise.resolve(`file://${absolute.replace(/\\/g, "/")}`);
   }
 

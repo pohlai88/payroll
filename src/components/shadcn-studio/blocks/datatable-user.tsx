@@ -2,11 +2,15 @@
  * Studio datatable-component-04 adapted for Clarity admin users (read-only).
  */
 
-import { useId, useMemo, useState } from "react";
+import type {
+  ColumnFiltersState,
+  PaginationState,
+} from "@tanstack/react-table";
 import { flexRender } from "@tanstack/react-table";
 import type {
   LegacyColumn as Column,
   LegacyColumnDef as ColumnDef,
+  LegacyHeader,
   LegacyRow,
 } from "@tanstack/react-table/legacy";
 import {
@@ -19,7 +23,15 @@ import {
   getSortedRowModel,
   useLegacyTable,
 } from "@tanstack/react-table/legacy";
-import type { ColumnFiltersState, PaginationState } from "@tanstack/table-core";
+import {
+  ChevronDownIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronUpIcon,
+  Link2Icon,
+  Link2OffIcon,
+} from "lucide-react";
+import { useCallback, useId, useMemo, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -49,21 +61,15 @@ import {
 import { usePagination } from "@/hooks/use-pagination";
 import { cn } from "@/lib/utils";
 import type { AdminUserRow } from "@/web/api/types";
-import {
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ChevronUpIcon,
-  Link2Icon,
-  Link2OffIcon,
-} from "lucide-react";
 
-type AdminColumnMeta = {
+interface AdminColumnMeta {
   filterVariant?: "text" | "range" | "select";
-};
+}
+
+const WHITESPACE_REGEX = /\s+/;
 
 function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const parts = name.trim().split(WHITESPACE_REGEX).filter(Boolean);
   if (parts.length === 0) {
     return "?";
   }
@@ -167,15 +173,80 @@ const columns: ColumnDef<AdminUserRow>[] = [
   },
 ];
 
-type UserDatatableProps = {
+interface UserDatatableProps {
   data: readonly AdminUserRow[];
   title?: string;
-};
+}
 
-const UserDatatable = ({
-  data,
-  title = "Admin users",
-}: UserDatatableProps) => {
+function renderTableHeaderContent(header: LegacyHeader<AdminUserRow, unknown>) {
+  if (header.isPlaceholder) {
+    return null;
+  }
+
+  if (!header.column.getCanSort()) {
+    return flexRender(header.column.columnDef.header, header.getContext());
+  }
+
+  return (
+    <button
+      className="flex h-full w-full cursor-pointer select-none items-center justify-between gap-2 border-0 bg-transparent p-0 text-left font-inherit text-inherit"
+      onClick={header.column.getToggleSortingHandler()}
+      type="button"
+    >
+      {flexRender(header.column.columnDef.header, header.getContext())}
+      {
+        {
+          asc: (
+            <ChevronUpIcon
+              aria-hidden="true"
+              className="size-4 shrink-0 opacity-60"
+            />
+          ),
+          desc: (
+            <ChevronDownIcon
+              aria-hidden="true"
+              className="size-4 shrink-0 opacity-60"
+            />
+          ),
+        }[header.column.getIsSorted() as string]
+      }
+    </button>
+  );
+}
+
+function PaginationPageButton({
+  page,
+  isActive,
+  onSelect,
+}: {
+  page: number;
+  isActive: boolean;
+  onSelect: (page: number) => void;
+}) {
+  const handleClick = useCallback(() => {
+    onSelect(page);
+  }, [onSelect, page]);
+
+  return (
+    <PaginationItem key={page}>
+      <Button
+        aria-current={isActive ? "page" : undefined}
+        className={
+          isActive
+            ? undefined
+            : "bg-primary/10 text-primary hover:bg-primary/20 focus-visible:ring-primary/20 dark:focus-visible:ring-primary/40"
+        }
+        onClick={handleClick}
+        size="icon"
+        variant={isActive ? "default" : "ghost"}
+      >
+        {page}
+      </Button>
+    </PaginationItem>
+  );
+}
+
+const UserDatatable = ({ data, title = "Admin users" }: UserDatatableProps) => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const pageSize = 8;
   const [pagination, setPagination] = useState<PaginationState>({
@@ -213,18 +284,30 @@ const UserDatatable = ({
   const statusColumn = table.getColumn("status");
   const linkedColumn = table.getColumn("linked");
 
+  function handlePreviousPage() {
+    table.previousPage();
+  }
+
+  function handleNextPage() {
+    table.nextPage();
+  }
+
+  function handlePageSelect(page: number) {
+    table.setPageIndex(page - 1);
+  }
+
   return (
     <div className="w-full">
       <div className="border-b">
         <div className="flex flex-col gap-4 p-6">
           <span className="font-semibold text-xl">{title}</span>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            {statusColumn !== undefined ? (
+            {statusColumn === undefined ? null : (
               <Filter column={statusColumn} />
-            ) : null}
-            {linkedColumn !== undefined ? (
+            )}
+            {linkedColumn === undefined ? null : (
               <Filter column={linkedColumn} />
-            ) : null}
+            )}
           </div>
         </div>
         <Table>
@@ -237,51 +320,7 @@ const UserDatatable = ({
                     key={header.id}
                     style={{ width: `${String(header.getSize())}px` }}
                   >
-                    {header.isPlaceholder ? null : header.column.getCanSort() ? (
-                      <div
-                        className={cn(
-                          header.column.getCanSort() &&
-                            "flex h-full cursor-pointer items-center justify-between gap-2 select-none"
-                        )}
-                        onClick={header.column.getToggleSortingHandler()}
-                        onKeyDown={(event) => {
-                          if (
-                            header.column.getCanSort() &&
-                            (event.key === "Enter" || event.key === " ")
-                          ) {
-                            event.preventDefault();
-                            header.column.getToggleSortingHandler()?.(event);
-                          }
-                        }}
-                        tabIndex={header.column.getCanSort() ? 0 : undefined}
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                        {
-                          {
-                            asc: (
-                              <ChevronUpIcon
-                                aria-hidden="true"
-                                className="size-4 shrink-0 opacity-60"
-                              />
-                            ),
-                            desc: (
-                              <ChevronDownIcon
-                                aria-hidden="true"
-                                className="size-4 shrink-0 opacity-60"
-                              />
-                            ),
-                          }[header.column.getIsSorted() as string]
-                        }
-                      </div>
-                    ) : (
-                      flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )
-                    )}
+                    {renderTableHeaderContent(header)}
                   </TableHead>
                 ))}
               </TableRow>
@@ -292,7 +331,10 @@ const UserDatatable = ({
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell className="h-14 first:pl-4 last:px-4" key={cell.id}>
+                    <TableCell
+                      className="h-14 first:pl-4 last:px-4"
+                      key={cell.id}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -345,9 +387,7 @@ const UserDatatable = ({
                 aria-label="Go to previous page"
                 className="disabled:pointer-events-none disabled:opacity-50"
                 disabled={!table.getCanPreviousPage()}
-                onClick={() => {
-                  table.previousPage();
-                }}
+                onClick={handlePreviousPage}
                 variant="ghost"
               >
                 <ChevronLeftIcon aria-hidden="true" />
@@ -361,29 +401,14 @@ const UserDatatable = ({
               </PaginationItem>
             ) : null}
 
-            {pages.map((page) => {
-              const isActive =
-                page === table.getState().pagination.pageIndex + 1;
-              return (
-                <PaginationItem key={page}>
-                  <Button
-                    aria-current={isActive ? "page" : undefined}
-                    className={
-                      isActive
-                        ? undefined
-                        : "bg-primary/10 text-primary hover:bg-primary/20 focus-visible:ring-primary/20 dark:focus-visible:ring-primary/40"
-                    }
-                    onClick={() => {
-                      table.setPageIndex(page - 1);
-                    }}
-                    size="icon"
-                    variant={isActive ? "default" : "ghost"}
-                  >
-                    {page}
-                  </Button>
-                </PaginationItem>
-              );
-            })}
+            {pages.map((page) => (
+              <PaginationPageButton
+                isActive={page === table.getState().pagination.pageIndex + 1}
+                key={page}
+                onSelect={handlePageSelect}
+                page={page}
+              />
+            ))}
 
             {showRightEllipsis ? (
               <PaginationItem>
@@ -396,9 +421,7 @@ const UserDatatable = ({
                 aria-label="Go to next page"
                 className="disabled:pointer-events-none disabled:opacity-50"
                 disabled={!table.getCanNextPage()}
-                onClick={() => {
-                  table.nextPage();
-                }}
+                onClick={handleNextPage}
                 variant="ghost"
               >
                 Next
@@ -430,23 +453,30 @@ function Filter({ column }: { column: Column<AdminUserRow> }) {
     const values = Array.from(column.getFacetedUniqueValues().keys());
     const flattenedValues = values.reduce<string[]>((acc, curr) => {
       if (Array.isArray(curr)) {
-        return [...acc, ...curr.map(String)];
+        acc.push(...curr.map(String));
+        return acc;
       }
-      return [...acc, String(curr)];
+      acc.push(String(curr));
+      return acc;
     }, []);
 
     return Array.from(new Set(flattenedValues)).sort();
   }, [column, filterVariant]);
 
+  const handleValueChange = useCallback(
+    (value: string | null) => {
+      column.setFilterValue(
+        value === "all" || value === null ? undefined : value
+      );
+    },
+    [column]
+  );
+
   return (
     <div className="flex w-full flex-col gap-2">
       <Label htmlFor={`${id}-select`}>Select {columnHeader}</Label>
       <Select
-        onValueChange={(value: string | null) => {
-          column.setFilterValue(
-            value === "all" || value === null ? undefined : value
-          );
-        }}
+        onValueChange={handleValueChange}
         value={columnFilterValue?.toString() ?? "all"}
       >
         <SelectTrigger className="w-full capitalize" id={`${id}-select`}>

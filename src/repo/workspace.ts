@@ -234,8 +234,16 @@ function computeEmployeeVariance(
       changedRootKeys.push(key);
     }
   }
-  const curNet = current.net?.sen ?? 0;
-  const prevNet = previous.net?.sen ?? 0;
+  const curNet = current.net?.sen;
+  const prevNet = previous.net?.sen;
+  // Unknown nets are not comparable — do not treat null as zero.
+  if (curNet == null || prevNet == null) {
+    return {
+      hasChanges: changedRootKeys.length > 0,
+      changedRootKeys,
+      direction: "SAME",
+    };
+  }
   return {
     hasChanges: changedRootKeys.length > 0,
     changedRootKeys,
@@ -247,13 +255,19 @@ function computeRootVariance(
   current: RootValue,
   previous: RootValue
 ): VarianceDto {
-  const currentSen = current.sen ?? 0;
-  const previousSen = previous.sen ?? 0;
-  const deltaSen = currentSen - previousSen;
+  if (current.sen == null || previous.sen == null) {
+    return {
+      previousSen: previous.sen,
+      deltaSen: null,
+      deltaBps: null,
+      direction: "SAME",
+    };
+  }
+  const deltaSen = current.sen - previous.sen;
   return {
-    previousSen,
+    previousSen: previous.sen,
     deltaSen,
-    deltaBps: roundBps(deltaSen, previousSen),
+    deltaBps: roundBps(deltaSen, previous.sen),
     direction: directionOf(deltaSen),
   };
 }

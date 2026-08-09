@@ -8,6 +8,15 @@ import type { Classification, EmployeeSnapshot, RuleSettings } from "./types";
  * SOCSO: FIRST (<60), SECOND (60+). EIS: 18 to <60; first-time 57+ needs review.
  */
 
+function requireAgeForBand(age: number | null, band: string): number {
+  if (age === null) {
+    throw new Error(
+      `Date of birth is required to resolve ${band}; age at period end is missing.`
+    );
+  }
+  return age;
+}
+
 function resolveEpfPart(
   emp: EmployeeSnapshot,
   age: number | null,
@@ -20,14 +29,23 @@ function resolveEpfPart(
     return emp.epfPartOverride;
   }
   if (emp.isMalaysian) {
-    return age !== null && age >= retirementAge ? "E" : "A";
+    const years = requireAgeForBand(age, "EPF Part A/E");
+    return years >= retirementAge ? "E" : "A";
   }
   if (emp.isPermanentResident) {
-    return age !== null && age >= retirementAge ? "C" : "A";
+    const years = requireAgeForBand(age, "EPF Part A/C");
+    return years >= retirementAge ? "C" : "A";
+  }
+  // Non-Malaysian, non-PR: Part F vs A/C depends on pre-Aug-1998 membership.
+  // null means unknown — never collapse to F (that under-contributes vs A/C).
+  if (emp.epfMemberBeforeAug1998 === null) {
+    throw new Error(
+      "EPF membership before August 1998 must be known (true or false) for non-Malaysian, non-PR employees; unknown is not Part F."
+    );
   }
   if (emp.epfMemberBeforeAug1998) {
-    // non-Malaysian, non-PR
-    return age !== null && age >= retirementAge ? "C" : "A";
+    const years = requireAgeForBand(age, "EPF Part A/C");
+    return years >= retirementAge ? "C" : "A";
   }
   return "F";
 }
@@ -43,7 +61,8 @@ function resolveSocsoCategory(
   if (emp.socsoCategoryOverride) {
     return emp.socsoCategoryOverride;
   }
-  return age !== null && age >= retirementAge ? "SECOND" : "FIRST";
+  const years = requireAgeForBand(age, "SOCSO category");
+  return years >= retirementAge ? "SECOND" : "FIRST";
 }
 
 function resolveEis(
@@ -51,15 +70,18 @@ function resolveEis(
   age: number | null,
   settings: RuleSettings
 ): { eisEligible: boolean; eisAge57Review: boolean } {
-  if (!emp.eisApplicable || age === null) {
+  if (!emp.eisApplicable) {
     return { eisEligible: false, eisAge57Review: false };
   }
+  // EIS has no override: a missing age must not soft-zero eligibility (that
+  // under-deducts). Wall should reject first; this is the tripwire.
+  const years = requireAgeForBand(age, "EIS eligibility");
 
   let eisEligible =
-    age >= settings.eisMinAge && age < settings.eisMaxAgeExclusive;
+    years >= settings.eisMinAge && years < settings.eisMaxAgeExclusive;
   let eisAge57Review = false;
 
-  if (eisEligible && age >= settings.eisFirstTimeReviewAge) {
+  if (eisEligible && years >= settings.eisFirstTimeReviewAge) {
     if (emp.eisPriorContribution === false) {
       // Age 57+ with confirmed NO prior contribution history: exempt.
       eisEligible = false;

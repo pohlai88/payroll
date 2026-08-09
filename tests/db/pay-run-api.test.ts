@@ -308,7 +308,10 @@ describe("pay-run API", () => {
   });
 
   it("GET /v1/pay-runs returns [] when the caller has no company grants", async () => {
-    await createUser(db, { email: "payrun-nogrant@example.com", name: "No Grant" });
+    await createUser(db, {
+      email: "payrun-nogrant@example.com",
+      name: "No Grant",
+    });
     const app = createApp({
       db,
       verifyJwt: verifier({

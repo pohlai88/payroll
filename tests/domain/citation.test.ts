@@ -38,6 +38,7 @@ describe("Citation identifiers are an append-only wire format", () => {
       "MY.EIS.FIRST_TIME_REVIEW.HISTORY_UNKNOWN",
       "MY.EIS.NOT_APPLICABLE",
       "MY.PCB.EXTERNAL_ONLY",
+      "MY.PCB.COMPUTERIZED",
       "MY.PCB.ZAKAT_OFFSET",
       "MY.EA1955.S18A.PRORATION",
       "MY.EA1955.REG9.WAGE_STATEMENT",

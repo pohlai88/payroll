@@ -78,7 +78,7 @@ export interface AdminCompaniesResponse {
 }
 
 /** Keep in sync with create body Zod in `src/server/routes/admin-companies.ts`. */
-export type CreateAdminCompanyBody = {
+export interface CreateAdminCompanyBody {
   readonly code: string;
   readonly name: string;
   readonly epfNo?: string | null;
@@ -86,17 +86,17 @@ export type CreateAdminCompanyBody = {
   readonly lhdnNo?: string | null;
   readonly hrdfEnabled?: boolean;
   readonly hrdfLevyPct?: string;
-};
+}
 
 /** Keep in sync with patch body Zod in `src/server/routes/admin-companies.ts`. */
-export type UpdateAdminCompanyBody = {
+export interface UpdateAdminCompanyBody {
   readonly name?: string;
   readonly epfNo?: string | null;
   readonly socsoNo?: string | null;
   readonly lhdnNo?: string | null;
   readonly hrdfEnabled?: boolean;
   readonly hrdfLevyPct?: string;
-};
+}
 
 export interface ImportRowError {
   readonly field: string;
@@ -499,7 +499,12 @@ export type ArtifactType =
   | "EXCEPTION_REPORT"
   | "TIMESTAMP_TOKEN";
 
-/** `artifacts` row — see `src/db/schema/artifacts.ts`. */
+/** Manual/API upload types — excludes server-only `TIMESTAMP_TOKEN`. */
+export type UploadArtifactType = Exclude<ArtifactType, "TIMESTAMP_TOKEN">;
+
+/**
+ * Keep in sync with `ArtifactListItem` in `src/service/artifacts.ts`.
+ */
 export interface ArtifactRow {
   readonly id: string;
   readonly runId: string | null;
@@ -517,6 +522,11 @@ export interface ArtifactRow {
   readonly source: "ATTACHED" | "GENERATED";
   readonly createdBy: string;
   readonly createdAt: string;
+}
+
+export interface ArtifactDownload {
+  readonly blob: Blob;
+  readonly filename: string;
 }
 
 export interface ArtifactsListResponse {
@@ -549,12 +559,53 @@ export interface NodeDiffRow {
   readonly removedRefs: readonly string[];
 }
 
+/** Keep in sync with `src/server/routes/pay-run-diff.ts` JSON body. */
 export interface RunLineDiffDto {
   readonly runId: string;
   readonly lineId: string;
   readonly employmentId: string;
   readonly priorRunId: string | null;
   readonly diffs: readonly NodeDiffRow[];
+}
+
+/**
+ * Keep in sync with `src/service/line-derivation.ts` `DerivedNodeDto` /
+ * `LineDerivationDto` and `src/components/payroll/node-panel.tsx` `DerivedNode`.
+ */
+export interface DerivedNodeDto {
+  readonly key: string;
+  readonly kind:
+    | "FORMULA"
+    | "TABLE_LOOKUP"
+    | "RATE"
+    | "CAP"
+    | "OVERRIDE"
+    | "PASSTHROUGH"
+    | "NOT_APPLICABLE";
+  readonly label: {
+    readonly key: string;
+    readonly params?: Record<string, string | number>;
+  };
+  readonly sen: number | null;
+  readonly citation: {
+    readonly ruleId: string;
+    readonly authority: string;
+    readonly reference: string;
+    readonly effectiveDate: string;
+    readonly displayText: string;
+  } | null;
+  readonly citationStatus: "RESOLVED" | "UNRESOLVED";
+  readonly flags: Array<"REVIEW_REQUIRED" | "UNVERIFIED" | "NOT_ENTERED">;
+  readonly children?: readonly DerivedNodeDto[];
+}
+
+export interface LineDerivationDto {
+  readonly runId: string;
+  readonly lineId: string;
+  readonly employmentId: string;
+  readonly root: string;
+  readonly rootKeys: readonly string[];
+  readonly node: DerivedNodeDto | null;
 }
 
 export interface ReportMeta {
@@ -577,12 +628,16 @@ export interface PaymentRegisterRow {
   readonly maskedBankAccount: string | null;
 }
 
+/** Keep in sync with `src/server/routes/pay-run-reports.ts` payment-register. */
 export interface PaymentRegisterDto {
   readonly reportMeta: ReportMeta;
   readonly rows: readonly PaymentRegisterRow[];
   readonly totalNetSen: number;
+  /** True when any row's net was null (unknown) and omitted from the sum. */
+  readonly incomplete: boolean;
 }
 
+/** Keep in sync with `src/server/routes/pay-run-reports.ts` statutory-summary. */
 export interface StatutorySummaryDto {
   readonly reportMeta: ReportMeta;
   readonly employeeCount: number;
@@ -596,6 +651,8 @@ export interface StatutorySummaryDto {
   readonly eisErTotalSen: number;
   readonly pcbNetTotalSen: number;
   readonly cp38TotalSen: number;
+  /** True when any contributor sen was null and omitted from a total. */
+  readonly incomplete: boolean;
 }
 
 export interface ExceptionFindingRow {
@@ -608,11 +665,13 @@ export interface ExceptionFindingRow {
   readonly employeeName: string | null;
 }
 
+/** Keep in sync with `src/server/routes/pay-run-reports.ts` exceptions. */
 export interface ExceptionReportDto {
   readonly reportMeta: ReportMeta;
   readonly findings: readonly ExceptionFindingRow[];
 }
 
+/** Keep in sync with `src/server/routes/employee-remuneration.ts`. */
 export interface AnnualRemunerationSummaryDto {
   readonly reportMeta: ReportMeta;
   readonly year: number;
@@ -629,6 +688,8 @@ export interface AnnualRemunerationSummaryDto {
   readonly eisEeSen: number;
   readonly pcbNetSen: number;
   readonly cp38Sen: number;
+  /** True when any month's figure was null and omitted from a total. */
+  readonly incomplete: boolean;
   readonly limitationNotice: string;
   readonly disclaimer: string;
 }

@@ -11,10 +11,11 @@ import { linePayments } from "@/db/schema/control";
 import { payLines, payRuns } from "@/db/schema/run";
 import type { ArtifactStore } from "@/domain/artifacts/store";
 import {
-  listRunArtifacts,
+  listRunArtifactsForActor,
+  readRunArtifactContentForActor,
   setArtifactStore,
-  signedArtifactUrl,
-  storeArtifact,
+  signedArtifactUrlForActor,
+  storeArtifactForActor,
 } from "@/service/artifacts";
 import {
   closeRun,
@@ -327,8 +328,10 @@ export function payRunControlRoutes(
   app.get("/pay-runs/:runId/artifacts", async (c) => {
     try {
       const runId = c.req.param("runId");
-      await requirePayRunAccess(db, c.get("user").id, "READ", runId);
-      return c.json({ artifacts: await listRunArtifacts(db, runId) });
+      const userId = c.get("user").id;
+      return c.json({
+        artifacts: await listRunArtifactsForActor(db, userId, runId),
+      });
     } catch (error) {
       return handleRouteError(c, error);
     }
@@ -337,7 +340,7 @@ export function payRunControlRoutes(
   app.post("/pay-runs/:runId/artifacts", async (c) => {
     try {
       const runId = c.req.param("runId");
-      await requirePayRunAccess(db, c.get("user").id, "UPDATE", runId);
+      const user = c.get("user");
       const body = z
         .object({
           filename: z.string().min(1),
@@ -357,13 +360,13 @@ export function payRunControlRoutes(
         })
         .parse(await c.req.json());
       const bytes = Uint8Array.from(Buffer.from(body.base64, "base64"));
-      const stored = await storeArtifact(db, {
+      const stored = await storeArtifactForActor(db, user.id, {
         runId,
         type: body.type,
         filename: body.filename,
         body: bytes,
         mimeType: body.mimeType,
-        createdBy: c.get("user").email,
+        createdBy: user.email,
         source: "ATTACHED",
       });
       return c.json(stored);
@@ -375,8 +378,38 @@ export function payRunControlRoutes(
   app.get("/pay-runs/:runId/artifacts/:artifactId/url", async (c) => {
     try {
       const runId = c.req.param("runId");
-      await requirePayRunAccess(db, c.get("user").id, "READ", runId);
-      return c.json(await signedArtifactUrl(db, c.req.param("artifactId")));
+      return c.json(
+        await signedArtifactUrlForActor(
+          db,
+          c.get("user").id,
+          runId,
+          c.req.param("artifactId")
+        )
+      );
+    } catch (error) {
+      return handleRouteError(c, error);
+    }
+  });
+
+  app.get("/pay-runs/:runId/artifacts/:artifactId/content", async (c) => {
+    try {
+      const runId = c.req.param("runId");
+      const { body, mimeType, filename } = await readRunArtifactContentForActor(
+        db,
+        c.get("user").id,
+        runId,
+        c.req.param("artifactId")
+      );
+      const safeName = filename.replace(/[^\w.-]+/g, "_") || "artifact.bin";
+      // Buffer satisfies BodyInit under @types/node; raw Uint8Array does not.
+      return new Response(Buffer.from(body), {
+        status: 200,
+        headers: {
+          "Content-Type": mimeType,
+          "Content-Disposition": `attachment; filename="${safeName}"`,
+          "Content-Length": String(body.byteLength),
+        },
+      });
     } catch (error) {
       return handleRouteError(c, error);
     }
