@@ -4,7 +4,7 @@
  * docs/superpowers/specs/2026-08-08-employee-master-import-design.md.
  */
 
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import type { Database } from "@/db/client";
 import {
   employeeCustomFieldDefs,
@@ -50,7 +50,7 @@ export async function listActiveCustomFieldDefs(
     .select()
     .from(employeeCustomFieldDefs)
     .where(eq(employeeCustomFieldDefs.active, true))
-    .orderBy(employeeCustomFieldDefs.sortOrder);
+    .orderBy(asc(employeeCustomFieldDefs.sortOrder));
 }
 
 export async function insertCustomFieldDef(

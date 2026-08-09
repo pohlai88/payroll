@@ -7,6 +7,9 @@
 
 import { assertSafeArtifactKey } from "./keys";
 
+/** Hard cap for artifact bodies (attached evidence + generated outputs). */
+export const ARTIFACT_MAX_BODY_BYTES = 10 * 1024 * 1024;
+
 export interface PutObjectInput {
   readonly key: string;
   readonly body: Uint8Array;

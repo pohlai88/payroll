@@ -35,6 +35,12 @@ export function requireDatabaseUrl(): string {
 
 export type Database = ReturnType<typeof createDatabase>;
 
+/** Drizzle transaction client from `db.transaction(tx => …)`. */
+export type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
+
+/** Accept either a pool-backed Database or an open transaction. */
+export type DbOrTx = Database | Transaction;
+
 /**
  * An idle client can be dropped by the backend at any time — a network blip,
  * a managed Postgres provider scaling to zero, a DBA restart — and `pg`

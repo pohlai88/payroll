@@ -22,13 +22,10 @@
  */
 
 import { and, eq, gte, isNull, lte, or } from "drizzle-orm";
-import type { Database } from "@/db/client";
+import type { DbOrTx } from "@/db/client";
 import type { rulePackLayer } from "@/db/schema/enums";
 import { rulePacks } from "@/db/schema/rule-pack";
 import { isIsoDate } from "@/domain/date";
-
-type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
-type DbOrTx = Database | Transaction;
 
 export type RuleScheme = (typeof rulePackLayer.enumValues)[number];
 

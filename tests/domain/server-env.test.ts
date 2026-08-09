@@ -40,6 +40,30 @@ describe("requireServerEnv", () => {
     ).toThrow(/R2_/);
   });
 
+  it("fails when R2_ENDPOINT does not include R2_ACCOUNT_ID", () => {
+    expect(() =>
+      requireServerEnv({
+        DATABASE_URL: "postgres://test",
+        NEON_AUTH_BASE_URL: "https://ep.example/neondb/auth",
+        R2_ACCOUNT_ID: "acct",
+        R2_ACCESS_KEY_ID: "key",
+        R2_SECRET_ACCESS_KEY: "secret",
+        R2_BUCKET: "bucket",
+        R2_ENDPOINT: "https://other.r2.cloudflarestorage.com",
+      })
+    ).toThrow(/R2_ENDPOINT/);
+  });
+
+  it("requires R2 when NODE_ENV=production", () => {
+    expect(() =>
+      requireServerEnv({
+        DATABASE_URL: "postgres://test",
+        NEON_AUTH_BASE_URL: "https://ep.example/neondb/auth",
+        NODE_ENV: "production",
+      })
+    ).toThrow(/R2_\* env is required when NODE_ENV=production/);
+  });
+
   it("prefers NEON_AUTH_JWKS_URL when set", () => {
     const env = requireServerEnv({
       DATABASE_URL: "postgres://test",

@@ -4,7 +4,7 @@
  */
 
 import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
-import type { Database } from "@/db/client";
+import type { Database, DbOrTx } from "@/db/client";
 import { paymentAttempts } from "@/db/schema/control";
 import { anomalyFindings, findingEvents } from "@/db/schema/findings";
 import { employments } from "@/db/schema/parties";
@@ -28,9 +28,6 @@ import { fingerprintOf } from "@/domain/findings/fingerprint";
 import type { DetectedFinding } from "@/domain/findings/types";
 import { ControlError } from "./control-errors";
 import { scanRunTransferFindings } from "./findings";
-
-type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
-type DbOrTx = Database | Transaction;
 
 type LineScanRow = LineFindingInput;
 

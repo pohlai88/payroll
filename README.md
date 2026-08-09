@@ -134,7 +134,9 @@ npm test
 ## Cloudflare R2 (artifacts)
 
 Pay-run artifact bytes use R2 when all `R2_*` env vars are set; otherwise LocalFs
-under `data/artifacts/`. Bucket + Wrangler config:
+under `data/artifacts/` (local/dev only). `NODE_ENV=production` requires full
+`R2_*` — the API refuses to start on LocalFs in production. Attached uploads are
+capped at 10 MiB. Bucket + Wrangler config:
 
 | | |
 |---|---|

@@ -4,7 +4,7 @@
 
 import { createHash } from "node:crypto";
 import { asc, eq, inArray } from "drizzle-orm";
-import type { Database } from "@/db/client";
+import type { DbOrTx } from "@/db/client";
 import {
   payLineItems,
   payLineOverrides,
@@ -13,17 +13,11 @@ import {
   pcbEntries,
 } from "@/db/schema/run";
 
-type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
-type DbOrTx = Database | Transaction;
-
 /**
  * Deterministic hash of calc-relevant state for a run.
  * Excludes payment/distribution/UI/acknowledgment fields.
  */
-async function computeCalcRevision(
-  db: DbOrTx,
-  runId: string
-): Promise<string> {
+async function computeCalcRevision(db: DbOrTx, runId: string): Promise<string> {
   const [run] = await db
     .select({
       id: payRuns.id,

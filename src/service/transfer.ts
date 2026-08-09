@@ -10,7 +10,7 @@
  */
 
 import { and, eq, isNull, ne, sql } from "drizzle-orm";
-import type { Database } from "@/db/client";
+import type { Database, Transaction } from "@/db/client";
 import { employments, persons } from "@/db/schema/parties";
 import { auditEvents, payRuns } from "@/db/schema/run";
 import { employmentPriorYtd, transfers } from "@/db/schema/transfer";
@@ -20,8 +20,6 @@ import { requireArtifact } from "@/service/artifacts";
 import { ControlError } from "@/service/control-errors";
 import { scanTransferFindings } from "@/service/findings";
 import { requirePermission } from "@/service/rbac";
-
-type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 
 export type GroupServiceContinuity = "CONTINUOUS" | "RESET";
 

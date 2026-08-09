@@ -3,13 +3,16 @@
  * multicompany scope, import matching, and pay-run ownership.
  */
 
-import { eq } from "drizzle-orm";
 import type { Database } from "@/db/client";
 import type { CompanyRow } from "@/db/schema/parties";
-import { companies } from "@/db/schema/parties";
-import { listAllCompanies } from "@/repo/rbac";
+import {
+  createCompany,
+  listAllCompanies,
+  updateCompany,
+} from "@/repo/companies";
 import { requireSystemAdmin } from "./rbac";
 
+/** Keep in sync with `src/web/api/types.ts` `AdminCompanyRow`. */
 export interface CompanyDirectoryRow {
   readonly id: string;
   readonly code: string;
@@ -66,21 +69,15 @@ export async function createAdminCompany(
   if (code.length === 0 || name.length === 0) {
     throw new Error("Company code and name are required");
   }
-  const [row] = await db
-    .insert(companies)
-    .values({
-      code,
-      name,
-      epfNo: input.epfNo ?? null,
-      socsoNo: input.socsoNo ?? null,
-      lhdnNo: input.lhdnNo ?? null,
-      hrdfEnabled: input.hrdfEnabled ?? false,
-      hrdfLevyPct: input.hrdfLevyPct ?? "1",
-    })
-    .returning();
-  if (row === undefined) {
-    throw new Error("Failed to create company");
-  }
+  const row = await createCompany(db, {
+    code,
+    name,
+    epfNo: input.epfNo ?? null,
+    socsoNo: input.socsoNo ?? null,
+    lhdnNo: input.lhdnNo ?? null,
+    hrdfEnabled: input.hrdfEnabled ?? false,
+    hrdfLevyPct: input.hrdfLevyPct ?? "1",
+  });
   return toDirectoryRow(row);
 }
 
@@ -100,7 +97,7 @@ export async function updateAdminCompany(
   input: UpdateCompanyInput
 ): Promise<CompanyDirectoryRow> {
   await requireSystemAdmin(db, input.actorUserId);
-  const patch: Partial<typeof companies.$inferInsert> = {};
+  const patch: Parameters<typeof updateCompany>[2] = {};
   if (input.name !== undefined) {
     const name = input.name.trim();
     if (name.length === 0) {
@@ -123,13 +120,6 @@ export async function updateAdminCompany(
   if (input.hrdfLevyPct !== undefined) {
     patch.hrdfLevyPct = input.hrdfLevyPct;
   }
-  const [row] = await db
-    .update(companies)
-    .set(patch)
-    .where(eq(companies.id, input.companyId))
-    .returning();
-  if (row === undefined) {
-    throw new Error(`Company ${input.companyId} not found`);
-  }
+  const row = await updateCompany(db, input.companyId, patch);
   return toDirectoryRow(row);
 }

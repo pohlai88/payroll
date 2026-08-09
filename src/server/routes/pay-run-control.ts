@@ -10,6 +10,7 @@ import type { Database } from "@/db/client";
 import { linePayments } from "@/db/schema/control";
 import { payLines, payRuns } from "@/db/schema/run";
 import {
+  ARTIFACT_MAX_BODY_BYTES,
   listRunArtifactsForActor,
   readRunArtifactContentForActor,
   storeArtifactForActor,
@@ -339,6 +340,15 @@ export function payRunControlRoutes(db: Database) {
           type: z.enum(["EVIDENCE", "EXCEPTION_REPORT"]).default("EVIDENCE"),
         })
         .parse(await c.req.json());
+      // Base64 is ~4/3 of decoded size; reject oversized payloads before decode.
+      const maxBase64Chars = Math.ceil((ARTIFACT_MAX_BODY_BYTES * 4) / 3) + 8;
+      if (body.base64.length > maxBase64Chars) {
+        throw new ControlError(
+          "VALIDATION_ERROR",
+          `artifact exceeds ${ARTIFACT_MAX_BODY_BYTES} bytes`,
+          413
+        );
+      }
       const bytes = Uint8Array.from(Buffer.from(body.base64, "base64"));
       const stored = await storeArtifactForActor(db, user.id, {
         runId,

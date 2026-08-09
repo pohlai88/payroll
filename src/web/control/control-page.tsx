@@ -1,13 +1,13 @@
 /**
- * Control screen — cross-run findings/gate overview. Replaces the Phase 5B
- * EmptyState placeholder. Fetches pay runs for the current scope, then loads
- * findings counts + the relevant gate for DRAFT/REVIEWED runs.
+ * Control screen — cross-run findings/gate overview.
+ * Studio: empty-state-01 + statistics-card-03 summary strip.
  */
 
-import { ShieldCheckIcon } from "lucide-react";
+import { AlertTriangleIcon, ShieldCheckIcon, TimerIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
-import { EmptyState } from "@/components/ui/empty-state";
+import EmptyState01 from "@/components/shadcn-studio/blocks/empty-state-01/empty-state-01";
+import StatisticsCard from "@/components/shadcn-studio/blocks/statistics-card-03";
 import { formatApiError } from "@/web/api/format-error";
 import type {
   FindingRow,
@@ -201,6 +201,11 @@ function ControlPage() {
     [rows]
   );
 
+  const blockedCount = useMemo(
+    () => rows.filter((row) => row.gatePill === "BLOCKED").length,
+    [rows]
+  );
+
   if (loading && rows.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center text-muted-foreground text-sm">
@@ -219,11 +224,22 @@ function ControlPage() {
 
   if (rows.length === 0) {
     return (
-      <EmptyState
-        description="No pay runs in the current company scope and reporting month."
-        icon={<ShieldCheckIcon />}
-        title="Control"
-      />
+      <div className="flex flex-col gap-4">
+        <PageTitle
+          description={`${reportingMonth} · gate and findings overview`}
+          title="Control"
+        />
+        <EmptyState01
+          className="max-w-none"
+          description="Control overview"
+          emptyDetail="No pay runs in the current company scope and reporting month."
+          emptyTitle="Nothing to review"
+          icon={
+            <ShieldCheckIcon className="mx-auto size-12 text-muted-foreground" />
+          }
+          title="0"
+        />
+      </div>
     );
   }
 
@@ -233,6 +249,35 @@ function ControlPage() {
         description={`${reportingMonth} · ${pendingCount} run${pendingCount === 1 ? "" : "s"} pending review/approval`}
         title="Control"
       />
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatisticsCard
+          badgeContent="Scope"
+          changePercentage="—"
+          icon={<ShieldCheckIcon />}
+          title="Runs in view"
+          trend="up"
+          value={String(rows.length)}
+        />
+        <StatisticsCard
+          badgeContent="Gates"
+          changePercentage="—"
+          icon={<TimerIcon />}
+          iconClassName="bg-status-warn-fill text-status-warn-ink"
+          title="Pending review/approval"
+          trend="up"
+          value={String(pendingCount)}
+        />
+        <StatisticsCard
+          badgeContent="Findings"
+          changePercentage="—"
+          icon={<AlertTriangleIcon />}
+          iconClassName="bg-destructive/10 text-destructive"
+          title="Gate blocked"
+          trend="down"
+          value={String(blockedCount)}
+        />
+      </div>
 
       {error === null ? null : (
         <p className="text-destructive text-sm">{error}</p>

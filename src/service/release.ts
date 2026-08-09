@@ -3,7 +3,7 @@
  */
 
 import { and, asc, eq, inArray } from "drizzle-orm";
-import type { Database } from "@/db/client";
+import type { Database, Transaction } from "@/db/client";
 import {
   linePayments,
   paymentAttempts,
@@ -17,8 +17,6 @@ import { storeArtifact } from "./artifacts";
 import { ControlError } from "./control-errors";
 import { evaluateGate } from "./gates";
 import { releaseLine, returnToReady, settleLine } from "./payments";
-
-type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 
 export interface ReleasePreview {
   readonly eligible: readonly {

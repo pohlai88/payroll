@@ -5,7 +5,10 @@
 import { createHash } from "node:crypto";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import { MemoryArtifactStore } from "@/domain/artifacts/store";
+import {
+  ARTIFACT_MAX_BODY_BYTES,
+  MemoryArtifactStore,
+} from "@/domain/artifacts/store";
 import {
   readRunArtifactContent,
   setArtifactStore,
@@ -204,7 +207,7 @@ describe("run-scoped artifact access", () => {
   it("deletes bytes when metadata insert fails", async () => {
     const tracking = new (class extends MemoryArtifactStore {
       deleted: string[] = [];
-      delete(key: string): Promise<void> {
+      override delete(key: string): Promise<void> {
         this.deleted.push(key);
         return super.delete(key);
       }
@@ -230,5 +233,28 @@ describe("run-scoped artifact access", () => {
     const key = tracking.deleted[0];
     expect(key).toBeDefined();
     expect(await tracking.get(key as string)).toBeNull();
+  });
+
+  it("rejects bodies over ARTIFACT_MAX_BODY_BYTES", async () => {
+    const body = new Uint8Array(ARTIFACT_MAX_BODY_BYTES + 1);
+    const err = await storeArtifact(
+      db,
+      {
+        runId: RUN_A,
+        type: "EVIDENCE",
+        filename: "huge.bin",
+        body,
+        mimeType: "application/octet-stream",
+        createdBy: "artifacts-test",
+        source: "ATTACHED",
+      },
+      store
+    ).then(
+      () => null,
+      (error: unknown) => error
+    );
+    expect(err).toBeInstanceOf(ControlError);
+    expect((err as ControlError).code).toBe("VALIDATION_ERROR");
+    expect((err as ControlError).status).toBe(413);
   });
 });

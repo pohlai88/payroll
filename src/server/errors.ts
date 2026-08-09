@@ -6,6 +6,7 @@ import type { Context } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { ZodError } from "zod";
 import { PermissionDeniedError } from "@/domain/rbac/authorize";
+import { CompanyRepoError } from "@/repo/companies";
 import { RbacRepoError } from "@/repo/rbac";
 import { AdminUsersError } from "@/service/admin-users";
 import { ControlError } from "@/service/control-errors";
@@ -69,7 +70,7 @@ function errorStatus(error: unknown): {
       },
     };
   }
-  if (error instanceof RbacRepoError) {
+  if (error instanceof RbacRepoError || error instanceof CompanyRepoError) {
     if (CONFLICT_MESSAGE.test(error.message)) {
       return {
         status: 409,

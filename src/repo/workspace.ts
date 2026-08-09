@@ -17,7 +17,16 @@ import { anomalyFindings } from "@/db/schema/findings";
 import { companies } from "@/db/schema/parties";
 import { payLines, payRuns } from "@/db/schema/run";
 import { roundBps } from "@/domain/money";
+import {
+  buildRootsFromLine,
+  ROOT_KEYS,
+  type RootKey,
+  type RootValue,
+} from "./pay-line-roots";
 
+export type { RootValue } from "./pay-line-roots";
+
+/** Keep in sync with `src/web/api/types.ts` nested workspace DTOs. */
 export interface RunSummary {
   readonly id: string;
   readonly companyId: string;
@@ -68,11 +77,6 @@ export interface EmployeeVarianceDto {
   readonly direction: "UP" | "DOWN" | "SAME" | "NO_PRIOR";
 }
 
-export interface RootValue {
-  readonly sen: number | null;
-  readonly notApplicable: boolean;
-}
-
 export interface EmployeeLineDto {
   readonly lineId: string;
   readonly employeeId: string;
@@ -85,6 +89,7 @@ export interface EmployeeLineDto {
   readonly findingsCount: number;
 }
 
+/** Keep in sync with `src/web/api/types.ts` `PayRunWorkspaceView`. */
 export interface PayRunWorkspaceView {
   readonly run: RunSummary;
   readonly actionAvailability: ActionAvailability;
@@ -100,31 +105,6 @@ const NO_PRIOR_VARIANCE: VarianceDto = {
   direction: "NO_PRIOR",
 };
 
-/** The 19 named sen roots every pay line carries — see `src/db/schema/run.ts` `payLines`. */
-const ROOT_KEYS = [
-  "gross",
-  "epfWages",
-  "socsoWages",
-  "eisWages",
-  "epfEe",
-  "epfEr",
-  "socsoEeCore",
-  "socsoEeSkbbk",
-  "socsoEr",
-  "eisEe",
-  "eisEr",
-  "pcbNet",
-  "cp38",
-  "zakat",
-  "otherDeductions",
-  "deductionsTotal",
-  "net",
-  "hrdf",
-  "employerCost",
-] as const;
-
-type RootKey = (typeof ROOT_KEYS)[number];
-
 const AGGREGATE_TILE_DEFS: readonly {
   readonly key: string;
   readonly label: string;
@@ -136,36 +116,6 @@ const AGGREGATE_TILE_DEFS: readonly {
   { key: "socso_ee", label: "SOCSO Employee", rootKey: "socsoEeCore" },
   { key: "eis_ee", label: "EIS Employee", rootKey: "eisEe" },
 ];
-
-type PayLineRow = typeof payLines.$inferSelect;
-
-function rootValue(sen: number | null): RootValue {
-  return { sen, notApplicable: false };
-}
-
-function buildRootsFromLine(line: PayLineRow): Record<RootKey, RootValue> {
-  return {
-    gross: rootValue(line.grossSen),
-    epfWages: rootValue(line.epfWagesSen),
-    socsoWages: rootValue(line.socsoWagesSen),
-    eisWages: rootValue(line.eisWagesSen),
-    epfEe: rootValue(line.epfEeSen),
-    epfEr: rootValue(line.epfErSen),
-    socsoEeCore: rootValue(line.socsoEeCoreSen),
-    socsoEeSkbbk: rootValue(line.socsoEeSkbbkSen),
-    socsoEr: rootValue(line.socsoErSen),
-    eisEe: rootValue(line.eisEeSen),
-    eisEr: rootValue(line.eisErSen),
-    pcbNet: rootValue(line.pcbNetSen),
-    cp38: rootValue(line.cp38Sen),
-    zakat: rootValue(line.zakatSen),
-    otherDeductions: rootValue(line.otherDeductionsSen),
-    deductionsTotal: rootValue(line.deductionsTotalSen),
-    net: rootValue(line.netSen),
-    hrdf: rootValue(line.hrdfSen),
-    employerCost: rootValue(line.employerCostSen),
-  };
-}
 
 function sumRoot(
   roots: readonly Record<RootKey, RootValue>[],
@@ -349,8 +299,7 @@ function summarizeFindings(
  */
 export async function loadWorkspaceView(
   db: Database,
-  runId: string,
-  _userId: string
+  runId: string
 ): Promise<PayRunWorkspaceView | null> {
   const [run] = await db
     .select({

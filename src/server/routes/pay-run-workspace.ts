@@ -17,7 +17,7 @@ export function payRunWorkspaceRoutes(db: Database) {
       const runId = c.req.param("runId");
       const user = c.get("user");
       await requirePayRunAccess(db, user.id, "READ", runId);
-      const view = await loadWorkspaceView(db, runId, user.id);
+      const view = await loadWorkspaceView(db, runId);
       if (view === null) {
         return c.json(
           { code: "NOT_FOUND", message: `no such run: ${runId}` },

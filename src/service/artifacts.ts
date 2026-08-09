@@ -5,14 +5,17 @@
  */
 
 import { createHash, randomUUID } from "node:crypto";
-import type { Database } from "@/db/client";
+import type { Database, DbOrTx } from "@/db/client";
 import type { ArtifactRow } from "@/db/schema/artifacts";
 import {
   filenameFromArtifactKey,
   sanitizeArtifactFilename,
 } from "@/domain/artifacts/keys";
 import { LocalFsArtifactStore } from "@/domain/artifacts/local-fs-store";
-import type { ArtifactStore } from "@/domain/artifacts/store";
+import {
+  ARTIFACT_MAX_BODY_BYTES,
+  type ArtifactStore,
+} from "@/domain/artifacts/store";
 import {
   getArtifactRowById,
   insertArtifactRow,
@@ -21,8 +24,7 @@ import {
 import { requirePayRunPermission } from "@/service/payrun";
 import { ControlError } from "./control-errors";
 
-type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
-type DbOrTx = Database | Transaction;
+export { ARTIFACT_MAX_BODY_BYTES } from "@/domain/artifacts/store";
 
 export type ArtifactType =
   | "EVIDENCE"
@@ -114,6 +116,20 @@ export function artifactObjectKey(
   return `runs/${runId}/${artifactId}/${safeName}`;
 }
 
+function assertArtifactBodySize(body: Uint8Array): void {
+  if (body.byteLength > ARTIFACT_MAX_BODY_BYTES) {
+    throw new ControlError(
+      "VALIDATION_ERROR",
+      `artifact exceeds ${ARTIFACT_MAX_BODY_BYTES} bytes`,
+      413
+    );
+  }
+}
+
+function asError(value: unknown): Error {
+  return value instanceof Error ? value : new Error(String(value));
+}
+
 async function putThenInsert(
   db: DbOrTx,
   store: ArtifactStore,
@@ -122,6 +138,7 @@ async function putThenInsert(
   mimeType: string,
   row: Parameters<typeof insertArtifactRow>[1]
 ): Promise<void> {
+  assertArtifactBodySize(body);
   await store.put({
     key: relativePath,
     body,
@@ -137,7 +154,12 @@ async function putThenInsert(
         "CONFLICT",
         `artifact metadata insert failed and byte cleanup failed: ${relativePath}`,
         undefined,
-        { cause: cleanupError }
+        {
+          cause: new AggregateError(
+            [asError(error), asError(cleanupError)],
+            "insert and cleanup both failed"
+          ),
+        }
       );
     }
     throw error;
@@ -212,10 +234,7 @@ export async function readRunArtifactContent(
   }
   const digest = createHash("sha256").update(body).digest("hex");
   if (digest !== row.sha256) {
-    throw new ControlError(
-      "CONFLICT",
-      `artifact hash mismatch: ${artifactId}`
-    );
+    throw new ControlError("CONFLICT", `artifact hash mismatch: ${artifactId}`);
   }
   return {
     body,

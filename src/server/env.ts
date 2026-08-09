@@ -66,6 +66,23 @@ export function requireServerEnv(
       "R2_* env is partially set; provide R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET, R2_ENDPOINT"
     );
   }
+  if (
+    r2Configured &&
+    r2AccountId !== undefined &&
+    r2Endpoint !== undefined &&
+    !r2Endpoint.includes(r2AccountId)
+  ) {
+    throw new Error(
+      "R2_ENDPOINT must include R2_ACCOUNT_ID (https://<accountId>.r2.cloudflarestorage.com)"
+    );
+  }
+
+  const nodeEnv = env.NODE_ENV?.trim() ?? "";
+  if (nodeEnv === "production" && !r2Configured) {
+    throw new Error(
+      "R2_* env is required when NODE_ENV=production (LocalFs is local/dev only)"
+    );
+  }
 
   return {
     databaseUrl: databaseUrl.trim(),

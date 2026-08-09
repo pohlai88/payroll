@@ -1,5 +1,4 @@
-// Shared type — mirrors PayslipDocumentDto from the server route.
-// Keep in sync with src/server/routes/pay-run-payslip.ts.
+// Shared type — Keep in sync with `src/repo/payslip.ts` `PayslipDocumentDto`.
 export interface PayslipDocumentDto {
   documentId: string;
   generatedAt: string;

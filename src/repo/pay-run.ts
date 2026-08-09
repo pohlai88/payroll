@@ -73,6 +73,7 @@ export interface RunForCompute {
   readonly lines: LineForCompute[];
 }
 
+/** Keep in sync with `src/repo/pay-run.ts` `PayRunSummary`. */
 export interface PayRunSummary {
   readonly id: string;
   readonly companyId: string;

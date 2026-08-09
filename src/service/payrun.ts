@@ -7,7 +7,7 @@
  */
 
 import { and, asc, eq, isNull, or, sql } from "drizzle-orm";
-import type { Database } from "@/db/client";
+import type { Database, Transaction } from "@/db/client";
 import { employmentPayItems, payItems } from "@/db/schema/catalog";
 import { employments, persons } from "@/db/schema/parties";
 import { rulePacks } from "@/db/schema/rule-pack";
@@ -24,9 +24,15 @@ import type { ValidationIssue } from "@/domain/calc/validate";
 import { CALC_ENGINE_VERSION } from "@/domain/calc/version";
 import { parseIsoDate } from "@/domain/date";
 import { quantityAmountSen } from "@/domain/money";
+import { PermissionDeniedError } from "@/domain/rbac/authorize";
 import type { PermissionAction } from "@/domain/rbac/types";
 import { isUniqueViolation } from "@/lib/pg-error";
-import { getPayRunCompanyId, loadRunForCompute } from "@/repo/pay-run";
+import {
+  getPayRunCompanyId,
+  listPayRunSummaries,
+  loadRunForCompute,
+  type PayRunSummary,
+} from "@/repo/pay-run";
 import {
   loadPayItems,
   loadRuleSettings,
@@ -36,11 +42,9 @@ import { RuleResolutionError, resolveRule } from "@/repo/rule-resolution";
 import { ControlError } from "@/service/control-errors";
 import { certifyGate, evaluateGate } from "@/service/gates";
 import { createReadyPaymentsForRun } from "@/service/payments";
-import { requirePermission } from "@/service/rbac";
+import { listAccessibleCompanies, requirePermission } from "@/service/rbac";
 import { stampCalcRevision } from "@/service/revision";
 import { scanRunFindings } from "@/service/run-findings";
-
-type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 
 const CONFLICT_MESSAGE = /already exists|duplicate|unique/i;
 
@@ -843,6 +847,39 @@ export async function demoteRunToDraft(
       entityId: runId,
       action: "DEMOTE_TO_DRAFT",
     });
+  });
+}
+
+export async function listPayRunsForActor(
+  db: Database,
+  actorUserId: string,
+  filters: { companyId?: string; reportingMonth?: string } = {}
+): Promise<PayRunSummary[]> {
+  const accessible = await listAccessibleCompanies(db, actorUserId);
+  const accessibleIds = accessible.map((company) => company.id);
+
+  if (
+    filters.companyId !== undefined &&
+    !accessibleIds.includes(filters.companyId)
+  ) {
+    throw new PermissionDeniedError(
+      actorUserId,
+      "PAY_RUN",
+      "READ",
+      filters.companyId
+    );
+  }
+
+  if (filters.companyId !== undefined) {
+    return await listPayRunSummaries(db, {
+      companyId: filters.companyId,
+      reportingMonth: filters.reportingMonth,
+    });
+  }
+
+  return await listPayRunSummaries(db, {
+    companyIds: accessibleIds,
+    reportingMonth: filters.reportingMonth,
   });
 }
 

@@ -1,5 +1,8 @@
 /**
  * Cloudflare R2 via S3-compatible API.
+ *
+ * AWS SDK ≥3.729 defaults checksums to WHEN_SUPPORTED, which R2 rejects.
+ * Force WHEN_REQUIRED per Cloudflare docs.
  */
 
 import {
@@ -19,6 +22,27 @@ export interface R2Config {
   readonly endpoint: string;
 }
 
+function isMissingObjectError(error: unknown): boolean {
+  if (error === null || typeof error !== "object") {
+    return false;
+  }
+  const name =
+    "name" in error && typeof error.name === "string" ? error.name : "";
+  if (name === "NoSuchKey" || name === "NotFound") {
+    return true;
+  }
+  if ("Code" in error && error.Code === "NoSuchKey") {
+    return true;
+  }
+  const meta = "$metadata" in error ? error.$metadata : undefined;
+  return (
+    meta !== null &&
+    typeof meta === "object" &&
+    "httpStatusCode" in meta &&
+    meta.httpStatusCode === 404
+  );
+}
+
 export function createR2Store(config: R2Config): ArtifactStore {
   const client = new S3Client({
     region: "auto",
@@ -27,6 +51,8 @@ export function createR2Store(config: R2Config): ArtifactStore {
       accessKeyId: config.accessKeyId,
       secretAccessKey: config.secretAccessKey,
     },
+    requestChecksumCalculation: "WHEN_REQUIRED",
+    responseChecksumValidation: "WHEN_REQUIRED",
   });
   const { bucket } = config;
 
@@ -54,11 +80,7 @@ export function createR2Store(config: R2Config): ArtifactStore {
         }
         return await out.Body.transformToByteArray();
       } catch (error) {
-        const name =
-          error instanceof Error && "name" in error
-            ? (error as { name: string }).name
-            : "";
-        if (name === "NoSuchKey" || name === "NotFound") {
+        if (isMissingObjectError(error)) {
           return null;
         }
         throw error;

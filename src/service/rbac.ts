@@ -15,11 +15,8 @@ import type {
   PermissionMatrix,
   PermissionResource,
 } from "@/domain/rbac/types";
-import {
-  listAllCompanies,
-  listCompaniesByIds,
-  loadAuthRoleGrants,
-} from "@/repo/rbac";
+import { listAllCompanies, listCompaniesByIds } from "@/repo/companies";
+import { loadAuthRoleGrants } from "@/repo/rbac";
 
 export async function requirePermission(
   db: Database,

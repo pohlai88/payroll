@@ -83,8 +83,8 @@ rg "Keep in sync" src/web/api/types.ts src/web/payrun/payslip-document/types.ts
 | `/pay-runs/:runId` | `src/web/payrun/workspace.tsx` | yes | no (nested under Pay Runs) | Intentional nested |
 | `/pay-runs/:runId/payslip/:lineId` | `src/web/payrun/payslip-page.tsx` | yes | no (nested) | Intentional nested |
 | `/employees` | `src/web/employees/employees-page.tsx` | yes | yes | Studio `datatable-employee` + `file-upload-01` + `empty-state-01` |
-| `/reports` | `src/web/reports/reports-page.tsx` | yes | yes | |
-| `/control` | `src/web/control/control-page.tsx` | yes | yes | |
+| `/reports` | `src/web/reports/reports-page.tsx` | yes | yes | Studio vertical tabs (tabs-22) + `empty-state-01` |
+| `/control` | `src/web/control/control-page.tsx` | yes | yes | Studio `statistics-card-03` + `empty-state-01` |
 | `/companies` | `src/web/companies/companies-page.tsx` | yes | yes (`adminOnly`) | |
 | `/admin` | `src/web/admin/admin-page.tsx` | yes | yes (`adminOnly`) | |
 | (fallback) | inline “Not found” | yes | — | |

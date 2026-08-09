@@ -7,7 +7,6 @@
 
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import type { Database } from "@/db/client";
-import { type CompanyRow, companies } from "@/db/schema/parties";
 import {
   type RolePermissionRow,
   type RoleRow,
@@ -158,28 +157,6 @@ export async function setUserStatus(
     throw new RbacRepoError(`setUserStatus: user ${input.userId} not found`);
   }
   return row;
-}
-
-// ---------------------------------------------------------------------------
-// Companies (read-only, for scope selection)
-// ---------------------------------------------------------------------------
-
-export async function listAllCompanies(db: Database): Promise<CompanyRow[]> {
-  return await db.select().from(companies).orderBy(asc(companies.name));
-}
-
-export async function listCompaniesByIds(
-  db: Database,
-  companyIds: readonly string[]
-): Promise<CompanyRow[]> {
-  if (companyIds.length === 0) {
-    return [];
-  }
-  return await db
-    .select()
-    .from(companies)
-    .where(inArray(companies.id, [...companyIds]))
-    .orderBy(asc(companies.name));
 }
 
 // ---------------------------------------------------------------------------
@@ -415,6 +392,9 @@ export async function revokeUserRole(
 /**
  * Load every assignment for a user together with the role metadata and the
  * permission cells on those roles — the shape the authorization service needs.
+ *
+ * Batched (not N+1): one assignments query, one roles query, one permissions
+ * query. Auth middleware hits this on every `/v1` request.
  */
 export async function loadAuthRoleGrants(
   db: Database,
@@ -436,6 +416,39 @@ export async function loadAuthRoleGrants(
     return [];
   }
 
+  const roleIds = [...new Set(assignments.map((a) => a.roleId))];
+  const roleRows = await db
+    .select()
+    .from(roles)
+    .where(inArray(roles.id, roleIds));
+  const roleById = new Map(roleRows.map((role) => [role.id, role]));
+
+  const matrixRoleIds = roleRows
+    .filter((role) => !role.isSystem)
+    .map((role) => role.id);
+
+  const permissionRows =
+    matrixRoleIds.length === 0
+      ? []
+      : await db
+          .select()
+          .from(rolePermissions)
+          .where(inArray(rolePermissions.roleId, matrixRoleIds));
+
+  const permissionsByRole = new Map<
+    string,
+    Array<{ resource: PermissionResource; action: PermissionAction }>
+  >();
+  for (const cell of permissionRows) {
+    const existing = permissionsByRole.get(cell.roleId);
+    const entry = { resource: cell.resource, action: cell.action };
+    if (existing === undefined) {
+      permissionsByRole.set(cell.roleId, [entry]);
+    } else {
+      existing.push(entry);
+    }
+  }
+
   const result: Array<{
     roleCode: string;
     isSystem: boolean;
@@ -448,20 +461,16 @@ export async function loadAuthRoleGrants(
   }> = [];
 
   for (const assignment of assignments) {
-    const role = await getRoleById(db, assignment.roleId);
-    if (role === null) {
+    const role = roleById.get(assignment.roleId);
+    if (role === undefined) {
       continue;
     }
-    const cells = role.isSystem ? [] : await getRolePermissions(db, role.id);
     result.push({
       roleCode: role.code,
       isSystem: role.isSystem,
       scope: role.scope,
       companyId: assignment.companyId,
-      permissions: cells.map((c) => ({
-        resource: c.resource,
-        action: c.action,
-      })),
+      permissions: role.isSystem ? [] : (permissionsByRole.get(role.id) ?? []),
     });
   }
   return result;

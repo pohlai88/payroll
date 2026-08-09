@@ -6,13 +6,10 @@
  */
 
 import { eq } from "drizzle-orm";
-import type { Database } from "@/db/client";
+import type { Database, DbOrTx } from "@/db/client";
 import { linePayments, withdrawals } from "@/db/schema/control";
 import { auditEvents, payLines } from "@/db/schema/run";
 import { ControlError } from "./control-errors";
-
-type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
-type DbOrTx = Database | Transaction;
 
 export type LinePaymentState =
   | "READY"

@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UploadDropZone } from "@/components/ui/upload-drop-zone";
+import { ARTIFACT_MAX_BODY_BYTES } from "@/domain/artifacts/store";
 import { formatApiError } from "@/web/api/format-error";
 import type { ArtifactRow, UploadArtifactType } from "@/web/api/payroll-api";
 import { payrollApi } from "@/web/api/payroll-api";
@@ -100,6 +101,12 @@ function ArtifactsPanel({
 
   const handleUpload = useCallback(async () => {
     if (file === null) {
+      return;
+    }
+    if (file.size > ARTIFACT_MAX_BODY_BYTES) {
+      setUploadError(
+        `File exceeds ${Math.floor(ARTIFACT_MAX_BODY_BYTES / (1024 * 1024))} MiB limit`
+      );
       return;
     }
     setUploading(true);

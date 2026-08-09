@@ -3,12 +3,9 @@
  */
 
 import { eq } from "drizzle-orm";
-import type { Database } from "@/db/client";
+import type { Database, DbOrTx } from "@/db/client";
 import type { ArtifactRow } from "@/db/schema/artifacts";
 import { artifacts } from "@/db/schema/artifacts";
-
-type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
-type DbOrTx = Database | Transaction;
 
 export type { ArtifactRow } from "@/db/schema/artifacts";
 

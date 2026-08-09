@@ -4,16 +4,14 @@
  */
 
 import { and, eq } from "drizzle-orm";
-import type { Database } from "@/db/client";
+import type { Database, DbOrTx, Transaction } from "@/db/client";
 import { gateCertifications } from "@/db/schema/control";
 import { anomalyFindings } from "@/db/schema/findings";
 import { auditEvents, payLines, payRuns } from "@/db/schema/run";
 import { ANOMALY_PACK_VERSION } from "@/domain/findings/catalog";
 import { ControlError } from "./control-errors";
 
-type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 export type GateDb = Database | Transaction;
-type DbOrTx = GateDb;
 
 export type GateKind = "REVIEW" | "APPROVAL" | "RELEASE" | "CLOSE";
 

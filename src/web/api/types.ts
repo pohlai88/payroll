@@ -130,7 +130,7 @@ export interface ImportReportResponse {
 }
 
 /**
- * `GET /v1/pay-runs` row — see `src/repo/pay-run.ts` `PayRunSummary`.
+ * `GET /v1/pay-runs` row — Keep in sync with `src/repo/pay-run.ts` `PayRunSummary`.
  */
 export interface PayRunSummary {
   readonly id: string;
@@ -145,7 +145,7 @@ export interface PayRunSummary {
 }
 
 /**
- * `GET /v1/employees` row — see `src/server/routes/employees.ts` `EmployeeSummary`.
+ * `GET /v1/employees` row — Keep in sync with `src/repo/employees.ts` `EmployeeSummary`.
  */
 export interface EmployeeSummary {
   readonly id: string;
@@ -156,9 +156,8 @@ export interface EmployeeSummary {
 }
 
 /**
- * The workspace read model — see `src/repo/workspace.ts`.
- * Mirrors the server's `PayRunWorkspaceView` and its nested DTOs exactly;
- * this is the client-side twin of that file, not an independent contract.
+ * The workspace read model — Keep in sync with `src/repo/workspace.ts`
+ * `PayRunWorkspaceView` and nested DTOs.
  */
 export interface VarianceDto {
   readonly previousSen: number | null;
