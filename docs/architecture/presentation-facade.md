@@ -246,13 +246,17 @@ worth keeping true.
 
 ## 8. Seams not yet closed
 
-- **L4 payroll workspace contract incomplete.** Auth, employee import, pay-run
-  create/recompute, and control HTTP exist; the unified
-  validate→persist→recompute→findings→revision response for every payroll UI
-  mutation (pay-run workspace) is not fully wired into L5.
-- **L5 product payroll UI.** Phase 4 shell (auth, permissions, import panel,
-  design-system foundation) exists; Phase 5 derivation drawer / payroll screens
-  do not.
+- **L4/L5 payroll workspace and control HTTP are now built and wired**
+  (Phase 5B/5C payroll workspace + derivation drawer, Phase 6–7 control SPA —
+  findings, gates, review/approve, payments, release, closure, artifacts).
+  The `PayRunMutationEnvelope` (§Phase 5A) is consumed throughout L5.
+- **Per-statutory-root variance is still incomplete.** The workspace read
+  model returns one line-level `EmployeeVarianceDto`, not a `VarianceDto` per
+  root; `employee-slide-over.tsx` currently derives an UP/DOWN direction by
+  comparing `currentSen`/`previousSen` client-side to compensate, which is a
+  live violation of §5's "never recalculate" rule. Closing this seam means
+  extending the read facade to emit a `VarianceDto` per root, not patching the
+  component.
 - **Graph persistence.** `deriveLine` runs in-process today; which graphs are stored
   versus re-derived on read is undecided, and it determines whether the drill-down
   is a fetch or a recompute.

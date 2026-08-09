@@ -340,13 +340,16 @@ release/settle/reconcile/distribute/close, R2 artifacts —
 
 ### Specified, not built
 
-The teaching payslip; Phase 5 payroll UI + derivation drawer; SPA wiring for
-control HTTP. For internal group transfer specifically: the wizard UI and
-a persisted DRAFT transfer state — see the
+The teaching payslip (Phase 8A), Phase 5 payroll UI + derivation drawer, and
+SPA wiring for control HTTP (Phase 6–7) have since shipped — see the phase
+table in [README.md](../../README.md). What remains unbuilt: for internal
+group transfer specifically, the wizard UI and a persisted DRAFT transfer
+state — see the
 [transfer design](../superpowers/specs/2026-08-08-internal-group-transfer-design.md)
 and
 [transfer/statutory follow-ups](../superpowers/specs/2026-08-08-transfer-statutory-followups-design.md).
 Same-company department/designation change (§8.2) remains unbuilt and unscoped.
+Phase 8B run-diff UI and 8C reports portal are in progress — see README.
 
 ---
 
