@@ -130,12 +130,14 @@ function WorkspacePage() {
     }
   }, [view, loadArtifacts]);
 
+  // paymentsRefreshKey is a refetch trigger — bumping it forces
+  // a reload without changing the effect dependencies otherwise.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: paymentsRefreshKey is a refetch trigger, not a read dependency
   useEffect(() => {
     if (
       runId === undefined ||
       view === null ||
-      !(view.run.status === "APPROVED" || view.run.status === "CLOSED") ||
-      paymentsRefreshKey < 0
+      !(view.run.status === "APPROVED" || view.run.status === "CLOSED")
     ) {
       return;
     }
