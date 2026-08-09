@@ -13,7 +13,7 @@ Rebuilt from scratch. Documentation roles:
 |---|---|---|
 | Authoritative doctrine / current architecture | `docs/architecture/` (`payroll-architecture.md`, `presentation-facade.md`, payslip docs) | What exists in `src/` / `db/` and what the UI may rely on |
 | Living implementation / status | this README; approved specs under `docs/superpowers/specs/` for shipped slices | Phase table, how to run, feature contracts |
-| Active plans | recent `docs/superpowers/plans/` for unfinished work | 8C reports SPA portal (Task 3) is open; Phase 9 Vercel deploy pending; 4C, 5B, 5C, 6–7, 8A, and 8B plans are complete |
+| Active plans | recent `docs/superpowers/plans/` for unfinished work | Phase 9 Vercel deploy pending; landing-page redesign is designed (spec approved-pending-final-sign-off) but not yet implemented — `src/marketing/**` still renders the prior six-section page; 4C, 5B, 5C, 6–7, 8A, 8B, 8C, and the Phase 4-8 deferred-cleanup slice are complete |
 | Historical / archive | Plan1 control-foundation plans & handoff; `c:\JackProject\_payroll-v1-backup` | Prior SQLite/Next rebuild — not current authority |
 | Design system (Phase 4+) | `docs/palette/` + `src/web/styles.css` | Straits colour/grid/print contracts; 4C projects tokens into the Vite SPA |
 
@@ -27,8 +27,10 @@ Rebuilt from scratch. Documentation roles:
 | 5 · Payroll UI + derivation drawer | 5A mutation envelope done; **5B payroll workspace SPA done**; **5C control SPA done** — findings panel, gate-check review/approve, `/control` cross-run overview |
 | 6 · Findings, gates, approval | done (API/service + 5C SPA wire-up) |
 | 7 · Release, payments, closure, R2 artifacts | **done** — backend + Hono + SPA fully wired: payments panel, release/batch drawer, artifacts panel, closure checklist, control gate |
-| 8 · Import, reports, bilingual payslip, run diff | create-only import done (4B); **8A bilingual payslip done**; **8B run-diff UI done** — Compare panel + graph diff tab; 8C report server routes done (payment register, statutory summary, exception, annual remuneration), **SPA reports portal pending** |
+| 8 · Import, reports, bilingual payslip, run diff | create-only import done (4B); **8A bilingual payslip done**; **8B run-diff UI done** — Compare panel + graph diff tab; **8C reports done** — payment register, statutory summary, exception, and annual remuneration reports, server routes + SPA portal + deep-link |
+| — · Deferred cleanup (PAY-8D + DRY pass) | **done** — server-side per-statutory-root variance (`rootVariances`), `formatApiError`/`isRunStatus`/severity-badge dedup, `useAsyncLoad` + `useDialogSubmit` hooks, Phase 4B import verification |
 | 9 · Vercel deploy | pending |
+| — · Marketing landing page redesign | **designed, not built** — governance/assurance-briefing redesign spec approved-pending-final-sign-off; `src/marketing/**` still ships the prior six-section page (Hero/Ledger/Method/Provenance/DrillDown/Closing) |
 
 Phase 2 closed: Docker/Neon Postgres via one `pg` driver, Drizzle schema and
 plpgsql triggers, content-hashed seed, repository/service layers, golden
@@ -132,13 +134,32 @@ gated on `previousRoots !== null`, so a first run of its lineage shows neither.
 Spec §4: `docs/superpowers/specs/2026-08-09-phase8-reports-payslip-diff-design.md`.
 Plan: `docs/superpowers/plans/2026-08-09-phase8b-run-diff.md`.
 
-Phase 8C (server routes): payment register, statutory summary, and exception
-reports over `GET /v1/pay-runs/:runId/reports/:type`; annual remuneration
-summary (explicitly not Form EA/C.P.8A) over
-`GET /v1/companies/:companyId/employees/:employmentId/remuneration/:year`,
-scoped to `APPROVED`/`CLOSED` runs only. Every report DTO carries a
-`reportMeta` provenance envelope. SPA reports portal (Task 3) not yet built.
+Phase 8C: reports portal. Run-scoped payment register, statutory summary, and
+exception reports over `GET /v1/pay-runs/:runId/reports/:type`
+(`PAY_RUN`/`READ`); annual remuneration summary (explicitly not Form
+EA/C.P.8A) over `GET /v1/employees/:employeeId/remuneration-summary/:year`
+(`REPORT`/`READ`, company-scoped via the employee's employment record),
+aggregating `APPROVED`/`CLOSED` runs only by `companyId + employmentId +
+calendar year`, with a visible `limitationNotice` and disclaimer. Every
+report DTO carries a `reportMeta` provenance envelope. SPA portal at
+`/reports` (URL-driven `type`/`runId` state, type sidebar, run/employee
+pickers, four report views under `src/web/reports/`) with a "Reports ↗"
+deep-link from the workspace run header. Spec §5:
+`docs/superpowers/specs/2026-08-09-phase8-reports-payslip-diff-design.md`.
 Plan: `docs/superpowers/plans/2026-08-09-phase8c-reports.md`.
+
+Deferred cleanup (Phase 4-8): a follow-on slice closing three items left open across
+earlier phases. PAY-8D — the workspace read model (`src/repo/workspace.ts`) now computes
+a `VarianceDto` per statutory root (`rootVariances`), so `employee-slide-over.tsx`,
+`employee-grid.tsx`, and `run-diff-panel.tsx` render server-owned direction/delta instead
+of a client-side `directionFor()` comparison. A DRY pass replaced 28 inline
+`instanceof Error` ternaries with `formatApiError()`, deduplicated the four-times-repeated
+`isRunStatus` guard onto `status-badge.tsx`, unified severity-badge tone across the
+findings panel and exception report, and extracted `useAsyncLoad` /
+`useDialogSubmit` hooks (`src/hooks/`) to remove repeated fetch and dialog-submission
+boilerplate. Phase 4B's four previously "deferred" import findings were confirmed already
+fixed and closed out with one new regression test. No plan/spec file; tracked in
+`.superpowers/sdd/2026-08-09-phase-cleanup/`.
 
 ## The golden master
 

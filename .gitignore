@@ -26,3 +26,6 @@ data/
 
 # Local Vite detached-run logs
 .vite-dev.*.log
+
+# Local brainstorming session scratch (server pid/token/preview URLs)
+.superpowers/brainstorm/

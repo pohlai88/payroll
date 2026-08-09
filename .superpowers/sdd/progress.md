@@ -170,3 +170,84 @@ Task 3: complete (commits a703b27..3c1a67e implement, 3c1a67e..923224c fix, revi
 - Full suite at close: 918/918 passing, tsc 0 errors.
 
 All 3 tasks complete. Proceeding to final whole-branch review.
+
+Final review: Important finding — employee-remuneration route had no company-scoped RBAC
+(any authenticated user could read any employee's annual summary cross-tenant), unlike the
+three sibling run-scoped routes which all call requirePayRunAccess. Fixed in 08f3474 —
+added requirePermission(db, userId, "REPORT", "READ", employment.companyId) before any
+data query; new test with a limited-permission user asserts 403 PERMISSION_DENIED; existing
+admin tests unchanged. Re-review Approved (923224c..08f3474).
+
+Final state: 919/919 tests passing, tsc 0 errors. Minor items left open (logged, not
+blocking): sum() helper key typing, exception-report full-line-table scan instead of
+lineIds filter, snapshot iteration-order non-determinism, URL state read-at-mount only,
+duplicated REPORT_SCHEMA_VERSION constant across two route files, no cross-task
+data-consistency e2e test.
+
+Phase 8C: Ready to merge.
+
+
+# SDD Progress Ledger — Phase 4-8 Deferred Cleanup
+
+Plan: docs/superpowers/plans/2026-08-09-phase-cleanup.md
+Branch: phase2-persistence
+Base before Task 1: 08f34740e2657a57b84e43bdaccaedfc5019bac8
+Note: bash unavailable; task-brief/review-package done via PowerShell.
+
+## Pre-flight scan
+
+Scanned plan (5 tasks, 3 tracks) for internal contradictions and Global Constraints
+conflicts: none found. Track C (Phase 4B import) is expected to require no production
+code changes (verify + 1 test). Proceeding.
+
+## Tasks
+
+Task 1: complete (commits 08f3474..a0444c3 implement, a0444c3..aae5c14 fix, review Approved after fix)
+- Important (fixed): brief required a DOWN-direction test case; new test only asserted UP/SAME.
+  Fixed by mutating the current run's gross/net 500 RM below prior and asserting negative
+  deltaSen/deltaBps and direction "DOWN".
+- Important (fixed): employee-grid.tsx dropped the `hasChanges` guard when reading
+  `rootVariances.net`, so every employee on a linked-prior run would show a SAME badge even
+  with zero movement. Fixed by reinstating `line.variance?.hasChanges &&` in ternary form
+  (keeps Biome noLeakedRender satisfied).
+- Full suite: 921/921 passing, tsc 0 errors, biome clean.
+
+Task 2: complete (commits aae5c14..c7b3bc0, review Approved clean, no fixes needed)
+- All 28 formatApiError sites + 4-way isRunStatus dedup, exactly per brief. 921/921 passing,
+  tsc 0 errors, biome clean on changed files (full-repo lint has pre-existing unrelated failures).
+
+Task 3: complete (commits c7b3bc0..a6326a8 implement, a6326a8..6f62416 fix, review Approved after fix)
+- Part A (severity badge unification): clean on first review.
+- Important (fixed): batch-drawer.tsx dropped the pre-reload `setData(null)` when refactored
+  onto useAsyncLoad, so switching batches could show "Loading batch..." over stale content from
+  the previous batch. Fixed by adding `reset()` to useAsyncLoad and calling it before `load()`
+  in a single effect keyed on [open, batchId]; restored `loading && data === null` JSX guard.
+  Same-batch reloads (post settle/reconcile) call load() directly, bypassing reset(), so no
+  blank-flash regression there.
+- Minor (accepted as-is): useAsyncLoad's reload keeps fallbackMessage in its useCallback deps —
+  Biome's useExhaustiveDependencies genuinely requires it since it's captured in the closure;
+  harmless since call sites always pass string literals.
+- Full suite: 921/921 passing, tsc 0 errors, biome clean.
+
+Task 4: complete (commits 6f62416..4f33024, review Approved clean, no fixes needed)
+- Extracted useDialogSubmit ({submitting, error, reset, run}) into src/hooks/use-dialog-submit.ts;
+  Hold/Withdraw/Distribute dialogs use it identically, each keeping its own field
+  state/validation/markup/fallback string. PaymentsPanel/PaymentRow/RowActions untouched.
+  921/921 passing, tsc 0 errors, biome clean.
+
+Task 5: complete (commit 4f33024..e985680, review Approved clean, no fixes needed)
+- All 4 Phase 4B "deferred" items confirmed already fixed (no production code changes).
+  Added missing empty-slug regression test (header "!!!" -> throws exact message), verified
+  with a deliberate break/restore TDD check. minor-findings.md updated (gitignored file, not in
+  git diff -- reviewer initially flagged this as a discrepancy, confirmed false alarm on disk).
+  922/922 passing, tsc 0 errors, biome clean on changed files.
+
+All 5 tasks complete. Proceeding to final whole-branch review.
+
+Final whole-branch review: APPROVED — Ready to merge.
+- Diff range 08f3474..e985680 reviewed for cross-task interaction, hook consistency, dead code,
+  and plan completeness (Tracks A/B/C all fully addressed, nothing dropped).
+- 0 Critical/Important/Minor findings. 922/922 tests, tsc 0 errors, biome clean on changed files.
+
+PHASE 4-8 DEFERRED CLEANUP PLAN: COMPLETE.
+
