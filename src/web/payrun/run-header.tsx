@@ -6,6 +6,7 @@
  */
 
 import { useCallback, useState } from "react";
+import { Link } from "wouter";
 import type { RunStatus } from "@/components/payroll/status-badge";
 import { StatusBadge } from "@/components/payroll/status-badge";
 import { Badge } from "@/components/ui/badge";
@@ -64,6 +65,12 @@ function RunHeader({
               {showCompare ? "Hide compare" : "Compare"}
             </Button>
           ) : null}
+          <Link
+            className="inline-flex items-center rounded border px-2 py-1 text-muted-foreground text-xs hover:text-foreground"
+            href={`/reports?type=payment-register&runId=${run.id}`}
+          >
+            Reports ↗
+          </Link>
           {avail.canRecompute ? (
             <Button onClick={onRecompute} size="sm" variant="outline">
               Recompute

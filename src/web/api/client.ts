@@ -330,6 +330,15 @@ export function createApiClient(deps: ApiClientDeps) {
       ),
     getLineDiff: (runId: string, lineId: string) =>
       requestJson<RunLineDiffDto>(`/v1/pay-runs/${runId}/lines/${lineId}/diff`),
+    // Report endpoints
+    getPaymentRegister: (runId: string) =>
+      requestJson<any>(`/v1/pay-runs/${runId}/reports/payment-register`),
+    getStatutorySummary: (runId: string) =>
+      requestJson<any>(`/v1/pay-runs/${runId}/reports/statutory-summary`),
+    getExceptionReport: (runId: string) =>
+      requestJson<any>(`/v1/pay-runs/${runId}/reports/exception-report`),
+    getAnnualRemunerationSummary: (employeeId: string, year: number) =>
+      requestJson<any>(`/v1/employees/${employeeId}/remuneration-summary/${year}`),
   };
 }
 
