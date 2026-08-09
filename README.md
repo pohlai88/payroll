@@ -13,7 +13,7 @@ Rebuilt from scratch. Documentation roles:
 |---|---|---|
 | Authoritative doctrine / current architecture | `docs/architecture/` (`payroll-architecture.md`, `presentation-facade.md`, payslip docs) | What exists in `src/` / `db/` and what the UI may rely on |
 | Living implementation / status | this README; approved specs under `docs/superpowers/specs/` for shipped slices | Phase table, how to run, feature contracts |
-| Active plans | recent `docs/superpowers/plans/` for unfinished work | Phase 8 reports / bilingual payslip / run-diff UI and Phase 9 Vercel deploy are open; 4C, 5B, and 6–7 plans are complete |
+| Active plans | recent `docs/superpowers/plans/` for unfinished work | Phase 8 reports / bilingual payslip / run-diff UI and Phase 9 Vercel deploy are open; 4C, 5B, 5C, and 6–7 plans are complete |
 | Historical / archive | Plan1 control-foundation plans & handoff; `c:\JackProject\_payroll-v1-backup` | Prior SQLite/Next rebuild — not current authority |
 | Design system (Phase 4+) | `docs/palette/` + `src/web/styles.css` | Straits colour/grid/print contracts; 4C projects tokens into the Vite SPA |
 
@@ -24,8 +24,8 @@ Rebuilt from scratch. Documentation roles:
 | 2 · Neon Postgres schema, plpgsql triggers, seed, Docker | done |
 | 3 · Hono API + Neon Auth (auth platform) | done |
 | 4 · Vite SPA shell | 4A auth + 4B import + 4C design-system foundation done |
-| 5 · Payroll UI + derivation drawer | 5A mutation envelope done; **5B payroll workspace SPA done** — company scope shell, pay-run list, workspace (totals strip, employee grid, slide-over, print preview), employees page, read-facade routes |
-| 6 · Findings, gates, approval | done (API/service; SPA wiring Phase 6+) |
+| 5 · Payroll UI + derivation drawer | 5A mutation envelope done; **5B payroll workspace SPA done**; **5C control SPA done** — findings panel, gate-check review/approve, `/control` cross-run overview |
+| 6 · Findings, gates, approval | done (API/service + 5C SPA wire-up) |
 | 7 · Release, payments, closure, R2 artifacts | done (backend + Hono; SPA wiring later) |
 | 8 · Import, reports, bilingual payslip, run diff | create-only import done (4B); reports / bilingual payslip / run-diff UI pending |
 | 9 · Vercel deploy | pending |
@@ -95,8 +95,16 @@ with neutral directional ink; action buttons gated by server-returned
 `docs/superpowers/plans/2026-08-08-phase5b-preflight.md`,
 `docs/superpowers/plans/2026-08-08-phase5b-spa.md`.
 
+Phase 5C: control SPA wire-up for the Phase 6 findings/gates/approval backend.
+Workspace findings panel (scan, severity chips, acknowledge warnings),
+gate-check dialog before Review/Approve (passes `calcRevision`; confirm only
+when the gate is clear), and `/control` cross-run overview with finding counts
+and gate pills. No new server routes — uses existing findings/gates/review/
+approve endpoints. Spec companion:
+`docs/superpowers/specs/2026-08-08-phase6-findings-gates-approval-design.md`.
+
 Phase 6: findings, gates, and `DRAFT → REVIEWED → APPROVED` control layer
-(API/service only). Spec:
+(API/service + 5C SPA). Spec:
 `docs/superpowers/specs/2026-08-08-phase6-findings-gates-approval-design.md`.
 
 Phase 7: payments, release, distribution, reconciliation, closure manifest, and
