@@ -3,7 +3,7 @@
  * GET /v1/pay-runs/:runId/payslips         → index of lines for this run
  * GET /v1/pay-runs/:runId/lines/:lineId/payslip → full PayslipDocumentDto
  */
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, lte } from "drizzle-orm";
 import { Hono } from "hono";
 import type { Database } from "@/db/client";
 import { companies } from "@/db/schema/parties";
@@ -179,7 +179,8 @@ export function payRunPayslipRoutes(db: Database) {
       const statementDate =
         run.approvedAt?.toISOString() ?? run.closedAt?.toISOString() ?? null;
 
-      // YTD: APPROVED + CLOSED runs for same company + employment + calendar year
+      // YTD: APPROVED + CLOSED runs for same company + employment + calendar year,
+      // filtered to months <= this run's month so prior-period payslips are not inflated.
       const ytdRuns = await db
         .select({
           id: payRuns.id,
@@ -187,7 +188,11 @@ export function payRunPayslipRoutes(db: Database) {
         })
         .from(payRuns)
         .where(
-          and(eq(payRuns.companyId, run.companyId), eq(payRuns.year, run.year))
+          and(
+            eq(payRuns.companyId, run.companyId),
+            eq(payRuns.year, run.year),
+            lte(payRuns.month, run.month)
+          )
         );
 
       const finalizedRunIds = ytdRuns

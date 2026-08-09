@@ -20,7 +20,7 @@ function DocumentStatusMark({ documentStatus, lang }: DocumentStatusMarkProps) {
       aria-label={WATERMARK[lang]}
       role="img"
       style={{
-        position: "fixed",
+        position: "absolute",
         top: "40%",
         left: "50%",
         transform: "translate(-50%, -50%) rotate(-30deg)",

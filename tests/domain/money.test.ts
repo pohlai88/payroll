@@ -8,6 +8,7 @@ import {
   pctRoundUpToRinggitSen,
   pctTruncateSen,
   quantityAmountSen,
+  roundBps,
   roundHalfUpSen,
   roundUpToFiveSen,
   truncateSen,
@@ -260,6 +261,21 @@ describe("quantityAmountSen", () => {
   it("rejects non-integer rate sen", () => {
     expect(() => quantityAmountSen(40, 2500.5)).toThrow(RangeError);
     expect(() => quantityAmountSen(40, Number.NaN)).toThrow(RangeError);
+  });
+});
+
+describe("roundBps", () => {
+  it("returns null when previousSen is 0", () => {
+    expect(roundBps(100, 0)).toBeNull();
+  });
+  it("computes 100% increase", () => {
+    expect(roundBps(10000, 10000)).toBe(10000);
+  });
+  it("computes 50% decrease", () => {
+    expect(roundBps(-5000, 10000)).toBe(-5000);
+  });
+  it("rounds fractional bps to nearest integer", () => {
+    expect(roundBps(1, 3)).toBe(3333); // 1/3 * 10000 = 3333.3...
   });
 });
 
