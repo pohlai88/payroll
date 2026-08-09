@@ -10,6 +10,7 @@ import type {
   PayslipDocumentDto,
   PayslipIndexRow,
 } from "@/web/payrun/payslip-document/types";
+import { formatApiError } from "./format-error";
 import {
   type AdminUsersResponse,
   type AnnualRemunerationSummaryDto,
@@ -96,7 +97,7 @@ export function createApiClient(deps: ApiClientDeps) {
       token = await deps.acquireToken();
     } catch (error) {
       throw new SessionExpiredError(
-        error instanceof Error ? error.message : "Failed to acquire token",
+        formatApiError(error, "Failed to acquire token"),
         { cause: error }
       );
     }

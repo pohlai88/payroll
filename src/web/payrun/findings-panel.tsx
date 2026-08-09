@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { formatApiError } from "@/web/api/format-error";
 import type {
   FindingRow,
   FindingSeverity,
@@ -74,7 +75,7 @@ function FindingRowView({
       );
       onAcknowledged();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Acknowledge failed");
+      setError(formatApiError(err, "Acknowledge failed"));
     } finally {
       setAcking(false);
     }
@@ -158,7 +159,7 @@ function FindingsPanel({
       const res = await payrollApi.getFindings(runId);
       setFindings(res.findings);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load findings");
+      setError(formatApiError(err, "Failed to load findings"));
     } finally {
       setLoading(false);
     }
@@ -185,7 +186,7 @@ function FindingsPanel({
       await loadFindings();
       onChanged();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Scan failed");
+      setError(formatApiError(err, "Scan failed"));
     } finally {
       setScanning(false);
     }

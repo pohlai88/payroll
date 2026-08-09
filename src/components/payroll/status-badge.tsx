@@ -36,5 +36,14 @@ function StatusBadge({ status }: StatusBadgeProps) {
   );
 }
 
+function isRunStatus(status: string): status is RunStatus {
+  return (
+    status === "DRAFT" ||
+    status === "REVIEWED" ||
+    status === "APPROVED" ||
+    status === "CLOSED"
+  );
+}
+
 export type { RunStatus, StatusBadgeProps };
-export { StatusBadge };
+export { isRunStatus, StatusBadge };

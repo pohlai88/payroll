@@ -10,6 +10,7 @@ import {
   FileTextIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { formatApiError } from "@/web/api/format-error";
 import {
   type AnnualRemunerationSummaryDto,
   type EmployeeSummary,
@@ -161,7 +162,12 @@ function ReportsPage() {
     setError(null);
     setLoading(true);
     try {
-      let result: PaymentRegisterDto | StatutorySummaryDto | ExceptionReportDto | AnnualRemunerationSummaryDto | undefined;
+      let result:
+        | PaymentRegisterDto
+        | StatutorySummaryDto
+        | ExceptionReportDto
+        | AnnualRemunerationSummaryDto
+        | undefined;
       if (activeType === "annual-remuneration") {
         result = await loadAnnualReport();
       } else {
@@ -171,7 +177,7 @@ function ReportsPage() {
         setData(result);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(formatApiError(e, "Failed to load report"));
     } finally {
       setLoading(false);
     }

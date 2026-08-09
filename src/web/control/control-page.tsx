@@ -8,6 +8,7 @@ import { ShieldCheckIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { EmptyState } from "@/components/ui/empty-state";
+import { formatApiError } from "@/web/api/format-error";
 import type {
   FindingRow,
   GateKind,
@@ -136,7 +137,7 @@ function ControlPage() {
       );
       setRows(enriched);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load control");
+      setError(formatApiError(err, "Failed to load control"));
       setRows([]);
     } finally {
       setLoading(false);
@@ -161,7 +162,7 @@ function ControlPage() {
         await payrollApi.scanFindings(runId);
         await load();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Scan failed");
+        setError(formatApiError(err, "Scan failed"));
       } finally {
         setScanningId(null);
       }

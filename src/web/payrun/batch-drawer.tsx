@@ -25,6 +25,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { formatApiError } from "@/web/api/format-error";
 import type {
   ArtifactRow,
   GetBatchResponse,
@@ -63,7 +64,7 @@ function BatchDrawer({
       const res = await payrollApi.getBatch(runId, batchId);
       setData(res);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load batch");
+      setError(formatApiError(err, "Failed to load batch"));
     } finally {
       setLoading(false);
     }
@@ -189,7 +190,7 @@ function AttemptRow({ runId, attempt, artifacts, onChanged }: AttemptRowProps) {
       });
       onChanged();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Settle failed");
+      setError(formatApiError(err, "Settle failed"));
     } finally {
       setSubmitting(false);
     }
@@ -206,7 +207,7 @@ function AttemptRow({ runId, attempt, artifacts, onChanged }: AttemptRowProps) {
       );
       onChanged();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Reconcile failed");
+      setError(formatApiError(err, "Reconcile failed"));
     } finally {
       setSubmitting(false);
     }
@@ -307,7 +308,7 @@ function CancelBatchAction({
       setReason("");
       onChanged();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Cancel failed");
+      setError(formatApiError(err, "Cancel failed"));
     } finally {
       setSubmitting(false);
     }

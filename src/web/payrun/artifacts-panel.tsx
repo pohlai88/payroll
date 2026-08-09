@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UploadDropZone } from "@/components/ui/upload-drop-zone";
+import { formatApiError } from "@/web/api/format-error";
 import type { ArtifactRow, ArtifactType } from "@/web/api/payroll-api";
 import { payrollApi } from "@/web/api/payroll-api";
 
@@ -111,7 +112,7 @@ function ArtifactsPanel({
       setFile(null);
       onUploaded();
     } catch (err) {
-      setUploadError(err instanceof Error ? err.message : "Upload failed");
+      setUploadError(formatApiError(err, "Upload failed"));
     } finally {
       setUploading(false);
     }
@@ -131,7 +132,7 @@ function ArtifactsPanel({
         }
       } catch (err) {
         tab?.close();
-        setLinkError(err instanceof Error ? err.message : "Link failed");
+        setLinkError(formatApiError(err, "Link failed"));
       }
     },
     [runId]

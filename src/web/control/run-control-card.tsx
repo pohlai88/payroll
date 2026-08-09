@@ -4,7 +4,7 @@
  */
 
 import { useCallback } from "react";
-import { StatusBadge } from "@/components/payroll/status-badge";
+import { isRunStatus, StatusBadge } from "@/components/payroll/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,17 +22,6 @@ interface RunControlCardProps {
   readonly onOpenWorkspace: (runId: string) => void;
   readonly onScan: (runId: string) => void;
   readonly scanning: boolean;
-}
-
-function isRunStatus(
-  status: string
-): status is Parameters<typeof StatusBadge>[0]["status"] {
-  return (
-    status === "DRAFT" ||
-    status === "REVIEWED" ||
-    status === "APPROVED" ||
-    status === "CLOSED"
-  );
 }
 
 function pillClass(pill: GatePill): string {

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import type { Lang } from "@/domain/derive/i18n/render";
+import { formatApiError } from "@/web/api/format-error";
 import { fetchPayslip } from "@/web/api/payroll-api";
 import { PayslipDocument } from "./payslip-document/payslip-document";
 import type { PayslipDocumentDto } from "./payslip-document/types";
@@ -21,7 +22,7 @@ function PayslipPage() {
     }
     fetchPayslip(runId, lineId)
       .then(setDto)
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => setError(formatApiError(e, "Failed to load payslip")));
   }, [runId, lineId]);
 
   const handleSetEn = useCallback(() => setLang("en"), []);

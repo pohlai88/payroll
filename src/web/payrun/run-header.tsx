@@ -7,21 +7,11 @@
 
 import { useCallback, useState } from "react";
 import { Link } from "wouter";
-import type { RunStatus } from "@/components/payroll/status-badge";
-import { StatusBadge } from "@/components/payroll/status-badge";
+import { isRunStatus, StatusBadge } from "@/components/payroll/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { PayRunWorkspaceView } from "@/web/api/payroll-api";
 import { RunDiffPanel } from "./run-diff-panel";
-
-function isRunStatus(status: string): status is RunStatus {
-  return (
-    status === "DRAFT" ||
-    status === "REVIEWED" ||
-    status === "APPROVED" ||
-    status === "CLOSED"
-  );
-}
 
 interface RunHeaderProps {
   readonly view: PayRunWorkspaceView;

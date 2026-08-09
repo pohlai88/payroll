@@ -49,6 +49,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { formatApiError } from "@/web/api/format-error";
 import type {
   DistributionChannel,
   EmployeeLineDto,
@@ -165,7 +166,7 @@ function PaymentsPanel({
         await payrollApi.unholdLine(runId, lineId);
         onChanged();
       } catch (err) {
-        setActionError(err instanceof Error ? err.message : "Unhold failed");
+        setActionError(formatApiError(err, "Unhold failed"));
       } finally {
         setBusyLineId(null);
       }
@@ -473,7 +474,7 @@ function HoldDialog({ runId, target, onClose, onDone }: DialogBaseProps) {
       onClose();
       await onDone();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Hold failed");
+      setError(formatApiError(err, "Hold failed"));
     } finally {
       setSubmitting(false);
     }
@@ -563,7 +564,7 @@ function WithdrawDialog({ runId, target, onClose, onDone }: DialogBaseProps) {
       onClose();
       await onDone();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Withdraw failed");
+      setError(formatApiError(err, "Withdraw failed"));
     } finally {
       setSubmitting(false);
     }
@@ -666,7 +667,7 @@ function DistributeDialog({ runId, target, onClose, onDone }: DialogBaseProps) {
       onClose();
       await onDone();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Record failed");
+      setError(formatApiError(err, "Record failed"));
     } finally {
       setSubmitting(false);
     }

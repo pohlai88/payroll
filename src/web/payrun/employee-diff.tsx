@@ -4,6 +4,7 @@
  */
 import { useEffect, useState } from "react";
 import { formatRM } from "@/domain/money";
+import { formatApiError } from "@/web/api/format-error";
 import type { NodeDiffRow, RunLineDiffDto } from "@/web/api/payroll-api";
 import { fetchLineDiff } from "@/web/api/payroll-api";
 
@@ -128,7 +129,7 @@ function EmployeeDiff({ runId, lineId }: EmployeeDiffProps) {
     setError(null);
     fetchLineDiff(runId, lineId)
       .then(setData)
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)));
+      .catch((e) => setError(formatApiError(e, "Failed to load diff")));
   }, [runId, lineId]);
 
   if (error) {

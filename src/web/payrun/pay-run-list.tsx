@@ -6,7 +6,7 @@
 import { ReceiptTextIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { StatusBadge } from "@/components/payroll/status-badge";
+import { isRunStatus, StatusBadge } from "@/components/payroll/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
@@ -23,17 +23,6 @@ import { useScopeContext } from "@/web/context/scope-context";
 
 function formatPeriod(run: PayRunSummary): string {
   return `${String(run.month).padStart(2, "0")}/${run.year}`;
-}
-
-function isRunStatus(
-  status: string
-): status is Parameters<typeof StatusBadge>[0]["status"] {
-  return (
-    status === "DRAFT" ||
-    status === "REVIEWED" ||
-    status === "APPROVED" ||
-    status === "CLOSED"
-  );
 }
 
 interface PayRunRowProps {

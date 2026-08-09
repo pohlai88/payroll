@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { formatApiError } from "@/web/api/format-error";
 import type {
   ReleaseMethod,
   ReleasePreviewResponse,
@@ -71,7 +72,7 @@ function ReleasePanel({
       const res = await payrollApi.previewRelease(runId, selectedLineIds);
       setPreview(res);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Preview failed");
+      setError(formatApiError(err, "Preview failed"));
     } finally {
       setLoading(false);
     }
@@ -97,7 +98,7 @@ function ReleasePanel({
       onCleared();
       onReleased(res.batchId);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Release failed");
+      setError(formatApiError(err, "Release failed"));
     } finally {
       setCommitting(false);
     }

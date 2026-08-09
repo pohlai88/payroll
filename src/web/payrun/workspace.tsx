@@ -8,8 +8,9 @@
 import { ReceiptTextIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "wouter";
-import type { RunStatus } from "@/components/payroll/status-badge";
+import { isRunStatus } from "@/components/payroll/status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { formatApiError } from "@/web/api/format-error";
 import type {
   ArtifactRow,
   ChecklistItem,
@@ -32,15 +33,6 @@ import { PaymentsPanel } from "./payments-panel";
 import { ReleasePanel } from "./release-panel";
 import { RunHeader } from "./run-header";
 import { TotalsStrip } from "./totals-strip";
-
-function isRunStatus(status: string): status is RunStatus {
-  return (
-    status === "DRAFT" ||
-    status === "REVIEWED" ||
-    status === "APPROVED" ||
-    status === "CLOSED"
-  );
-}
 
 function WorkspacePage() {
   const { runId } = useParams<{ runId: string }>();
@@ -128,9 +120,7 @@ function WorkspacePage() {
       const res = await payrollApi.getArtifacts(runId);
       setArtifacts(res.artifacts);
     } catch (err) {
-      setArtifactsError(
-        err instanceof Error ? err.message : "Failed to load artifacts"
-      );
+      setArtifactsError(formatApiError(err, "Failed to load artifacts"));
     } finally {
       setArtifactsLoading(false);
     }
@@ -146,9 +136,7 @@ function WorkspacePage() {
       const res = await payrollApi.getPayments(runId);
       setPayments(res.payments);
     } catch (err) {
-      setPaymentsError(
-        err instanceof Error ? err.message : "Failed to load payments"
-      );
+      setPaymentsError(formatApiError(err, "Failed to load payments"));
     } finally {
       setPaymentsLoading(false);
     }
@@ -215,9 +203,7 @@ function WorkspacePage() {
       await payrollApi.recompute(runId);
       await reload();
     } catch (err) {
-      setRecomputeError(
-        err instanceof Error ? err.message : "Recompute failed"
-      );
+      setRecomputeError(formatApiError(err, "Recompute failed"));
     }
   }, [runId, reload]);
 
@@ -280,9 +266,7 @@ function WorkspacePage() {
         const result = await payrollApi.evaluateGate(runId, gate);
         setGateResult(result);
       } catch (err) {
-        setGateError(
-          err instanceof Error ? err.message : "Gate evaluation failed"
-        );
+        setGateError(formatApiError(err, "Gate evaluation failed"));
       } finally {
         setGateLoading(false);
       }
@@ -319,9 +303,7 @@ function WorkspacePage() {
       const res = await payrollApi.getClosureChecklist(runId);
       setClosureChecklist(res.checklist);
     } catch (err) {
-      setClosureError(
-        err instanceof Error ? err.message : "Checklist evaluation failed"
-      );
+      setClosureError(formatApiError(err, "Checklist evaluation failed"));
     } finally {
       setClosureLoading(false);
     }
@@ -339,7 +321,7 @@ function WorkspacePage() {
       setClosureChecklist(null);
       await reload();
     } catch (err) {
-      setClosureError(err instanceof Error ? err.message : "Close failed");
+      setClosureError(formatApiError(err, "Close failed"));
     } finally {
       setClosureSubmitting(false);
     }
@@ -372,7 +354,7 @@ function WorkspacePage() {
       setGateResult(null);
       await reload();
     } catch (err) {
-      setGateError(err instanceof Error ? err.message : "Mutation failed");
+      setGateError(formatApiError(err, "Mutation failed"));
     } finally {
       setGateSubmitting(false);
     }
