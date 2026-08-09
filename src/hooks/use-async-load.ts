@@ -16,6 +16,7 @@ function useAsyncLoad<T>(
   loading: boolean;
   error: string | null;
   reload: () => Promise<void>;
+  reset: () => void;
 } {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
@@ -33,7 +34,12 @@ function useAsyncLoad<T>(
     }
   }, [load, fallbackMessage]);
 
-  return { data, loading, error, reload };
+  const reset = useCallback(() => {
+    setData(null);
+    setError(null);
+  }, []);
+
+  return { data, loading, error, reload, reset };
 }
 
 export { useAsyncLoad };

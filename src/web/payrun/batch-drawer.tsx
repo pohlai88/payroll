@@ -59,13 +59,17 @@ function BatchDrawer({
     loading,
     error,
     reload: load,
+    reset,
   } = useAsyncLoad(fetchBatch, "Failed to load batch");
 
+  // When batchId changes, clear stale data first so the loading indicator is
+  // not overlaid on a different batch's content, then fetch the new batch.
   useEffect(() => {
+    reset();
     if (open && batchId !== null) {
       load();
     }
-  }, [open, batchId, load]);
+  }, [open, batchId, load, reset]);
 
   const handleChanged = useCallback(async () => {
     await load();
@@ -92,7 +96,7 @@ function BatchDrawer({
           <p className="px-4 text-destructive text-sm">{error}</p>
         )}
 
-        {loading ? (
+        {loading && data === null ? (
           <p className="px-4 text-muted-foreground text-sm">Loading batch…</p>
         ) : null}
 
