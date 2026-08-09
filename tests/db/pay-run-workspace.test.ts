@@ -241,6 +241,7 @@ describe("GET /v1/pay-runs/:runId/workspace", () => {
         reportingMonth: "2026-07",
         status: "DRAFT",
         label: RUN_ID,
+        calcRevision: expect.any(String),
       },
       actionAvailability: {
         canRecompute: true,

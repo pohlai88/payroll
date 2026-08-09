@@ -11,6 +11,9 @@ import {
   ApiClientError,
   type ApiErrorBody,
   type EmployeeSummary,
+  type FindingsListResponse,
+  type GateKind,
+  type GateResult,
   type ImportReportResponse,
   type MeResponse,
   type PayRunSummary,
@@ -147,10 +150,32 @@ export function createApiClient(deps: ApiClientDeps) {
       requestJson<void>(`/v1/pay-runs/${runId}/recompute`, {
         method: "POST",
       }),
-    review: (runId: string) =>
-      requestJson<void>(`/v1/pay-runs/${runId}/review`, { method: "POST" }),
-    approve: (runId: string) =>
-      requestJson<void>(`/v1/pay-runs/${runId}/approve`, { method: "POST" }),
+    review: (runId: string, calcRevision: string) =>
+      requestJson<void>(`/v1/pay-runs/${runId}/review`, {
+        method: "POST",
+        body: JSON.stringify({ calcRevision }),
+      }),
+    approve: (runId: string, calcRevision: string) =>
+      requestJson<void>(`/v1/pay-runs/${runId}/approve`, {
+        method: "POST",
+        body: JSON.stringify({ calcRevision }),
+      }),
+    getFindings: (runId: string) =>
+      requestJson<FindingsListResponse>(`/v1/pay-runs/${runId}/findings`),
+    scanFindings: (runId: string) =>
+      requestJson<void>(`/v1/pay-runs/${runId}/findings/scan`, {
+        method: "POST",
+      }),
+    acknowledgeFinding: (runId: string, findingId: string, note?: string) =>
+      requestJson<void>(
+        `/v1/pay-runs/${runId}/findings/${findingId}/acknowledge`,
+        {
+          method: "POST",
+          body: JSON.stringify(note === undefined ? {} : { note }),
+        }
+      ),
+    evaluateGate: (runId: string, gate: GateKind) =>
+      requestJson<GateResult>(`/v1/pay-runs/${runId}/gates/${gate}`),
     getEmployees: (params?: GetEmployeesParams) =>
       requestJson<EmployeeSummary[]>(
         `/v1/employees${buildQuery({

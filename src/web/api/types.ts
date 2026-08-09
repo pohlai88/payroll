@@ -146,6 +146,57 @@ export interface RunSummary {
   readonly reportingMonth: string;
   readonly status: string;
   readonly label: string;
+  /** Content hash of the last successful recompute; required by review/approve. */
+  readonly calcRevision: string | null;
+}
+
+export type FindingSeverity = "INFO" | "REVIEW" | "WARNING" | "BLOCKING";
+export type FindingStatus = "OPEN" | "ACKNOWLEDGED" | "RESOLVED";
+export type GateKind = "REVIEW" | "APPROVAL" | "RELEASE" | "CLOSE";
+
+/**
+ * One `anomaly_findings` row from `GET /v1/pay-runs/:runId/findings`.
+ * Timestamps arrive as ISO strings after JSON serialization.
+ */
+export interface FindingRow {
+  readonly id: string;
+  readonly runId: string | null;
+  readonly transferId: string | null;
+  readonly lineId: string | null;
+  readonly ruleId: string;
+  readonly fingerprint: string;
+  readonly severity: FindingSeverity;
+  readonly blocks: readonly string[];
+  readonly title: string;
+  readonly detail: string;
+  readonly evidence: Readonly<Record<string, unknown>>;
+  readonly status: FindingStatus;
+  readonly ackNote: string | null;
+  readonly ackActor: string | null;
+  readonly ackAt: string | null;
+  readonly detectedRevision: string | null;
+  readonly resolvedAt: string | null;
+  readonly resolvedRevision: string | null;
+  readonly resolutionType: string | null;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}
+
+export interface FindingsListResponse {
+  readonly findings: readonly FindingRow[];
+}
+
+export interface GateIssue {
+  readonly kind: "finding" | "prerequisite";
+  readonly code: string;
+  readonly message: string;
+  readonly lineId?: string;
+  readonly findingId?: string;
+}
+
+export interface GateResult {
+  readonly ok: boolean;
+  readonly issues: readonly GateIssue[];
 }
 
 export interface ActionAvailability {

@@ -1,9 +1,8 @@
 /**
  * Pay-run workspace orchestrator — fetches the `PayRunWorkspaceView` for the
  * `:runId` route param and composes `RunHeader` + `TotalsStrip` +
- * `EmployeeGrid` + `EmployeeSlideOver`. Action buttons call the server
- * mutation endpoints then refetch the workspace; there is no optimistic
- * update, the rendered state always reflects the server's last response.
+ * `FindingsPanel` + `EmployeeGrid` + `EmployeeSlideOver`. Review/Approve run
+ * a gate check first; mutations wait for server confirmation then refetch.
  */
 
 import { ReceiptTextIcon } from "lucide-react";
@@ -13,11 +12,15 @@ import type { RunStatus } from "@/components/payroll/status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import type {
   EmployeeLineDto,
+  GateKind,
+  GateResult,
   PayRunWorkspaceView,
 } from "@/web/api/payroll-api";
 import { payrollApi } from "@/web/api/payroll-api";
 import { EmployeeGrid } from "./employee-grid";
 import { EmployeeSlideOver } from "./employee-slide-over";
+import { FindingsPanel } from "./findings-panel";
+import { GateCheckDialog } from "./gate-check-dialog";
 import { RunHeader } from "./run-header";
 import { TotalsStrip } from "./totals-strip";
 
@@ -41,6 +44,13 @@ function WorkspacePage() {
   const [slideOverTab, setSlideOverTab] = useState<
     "line" | "payslip" | "derivation"
   >("line");
+
+  const [gateDialogOpen, setGateDialogOpen] = useState(false);
+  const [pendingGate, setPendingGate] = useState<GateKind | null>(null);
+  const [gateResult, setGateResult] = useState<GateResult | null>(null);
+  const [gateLoading, setGateLoading] = useState(false);
+  const [gateSubmitting, setGateSubmitting] = useState(false);
+  const [gateError, setGateError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     if (runId === undefined) {
@@ -94,19 +104,80 @@ function WorkspacePage() {
     payrollApi.recompute(runId).then(reload);
   }, [runId, reload]);
 
-  const handleReview = useCallback(() => {
-    if (runId === undefined) {
+  const closeGateDialog = useCallback(() => {
+    if (gateSubmitting) {
       return;
     }
-    payrollApi.review(runId).then(reload);
-  }, [runId, reload]);
+    setGateDialogOpen(false);
+    setPendingGate(null);
+    setGateResult(null);
+    setGateError(null);
+  }, [gateSubmitting]);
+
+  const beginGateCheck = useCallback(
+    async (gate: GateKind) => {
+      if (runId === undefined) {
+        return;
+      }
+      setPendingGate(gate);
+      setGateDialogOpen(true);
+      setGateResult(null);
+      setGateError(null);
+      setGateLoading(true);
+      try {
+        const result = await payrollApi.evaluateGate(runId, gate);
+        setGateResult(result);
+      } catch (err) {
+        setGateError(
+          err instanceof Error ? err.message : "Gate evaluation failed"
+        );
+      } finally {
+        setGateLoading(false);
+      }
+    },
+    [runId]
+  );
+
+  const handleReview = useCallback(() => {
+    beginGateCheck("REVIEW");
+  }, [beginGateCheck]);
 
   const handleApprove = useCallback(() => {
-    if (runId === undefined) {
+    beginGateCheck("APPROVAL");
+  }, [beginGateCheck]);
+
+  const handleGateConfirm = useCallback(async () => {
+    if (
+      runId === undefined ||
+      view === null ||
+      pendingGate === null ||
+      gateResult?.ok !== true
+    ) {
       return;
     }
-    payrollApi.approve(runId).then(reload);
-  }, [runId, reload]);
+    const { calcRevision } = view.run;
+    if (calcRevision === null || calcRevision === "") {
+      setGateError("Missing calcRevision — recompute the run first");
+      return;
+    }
+    setGateSubmitting(true);
+    setGateError(null);
+    try {
+      if (pendingGate === "REVIEW") {
+        await payrollApi.review(runId, calcRevision);
+      } else if (pendingGate === "APPROVAL") {
+        await payrollApi.approve(runId, calcRevision);
+      }
+      setGateDialogOpen(false);
+      setPendingGate(null);
+      setGateResult(null);
+      await reload();
+    } catch (err) {
+      setGateError(err instanceof Error ? err.message : "Mutation failed");
+    } finally {
+      setGateSubmitting(false);
+    }
+  }, [gateResult, pendingGate, reload, runId, view]);
 
   if (runId === undefined) {
     return (
@@ -149,6 +220,12 @@ function WorkspacePage() {
       <div className="flex flex-col gap-4 px-6 pb-6">
         <TotalsStrip tiles={view.totals} />
 
+        <FindingsPanel
+          findingsSummary={view.findingsSummary}
+          onChanged={reload}
+          runId={runId}
+        />
+
         <EmployeeGrid
           lines={view.lines}
           onEditLine={handleEditLine}
@@ -164,6 +241,17 @@ function WorkspacePage() {
         onClose={closeSlideOver}
         open={selectedLine !== null}
         runStatus={isRunStatus(view.run.status) ? view.run.status : "DRAFT"}
+      />
+
+      <GateCheckDialog
+        error={gateError}
+        gate={pendingGate}
+        loading={gateLoading}
+        onClose={closeGateDialog}
+        onConfirm={handleGateConfirm}
+        open={gateDialogOpen}
+        result={gateResult}
+        submitting={gateSubmitting}
       />
     </div>
   );

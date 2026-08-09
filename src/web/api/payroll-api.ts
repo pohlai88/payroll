@@ -5,6 +5,7 @@
 import { acquireAccessToken } from "@/web/auth/client";
 import type { GetEmployeesParams, GetPayRunsParams } from "./client";
 import { createApiClient } from "./client";
+import type { GateKind } from "./types";
 
 export type { GetEmployeesParams, GetPayRunsParams } from "./client";
 export type {
@@ -13,7 +14,14 @@ export type {
   EmployeeLineDto,
   EmployeeSummary,
   EmployeeVarianceDto,
+  FindingRow,
+  FindingSeverity,
+  FindingStatus,
+  FindingsListResponse,
   FindingsSummary,
+  GateIssue,
+  GateKind,
+  GateResult,
   MeCompany,
   MeResponse,
   PayRunSummary,
@@ -59,8 +67,16 @@ export const payrollApi = {
   getPayRuns: (params?: GetPayRunsParams) => getPayrollApi().getPayRuns(params),
   getWorkspace: (runId: string) => getPayrollApi().getWorkspace(runId),
   recompute: (runId: string) => getPayrollApi().recompute(runId),
-  review: (runId: string) => getPayrollApi().review(runId),
-  approve: (runId: string) => getPayrollApi().approve(runId),
+  review: (runId: string, calcRevision: string) =>
+    getPayrollApi().review(runId, calcRevision),
+  approve: (runId: string, calcRevision: string) =>
+    getPayrollApi().approve(runId, calcRevision),
+  getFindings: (runId: string) => getPayrollApi().getFindings(runId),
+  scanFindings: (runId: string) => getPayrollApi().scanFindings(runId),
+  acknowledgeFinding: (runId: string, findingId: string, note?: string) =>
+    getPayrollApi().acknowledgeFinding(runId, findingId, note),
+  evaluateGate: (runId: string, gate: GateKind) =>
+    getPayrollApi().evaluateGate(runId, gate),
   getEmployees: (params?: GetEmployeesParams) =>
     getPayrollApi().getEmployees(params),
 };

@@ -25,6 +25,8 @@ export interface RunSummary {
   readonly reportingMonth: string;
   readonly status: string;
   readonly label: string;
+  /** Content hash of the last successful recompute; required by review/approve. */
+  readonly calcRevision: string | null;
 }
 
 export interface ActionAvailability {
@@ -317,6 +319,7 @@ export async function loadWorkspaceView(
       month: payRuns.month,
       status: payRuns.status,
       linkedRunId: payRuns.linkedRunId,
+      calcRevision: payRuns.calcRevision,
     })
     .from(payRuns)
     .innerJoin(companies, eq(payRuns.companyId, companies.id))
@@ -391,6 +394,7 @@ export async function loadWorkspaceView(
       reportingMonth: `${run.year}-${String(run.month).padStart(2, "0")}`,
       status: run.status,
       label: run.id,
+      calcRevision: run.calcRevision,
     },
     actionAvailability: actionAvailabilityFor(run.status),
     totals: buildAggregateTiles(employeeLines, previousRunRoots),
