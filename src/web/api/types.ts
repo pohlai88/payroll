@@ -57,6 +57,10 @@ export interface AdminUsersResponse {
   readonly users: readonly AdminUserRow[];
 }
 
+/**
+ * Keep in sync with `CompanyDirectoryRow` in `src/service/admin-companies.ts`
+ * (`GET|POST /v1/admin/companies`, `PATCH /v1/admin/companies/:companyId`).
+ */
 export interface AdminCompanyRow {
   readonly id: string;
   readonly code: string;
@@ -73,6 +77,7 @@ export interface AdminCompaniesResponse {
   readonly companies: readonly AdminCompanyRow[];
 }
 
+/** Keep in sync with create body Zod in `src/server/routes/admin-companies.ts`. */
 export type CreateAdminCompanyBody = {
   readonly code: string;
   readonly name: string;
@@ -83,6 +88,7 @@ export type CreateAdminCompanyBody = {
   readonly hrdfLevyPct?: string;
 };
 
+/** Keep in sync with patch body Zod in `src/server/routes/admin-companies.ts`. */
 export type UpdateAdminCompanyBody = {
   readonly name?: string;
   readonly epfNo?: string | null;

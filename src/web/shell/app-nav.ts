@@ -26,8 +26,9 @@ export type AppNavItem = {
 };
 
 /**
- * App Router paths that the shell may navigate to. Keep in sync with
+ * Wouter shell paths the signed-in nav may target. Keep in sync with
  * `<Route path=…>` in `src/web/app.tsx` (top-level shell destinations only).
+ * Not Next.js App Router.
  */
 export const APP_SHELL_ROUTE_PATHS = [
   "/",
