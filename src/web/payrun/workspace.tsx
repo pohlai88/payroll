@@ -11,6 +11,7 @@ import { useParams } from "wouter";
 import type { RunStatus } from "@/components/payroll/status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import type {
+  ArtifactRow,
   ChecklistItem,
   EmployeeLineDto,
   GateKind,
@@ -18,6 +19,7 @@ import type {
   PayRunWorkspaceView,
 } from "@/web/api/payroll-api";
 import { payrollApi } from "@/web/api/payroll-api";
+import { ArtifactsPanel } from "./artifacts-panel";
 import { BatchDrawer } from "./batch-drawer";
 import { ClosureChecklistDialog } from "./closure-checklist-dialog";
 import { EmployeeGrid } from "./employee-grid";
@@ -72,6 +74,10 @@ function WorkspacePage() {
   const [activeBatchId, setActiveBatchId] = useState<string | null>(null);
   const [batchDrawerOpen, setBatchDrawerOpen] = useState(false);
 
+  const [artifacts, setArtifacts] = useState<readonly ArtifactRow[]>([]);
+  const [artifactsLoading, setArtifactsLoading] = useState(false);
+  const [artifactsError, setArtifactsError] = useState<string | null>(null);
+
   const reload = useCallback(async () => {
     if (runId === undefined) {
       return;
@@ -88,9 +94,36 @@ function WorkspacePage() {
     }
   }, [runId]);
 
+  const loadArtifacts = useCallback(async () => {
+    if (runId === undefined) {
+      return;
+    }
+    setArtifactsLoading(true);
+    setArtifactsError(null);
+    try {
+      const res = await payrollApi.getArtifacts(runId);
+      setArtifacts(res.artifacts);
+    } catch (err) {
+      setArtifactsError(
+        err instanceof Error ? err.message : "Failed to load artifacts"
+      );
+    } finally {
+      setArtifactsLoading(false);
+    }
+  }, [runId]);
+
   useEffect(() => {
     reload();
   }, [reload]);
+
+  useEffect(() => {
+    if (
+      view !== null &&
+      (view.run.status === "APPROVED" || view.run.status === "CLOSED")
+    ) {
+      loadArtifacts();
+    }
+  }, [view, loadArtifacts]);
 
   const openSlideOver = useCallback(
     (employeeId: string, tab: "line" | "payslip" | "derivation") => {
@@ -331,6 +364,16 @@ function WorkspacePage() {
           />
         ) : null}
 
+        {view.run.status === "APPROVED" || view.run.status === "CLOSED" ? (
+          <ArtifactsPanel
+            artifacts={artifacts}
+            error={artifactsError}
+            loading={artifactsLoading}
+            onUploaded={loadArtifacts}
+            runId={runId}
+          />
+        ) : null}
+
         <EmployeeGrid
           lines={view.lines}
           onEditLine={handleEditLine}
@@ -371,6 +414,7 @@ function WorkspacePage() {
       />
 
       <BatchDrawer
+        artifacts={artifacts}
         batchId={activeBatchId}
         onChanged={handleBatchChanged}
         onClose={handleCloseBatchDrawer}

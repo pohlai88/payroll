@@ -1,0 +1,225 @@
+/**
+ * Artifacts panel — lists R2-backed run artifacts (register CSV, manifest,
+ * manual evidence) and lets a user manually attach evidence. Type is
+ * restricted to EVIDENCE/EXCEPTION_REPORT for manual uploads — the other
+ * ArtifactType values (PAYMENT_REGISTER, MANIFEST, CASH_SHEET) are only ever
+ * produced by the server (release/close), never hand-picked here.
+ */
+
+import { useCallback, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { UploadDropZone } from "@/components/ui/upload-drop-zone";
+import type { ArtifactRow, ArtifactType } from "@/web/api/payroll-api";
+import { payrollApi } from "@/web/api/payroll-api";
+
+interface ArtifactsPanelProps {
+  readonly runId: string;
+  readonly artifacts: readonly ArtifactRow[];
+  readonly loading: boolean;
+  readonly error: string | null;
+  readonly onUploaded: () => void;
+}
+
+const MANUAL_TYPES: readonly {
+  readonly value: ArtifactType;
+  readonly label: string;
+}[] = [
+  { value: "EVIDENCE", label: "Evidence" },
+  { value: "EXCEPTION_REPORT", label: "Exception report" },
+];
+
+function filenameOf(artifact: ArtifactRow): string {
+  return artifact.relativePath.split("/").pop() ?? artifact.relativePath;
+}
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+  const kb = bytes / 1024;
+  if (kb < 1024) {
+    return `${kb.toFixed(1)} KB`;
+  }
+  return `${(kb / 1024).toFixed(1)} MB`;
+}
+
+function readAsBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const { result } = reader;
+      if (typeof result !== "string") {
+        reject(new Error("Failed to read file"));
+        return;
+      }
+      // FileReader.readAsDataURL always produces "data:<mime>;base64,<data>"
+      // The comma separating the header from the payload is guaranteed to be
+      // the first comma in the string, because MIME types and base64 tokens
+      // never contain commas.
+      const comma = result.indexOf(",");
+      resolve(comma === -1 ? result : result.slice(comma + 1));
+    };
+    reader.onerror = () => reject(reader.error ?? new Error("Read failed"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function ArtifactsPanel({
+  runId,
+  artifacts,
+  loading,
+  error,
+  onUploaded,
+}: ArtifactsPanelProps) {
+  const [file, setFile] = useState<File | null>(null);
+  const [type, setType] = useState<ArtifactType>("EVIDENCE");
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [linkError, setLinkError] = useState<string | null>(null);
+
+  const handleTypeChange = useCallback((value: string | null) => {
+    if (value === "EVIDENCE" || value === "EXCEPTION_REPORT") {
+      setType(value);
+    }
+  }, []);
+
+  const handleUpload = useCallback(async () => {
+    if (file === null) {
+      return;
+    }
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const base64 = await readAsBase64(file);
+      await payrollApi.uploadArtifact(runId, {
+        filename: file.name,
+        mimeType: file.type === "" ? "application/octet-stream" : file.type,
+        base64,
+        type,
+      });
+      setFile(null);
+      onUploaded();
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }, [file, onUploaded, runId, type]);
+
+  const handleGetLink = useCallback(
+    async (artifactId: string) => {
+      setLinkError(null);
+      try {
+        const res = await payrollApi.getArtifactUrl(runId, artifactId);
+        window.open(res.url, "_blank", "noopener,noreferrer");
+      } catch (err) {
+        setLinkError(err instanceof Error ? err.message : "Link failed");
+      }
+    },
+    [runId]
+  );
+
+  return (
+    <div className="rounded-lg border bg-card">
+      <div className="border-b px-3 py-2">
+        <span className="font-medium text-sm">Artifacts</span>
+      </div>
+
+      {error === null ? null : (
+        <p className="px-3 py-2 text-destructive text-sm">{error}</p>
+      )}
+      {linkError === null ? null : (
+        <p className="px-3 py-2 text-destructive text-sm">{linkError}</p>
+      )}
+
+      {loading && artifacts.length === 0 ? (
+        <p className="px-3 py-4 text-muted-foreground text-sm">
+          Loading artifacts…
+        </p>
+      ) : null}
+
+      {!loading && artifacts.length === 0 ? (
+        <p className="px-3 py-4 text-muted-foreground text-sm">
+          No artifacts yet.
+        </p>
+      ) : null}
+
+      {artifacts.length > 0 ? (
+        <ul className="divide-y">
+          {artifacts.map((artifact) => (
+            <ArtifactRowView
+              artifact={artifact}
+              key={artifact.id}
+              onGetLink={handleGetLink}
+            />
+          ))}
+        </ul>
+      ) : null}
+
+      <div className="flex flex-col gap-2 border-t p-3">
+        <span className="font-medium text-sm">Attach evidence</span>
+        <Select onValueChange={handleTypeChange} value={type}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {MANUAL_TYPES.map((t) => (
+              <SelectItem key={t.value} value={t.value}>
+                {t.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <UploadDropZone file={file} onChange={setFile} />
+        {uploadError === null ? null : (
+          <p className="text-destructive text-xs">{uploadError}</p>
+        )}
+        <Button
+          disabled={file === null || uploading}
+          onClick={handleUpload}
+          size="sm"
+        >
+          {uploading ? "Uploading…" : "Upload"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+interface ArtifactRowViewProps {
+  readonly artifact: ArtifactRow;
+  readonly onGetLink: (artifactId: string) => void;
+}
+
+function ArtifactRowView({ artifact, onGetLink }: ArtifactRowViewProps) {
+  const handleClick = useCallback(
+    () => onGetLink(artifact.id),
+    [artifact.id, onGetLink]
+  );
+
+  return (
+    <li className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+      <div className="flex min-w-0 items-center gap-2">
+        <Badge variant="outline">{artifact.type}</Badge>
+        <span className="truncate">{filenameOf(artifact)}</span>
+        <span className="shrink-0 text-muted-foreground text-xs">
+          {formatBytes(artifact.byteSize)}
+        </span>
+      </div>
+      <Button onClick={handleClick} size="sm" variant="ghost">
+        Get link
+      </Button>
+    </li>
+  );
+}
+
+export type { ArtifactsPanelProps };
+export { ArtifactsPanel };
