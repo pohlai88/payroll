@@ -7,7 +7,7 @@ Vite multi-page truth (`vite.config.ts`):
 | `index.html` | `src/web/main.tsx` → `app.tsx` | Product SPA |
 | `landing.html` | `src/marketing/main.tsx` | Marketing only |
 
-Alias: `@` → `src/`. No Next `app/` tree. Styles: SPA → `src/web/styles.css`; marketing keeps its own CSS entry — no cross-import.
+Alias: `@` → `src/`. No Next `app/` tree. Styles: SPA → `src/web/shadcn.css`; marketing keeps its own CSS entry — no cross-import.
 
 ## Target tree (refactor to this)
 
@@ -16,7 +16,7 @@ src/
   web/                              # product SPA only
     main.tsx
     app.tsx                         # session gate + Wouter Switch/Route
-    styles.css                      # Tailwind v4 + tokens (SPA)
+    styles.css                      # stock shadcn theme (SPA)
     vite-env.d.ts
     api/                            # types.ts → client.ts → payroll-api.ts
       types.ts
@@ -72,7 +72,7 @@ src/
 | Giant flat `payrun/` | Keep workspace entry; group panels/drawers; keep `payslip-document/` | Done — `panels/`, `drawers/`, `dialogs/`, `employee/` |
 | Studio leftovers with Next `app/…` paths | Delete or re-home under `shadcn-studio` + compose from `*-page.tsx` | Done — removed unused `blocks/pages/*` demos |
 | Domain logic in `shadcn-studio/` | Extract to `web/<feature>` or `components/payroll` | OK — studio uses DTO prop types only; I/O stays in pages |
-| Shared styles leaking marketing ↔ SPA | Keep dual entries; no shared `styles.css` import | OK — marketing uses own `styles.css` |
+| Shared styles leaking marketing ↔ SPA | Keep dual entries; no shared `shadcn.css` import | OK — marketing uses own `shadcn.css` |
 
 ### Payrun layout (after refactor)
 

@@ -2,14 +2,19 @@
  * @feature auth
  * @layer spine
  *
- * End-to-end developer bootstrap: Neon Auth email user + app invite.
+ * End-to-end developer bootstrap: Neon Auth email user + app SYSTEM_ADMIN invite.
  *
- * Neon Auth requires password length ≥ 8. Then set VITE_DEV_* in `.env.local`
- * and use Developer Login in the SPA.
+ * Always assigns SYSTEM_ADMIN (full permissions). Neon Auth requires password
+ * length ≥ 8. Then set VITE_DEV_* in `.env.local` and use Developer Login.
  *
  * Usage:
+ *   npm run setup:dev-user
+ *   # or with explicit credentials:
  *   npx tsx scripts/setup-dev-user.ts \
- *     --email dev@example.com --name "Dev User" --password 'dev123456' --system-admin
+ *     --email dev@example.com --name "Dev User" --password 'dev123456'
+ *
+ * When flags are omitted, email/password default from VITE_DEV_* in `.env.local`.
+ * `--system-admin` is accepted as a no-op for CLI compatibility.
  */
 
 import {
@@ -24,19 +29,18 @@ import { bootstrapInviteUser, takeFlagValue } from "./lib/bootstrap-invite";
 loadEnvLocal();
 
 const MIN_PASSWORD_LENGTH = 8;
+const DEFAULT_DEV_NAME = "Dev User";
 
 interface Args {
   email: string;
   name: string;
   password: string;
-  systemAdmin: boolean;
 }
 
 function parseArgs(argv: string[]): Args {
   let email: string | undefined;
   let name: string | undefined;
   let password: string | undefined;
-  let systemAdmin = false;
 
   let i = 0;
   while (i < argv.length) {
@@ -57,16 +61,26 @@ function parseArgs(argv: string[]): Args {
       password = taken.value;
       i = taken.nextIndex;
     } else if (arg === "--system-admin") {
-      systemAdmin = true;
+      // No-op: this script always assigns SYSTEM_ADMIN.
       i += 1;
     } else {
       throw new Error(`Unknown or incomplete argument: ${arg}`);
     }
   }
 
-  if (email === undefined || name === undefined || password === undefined) {
+  const envEmail = process.env.VITE_DEV_EMAIL?.trim();
+  const envPassword = process.env.VITE_DEV_PASSWORD;
+  email = email ?? (envEmail !== undefined && envEmail.length > 0 ? envEmail : undefined);
+  password =
+    password ??
+    (envPassword !== undefined && envPassword.length > 0 ? envPassword : undefined);
+  name = name ?? DEFAULT_DEV_NAME;
+
+  if (email === undefined || password === undefined) {
     throw new Error(
-      "Usage: --email <email> --name <name> --password <password≥8> [--system-admin]"
+      "Usage: [--email <email>] [--name <name>] [--password <password≥8>] [--system-admin]\n" +
+        "  Email/password may come from VITE_DEV_EMAIL / VITE_DEV_PASSWORD in .env.local.\n" +
+        "  Always assigns SYSTEM_ADMIN (full permissions)."
     );
   }
   if (password.length < MIN_PASSWORD_LENGTH) {
@@ -75,7 +89,7 @@ function parseArgs(argv: string[]): Args {
     );
   }
 
-  return { email, name, password, systemAdmin };
+  return { email, name, password };
 }
 
 function requireAuthBaseUrl(): string {
@@ -160,6 +174,7 @@ async function main(): Promise<void> {
 
   try {
     console.log("\n=== Developer auth bootstrap ===\n");
+    console.log("Always assigns SYSTEM_ADMIN (full permissions)\n");
     const neonStatus = await ensureNeonAuthUser({
       email,
       name: args.name,
@@ -174,15 +189,16 @@ async function main(): Promise<void> {
     await bootstrapInviteUser(db, {
       email,
       name: args.name,
-      systemAdmin: args.systemAdmin,
+      systemAdmin: true,
       roleCode: null,
       companyId: null,
     });
+    console.log("assigned SYSTEM_ADMIN (full permissions)");
 
     console.log("\nAdd to .env.local (then restart Vite):");
     console.log(`  VITE_DEV_EMAIL=${email}`);
     console.log(`  VITE_DEV_PASSWORD=${args.password}`);
-    console.log("\nSmoke: npx tsx scripts/smoke-auth.ts\n");
+    console.log("\nSmoke: npm run auth:smoke\n");
   } finally {
     await pool.end();
   }

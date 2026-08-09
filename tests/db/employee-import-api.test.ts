@@ -30,13 +30,18 @@ beforeEach(async () => {
   await db.delete(userRoleAssignments);
   await db.delete(users);
   await db.delete(roles).where(eq(roles.isSystem, false));
-  await db.execute(sql`DELETE FROM employment_profiles`);
-  await db.execute(sql`DELETE FROM employments`);
-  await db.execute(sql`DELETE FROM persons`);
+  // TRUNCATE ... CASCADE, not hand-ordered DELETEs: the seed ships demo
+  // employments and DRAFT pay runs, so `DELETE FROM employments` trips
+  // `pay_lines_employment_id_employments_id_fk`. CASCADE clears dependents
+  // (employment_profiles, employments, pay_lines …) by definition.
+  //
+  // `companies` goes too, so the fixed id below is authoritative. The previous
+  // ON CONFLICT DO NOTHING silently lost to the seeded DLBB row, leaving this
+  // file's company id pointing at a company that did not exist.
+  await database.truncate("companies", "persons");
   await db.execute(sql`
     INSERT INTO companies (id, code, name)
-    VALUES ('11111111-1111-1111-1111-111111111111', 'DLBB', 'DLBB Sdn Bhd')
-    ON CONFLICT (code) DO NOTHING`);
+    VALUES ('11111111-1111-1111-1111-111111111111', 'DLBB', 'DLBB Sdn Bhd')`);
 });
 
 afterAll(async () => {

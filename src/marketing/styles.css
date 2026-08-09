@@ -1,8 +1,8 @@
 /**
  * Marketing surface — "governance briefing" identity.
  *
- * Deliberately independent of src/web/styles.css (the governed Straits token
- * system). Nothing here is imported by the payroll SPA and nothing here may be
+ * Deliberately independent of src/web/shadcn.css (stock SPA shadcn theme).
+ * Nothing here is imported by the payroll SPA and nothing here may be
  * imported into it. The shadcn variable names are defined below so any
  * primitive from @/components/ui inherits this identity if a block pulls one in.
  *

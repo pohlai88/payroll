@@ -195,8 +195,8 @@ function LineTab({ line }: LineTabProps) {
           <div
             className="rounded-t px-3 py-1.5 font-semibold text-xs uppercase tracking-wider"
             style={{
-              background: `var(--section-${group.section}-fill)`,
-              color: `var(--section-${group.section}-ink)`,
+              background: "var(--muted)",
+              color: "var(--foreground)",
             }}
           >
             {group.label}

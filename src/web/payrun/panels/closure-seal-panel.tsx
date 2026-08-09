@@ -239,7 +239,7 @@ function SealBody({
       </div>
 
       {seal.problems.length === 0 ? null : (
-        <ul className="space-y-1 rounded-md bg-status-bad-fill p-2 text-status-bad-ink text-xs">
+        <ul className="space-y-1 rounded-md bg-destructive/10 p-2 text-destructive text-xs">
           {seal.problems.map((problem) => (
             <li key={problem}>{problem}</li>
           ))}

@@ -124,7 +124,7 @@ function FindingRowView({
         </div>
       ) : null}
       {finding.severity === "BLOCKING" && finding.status === "OPEN" ? (
-        <p className="text-status-bad-ink text-xs">
+        <p className="text-destructive text-xs">
           Blocking — fix the condition and re-scan; cannot be acknowledged.
         </p>
       ) : null}

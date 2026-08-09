@@ -229,7 +229,7 @@ export function EmployeeImportPanel({
                 </span>
               ) : (
                 <span className="flex items-center gap-1">
-                  <CheckCircle2Icon className="size-3.5 text-status-ok-ink" />
+                  <CheckCircle2Icon className="size-3.5 text-secondary-foreground" />
                   All rows processed successfully.
                 </span>
               )}

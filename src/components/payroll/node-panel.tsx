@@ -99,8 +99,8 @@ function NodePanel({ node, depth = 0, className }: NodePanelProps) {
               className="text-xs"
               key={flag}
               style={{
-                background: "var(--status-warn-fill)",
-                color: "var(--status-warn-ink)",
+                background: "var(--muted)",
+                color: "var(--foreground)",
                 border: "none",
               }}
               variant="outline"
@@ -112,8 +112,8 @@ function NodePanel({ node, depth = 0, className }: NodePanelProps) {
             <Badge
               className="text-xs"
               style={{
-                background: "var(--status-bad-fill)",
-                color: "var(--status-bad-ink)",
+                background: "var(--destructive)",
+                color: "var(--destructive)",
                 border: "none",
               }}
               variant="outline"

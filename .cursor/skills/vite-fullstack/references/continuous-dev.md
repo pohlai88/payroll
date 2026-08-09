@@ -31,7 +31,7 @@ What is changing?
 
 A) Marketing only (landing.html / src/marketing/*)
  → UI + marketing tests only. No /v1, no shell nav, no payrollApi.
- → Do not import src/web/styles.css or product pages.
+ → Do not import src/web/shadcn.css or product pages.
 
 B) UI atom / layout only (no new JSON / DB column)
  → **Must** use `/rui` (refine), `/cui` (create block), or `/iui` (inspire) — see ui-studio.md

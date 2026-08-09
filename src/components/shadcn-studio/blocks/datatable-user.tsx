@@ -85,10 +85,10 @@ function initials(name: string): string {
 function statusBadgeClass(status: string): string {
   const key = status.toLowerCase();
   if (key === "active" || key === "accepted" || key === "enabled") {
-    return "bg-status-ok-fill text-status-ok-ink";
+    return "bg-secondary text-secondary-foreground";
   }
   if (key === "pending" || key === "invited") {
-    return "bg-status-warn-fill text-status-warn-ink";
+    return "bg-muted text-foreground";
   }
   if (key === "disabled" || key === "revoked" || key === "inactive") {
     return "bg-destructive/10 text-destructive";
@@ -146,7 +146,7 @@ const columns: ColumnDef<AdminUserRow>[] = [
       return (
         <div className="flex items-center gap-2 text-sm">
           {linked ? (
-            <Link2Icon className="size-4 text-status-ok-ink" />
+            <Link2Icon className="size-4 text-secondary-foreground" />
           ) : (
             <Link2OffIcon className="size-4 text-muted-foreground" />
           )}

@@ -642,7 +642,7 @@ export interface PaymentRegisterRow {
   readonly maskedBankAccount: string | null;
 }
 
-/** Keep in sync with `src/server/routes/pay-run-reports.ts` payment-register. */
+/** Keep in sync with `PaymentRegisterReport` in `src/service/pay-run-reports.ts`. */
 export interface PaymentRegisterDto {
   readonly reportMeta: ReportMeta;
   readonly rows: readonly PaymentRegisterRow[];
@@ -651,7 +651,7 @@ export interface PaymentRegisterDto {
   readonly incomplete: boolean;
 }
 
-/** Keep in sync with `src/server/routes/pay-run-reports.ts` statutory-summary. */
+/** Keep in sync with `StatutorySummaryReport` in `src/service/pay-run-reports.ts`. */
 export interface StatutorySummaryDto {
   readonly reportMeta: ReportMeta;
   readonly employeeCount: number;
@@ -679,13 +679,13 @@ export interface ExceptionFindingRow {
   readonly employeeName: string | null;
 }
 
-/** Keep in sync with `src/server/routes/pay-run-reports.ts` exceptions. */
+/** Keep in sync with `ExceptionReport` in `src/service/pay-run-reports.ts`. */
 export interface ExceptionReportDto {
   readonly reportMeta: ReportMeta;
   readonly findings: readonly ExceptionFindingRow[];
 }
 
-/** Keep in sync with `src/server/routes/employee-remuneration.ts`. */
+/** Keep in sync with `AnnualRemunerationSummary` in `src/service/employee-remuneration.ts`. */
 // --- @feature remuneration @layer client ---
 export interface AnnualRemunerationSummaryDto {
   readonly reportMeta: ReportMeta;

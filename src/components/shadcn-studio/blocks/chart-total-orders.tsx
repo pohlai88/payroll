@@ -71,11 +71,11 @@ const defaultChartConfig = {
   value: { label: "Runs" },
   open: {
     label: "Open",
-    color: "var(--status-warn-ink)",
+    color: "var(--foreground)",
   },
   sealed: {
     label: "Sealed",
-    color: "var(--status-ok-ink)",
+    color: "var(--secondary-foreground)",
   },
   released: {
     label: "Released",

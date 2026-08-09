@@ -90,7 +90,7 @@ For ongoing increments (not greenfield discovery):
 | Hono | `src/server/routes/*.ts` → `src/server/app.ts` |
 | Service / repo / schema | `src/service/`, `src/repo/`, `src/db/schema/` |
 | UI | `components/ui` (shadcn), `shadcn-studio/`, `payroll/` — via `/rui` `/cui` `/iui` only |
-| Styles | `src/web/styles.css` (SPA Tailwind v4); marketing isolated |
+| Styles | `src/web/shadcn.css` (SPA Tailwind v4); marketing isolated |
 | FE layout | [frontend-structure.md](references/frontend-structure.md) |
 
 ## Done when

@@ -155,6 +155,35 @@ async function insertApprovedRuns() {
             99999, 99999, 9999, 0, 9999, 9999, 9999, 9999, 0, 0, 0, 0, 99999)`);
 }
 
+/**
+ * One APPROVED run whose line has a null `pcb_net_sen`.
+ *
+ * A null sen value is unknown, not zero, so the annual total built over it is
+ * understated — the response has to say so rather than quietly report a number
+ * an employer might file against.
+ */
+async function insertApprovedRunWithNullPcb() {
+  const snap = JSON.stringify({ id: "RM001", name: "REMUN WORKER" });
+  const runId = "REM-NULL-2026-06";
+  await db.execute(sql`
+    INSERT INTO pay_runs (id, company_id, year, month, period_start, period_end, working_days, rule_pack_id, status)
+    VALUES (${runId}, ${COMPANY_ID}, 2026, 6, '2026-06-01', '2026-06-30', 26, ${rulePackId}, 'DRAFT')`);
+  await db.execute(sql`
+    INSERT INTO pay_lines (id, run_id, employment_id, employee_snapshot, working_days, period_end,
+      gross_sen, net_sen, deductions_total_sen, epf_wages_sen, socso_wages_sen, eis_wages_sen,
+      epf_ee_sen, epf_er_sen, socso_ee_core_sen, socso_ee_skbbk_sen, socso_er_sen,
+      eis_ee_sen, eis_er_sen, pcb_net_sen, cp38_sen, zakat_sen, other_deductions_sen, hrdf_sen, employer_cost_sen)
+    VALUES (gen_random_uuid(), ${runId}, ${EMP_ID}, ${snap}::jsonb, 26, '2026-06-30',
+            500000, 433500, 66500, 500000, 500000, 500000,
+            55000, 65000, 4750, 0, 9375, 1750, 1750, NULL, 0, 0, 0, 0, 65000)`);
+  await db.execute(
+    sql`UPDATE pay_runs SET status = 'REVIEWED' WHERE id = ${runId}`
+  );
+  await db.execute(
+    sql`UPDATE pay_runs SET status = 'APPROVED' WHERE id = ${runId}`
+  );
+}
+
 describe("GET /v1/employees/:employeeId/remuneration-summary/:year", () => {
   it("returns 401 without token", async () => {
     const app = testApp();
@@ -263,5 +292,37 @@ describe("GET /v1/employees/:employeeId/remuneration-summary/:year", () => {
     expect(typeof body.disclaimer).toBe("string");
     expect(body.disclaimer).not.toContain("Form EA");
     expect(body.disclaimer).not.toContain("C.P.8A");
+  });
+
+  it("returns 404 for an employment that does not exist", async () => {
+    const app = testApp();
+    await makeAdmin(ADMIN_EMAIL);
+    const missing = "dddddddd-0003-4000-8000-0000000000ff";
+    const res = await app.request(
+      `/v1/employees/${missing}/remuneration-summary/2026`,
+      { headers: { Authorization: "Bearer admin" } }
+    );
+    expect(res.status).toBe(404);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.code).toBe("NOT_FOUND");
+  });
+
+  it("flags incomplete and never coerces a null column to zero", async () => {
+    const app = testApp();
+    await makeAdmin(ADMIN_EMAIL);
+    await insertApprovedRunWithNullPcb();
+    const res = await app.request(
+      `/v1/employees/${EMP_ID}/remuneration-summary/2026`,
+      { headers: { Authorization: "Bearer admin" } }
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    // The null contributor is skipped, not summed as zero, and the whole
+    // response is marked understated.
+    expect(body.incomplete).toBe(true);
+    expect(body.pcbNetSen).toBe(0);
+    // Columns that were present still total normally.
+    expect(body.grossSen).toBe(500_000);
+    expect(body.epfEeSen).toBe(55_000);
   });
 });

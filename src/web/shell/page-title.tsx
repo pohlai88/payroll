@@ -27,11 +27,11 @@ function PageTitle({
       )}
     >
       <div>
-        <h1 className="font-sans font-semibold text-2xl text-brand-foreground tracking-tight">
+        <h1 className="font-sans font-semibold text-2xl text-primary-foreground tracking-tight">
           {title}
         </h1>
         {description !== undefined && description !== "" ? (
-          <p className="mt-1 text-brand-foreground/70 text-sm">{description}</p>
+          <p className="mt-1 text-primary-foreground/70 text-sm">{description}</p>
         ) : null}
       </div>
       {actions ?? null}

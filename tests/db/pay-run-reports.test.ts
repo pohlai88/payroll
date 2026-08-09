@@ -202,3 +202,80 @@ describe("GET /v1/pay-runs/:runId/reports/exception-report", () => {
     expect(Array.isArray(body.findings)).toBe(true);
   });
 });
+
+/**
+ * A DRAFT run whose single line carries a bank account and an unknown net.
+ *
+ * DRAFT on purpose: `line_payments` rows only exist from APPROVED onward, so
+ * this also pins the LEFT JOIN — the register must still list the line with a
+ * null payment state rather than coming back empty.
+ */
+const MASK_RUN_ID = "RPT-MASK-2026-08";
+
+async function insertDraftRunWithBankAccountAndNullNet() {
+  const snap = JSON.stringify({
+    id: "R001",
+    name: "REPORTS WORKER",
+    bankAccount: "1234567890123456",
+  });
+  await db.execute(sql`
+    INSERT INTO pay_runs (id, company_id, year, month, period_start, period_end, working_days, rule_pack_id, status)
+    VALUES (${MASK_RUN_ID}, ${COMPANY_ID}, 2026, 8, '2026-08-01', '2026-08-31', 26, ${rulePackId}, 'DRAFT')`);
+  await db.execute(sql`
+    INSERT INTO pay_lines (id, run_id, employment_id, employee_snapshot, working_days, period_end,
+      gross_sen, net_sen, deductions_total_sen,
+      epf_wages_sen, socso_wages_sen, eis_wages_sen,
+      epf_ee_sen, epf_er_sen, socso_ee_core_sen, socso_ee_skbbk_sen, socso_er_sen,
+      eis_ee_sen, eis_er_sen, pcb_net_sen, cp38_sen, zakat_sen, other_deductions_sen,
+      hrdf_sen, employer_cost_sen)
+    VALUES (gen_random_uuid(), ${MASK_RUN_ID}, ${EMP_ID}, ${snap}::jsonb, 26, '2026-08-31',
+            500000, NULL, 66500, 500000, 500000, 500000,
+            55000, 65000, 4750, 0, 9375, 1750, 1750, 5000, 0, 0, 0, 0, 65000)`);
+}
+
+describe("report safety properties", () => {
+  it("returns 404 for a run that does not exist", async () => {
+    const app = adminApp();
+    await makeAdmin(ADMIN_EMAIL);
+    const res = await app.request(
+      "/v1/pay-runs/RPT-NO-SUCH-RUN/reports/payment-register",
+      { headers: { Authorization: "Bearer admin" } }
+    );
+    expect(res.status).toBe(404);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.code).toBe("NOT_FOUND");
+  });
+
+  it("masks the bank account and flags an unknown net as incomplete", async () => {
+    const app = adminApp();
+    await makeAdmin(ADMIN_EMAIL);
+    await insertDraftRunWithBankAccountAndNullNet();
+
+    const res = await app.request(
+      `/v1/pay-runs/${MASK_RUN_ID}/reports/payment-register`,
+      { headers: { Authorization: "Bearer admin" } }
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      rows: {
+        maskedBankAccount: string | null;
+        netSen: number | null;
+        paymentState: string | null;
+      }[];
+      totalNetSen: number;
+      incomplete: boolean;
+    };
+
+    expect(body.rows).toHaveLength(1);
+    const [row] = body.rows;
+    // Last four digits only — the register is printed, emailed and filed.
+    expect(row?.maskedBankAccount).toBe("****3456");
+    expect(row?.maskedBankAccount).not.toContain("123456789012");
+    // No line_payments row before APPROVED, so the LEFT JOIN yields null.
+    expect(row?.paymentState).toBeNull();
+    // The unknown net is skipped, not summed as zero, and the report says so.
+    expect(row?.netSen).toBeNull();
+    expect(body.totalNetSen).toBe(0);
+    expect(body.incomplete).toBe(true);
+  });
+});

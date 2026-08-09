@@ -43,7 +43,7 @@ function AnnualRemunerationSummary({ data }: AnnualRemunerationSummaryProps) {
         </p>
       </div>
 
-      <div className="rounded border border-status-warn-border bg-status-warn-fill p-3 text-status-warn-ink text-xs">
+      <div className="rounded border border-border bg-muted p-3 text-foreground text-xs">
         <p className="mb-1 font-semibold">
           Important: Payroll-system summary only
         </p>

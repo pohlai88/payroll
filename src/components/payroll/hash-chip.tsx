@@ -68,7 +68,7 @@ function HashChip({ value, label, className }: HashChipProps) {
     >
       <span>{shortHash(value)}</span>
       {copied ? (
-        <CheckIcon aria-hidden className="size-3 text-status-ok-ink" />
+        <CheckIcon aria-hidden className="size-3 text-secondary-foreground" />
       ) : (
         <CopyIcon aria-hidden className="size-3 opacity-60" />
       )}

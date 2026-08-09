@@ -15,7 +15,7 @@ Rebuilt from scratch. Documentation roles:
 | Living implementation / status | this README; approved specs under `docs/superpowers/specs/` for shipped slices | Phase table, how to run, feature contracts |
 | Active plans | recent `docs/superpowers/plans/` for unfinished work | **Phase 9 Vercel deploy is the only open item.** All prior phases (4C, 5B, 5C, 6–7, 8A, 8B, 8C, deferred cleanup, marketing landing redesign) are complete. |
 | Historical / archive | Plan1 control-foundation plans & handoff; `c:\JackProject\_payroll-v1-backup` | Prior SQLite/Next rebuild — not current authority |
-| Design system (Phase 4+) | `docs/palette/` + `src/web/styles.css` | Straits colour/grid/print contracts; 4C projects tokens into the Vite SPA |
+| Design system (Phase 4+) | stock `src/web/shadcn.css` + `payslip-print.css` | Default shadcn theme; `--doc-*` light print tokens only |
 
 | Phase | State |
 |---|---|
@@ -111,15 +111,16 @@ Inventory / orphans still live in the vite-fullstack [feature-surface-map](.curs
 ### Developer Login
 
 For quick access during development, the login page includes a "Developer Login" button
-that uses pre-configured credentials from environment variables. See
+that uses pre-configured credentials from environment variables. The bootstrap always
+assigns **SYSTEM_ADMIN** (full permissions). See
 [docs/developer-login.md](docs/developer-login.md) for setup instructions.
 
 Quick setup:
 
 ```bash
 # Creates Neon Auth user + app SYSTEM_ADMIN invite (password ≥ 8)
-npx tsx scripts/setup-dev-user.ts \
-  --email dev@example.com --name "Dev User" --password 'dev123456' --system-admin
+npm run setup:dev-user -- \
+  --email dev@example.com --name "Dev User" --password 'dev123456'
 
 # Paste printed VITE_DEV_* into .env.local, then:
 npm run auth:smoke

@@ -46,7 +46,7 @@ const ProfileDropdown = ({ trigger, defaultOpen, align = "end" }: Props) => (
               />
               <AvatarFallback>CP</AvatarFallback>
             </Avatar>
-            <span className="absolute right-0 bottom-0 block size-2 rounded-full bg-status-ok-ink ring-2 ring-card" />
+            <span className="absolute right-0 bottom-0 block size-2 rounded-full bg-chart-2 ring-2 ring-card" />
           </div>
           <div className="flex flex-1 flex-col items-start">
             <span className="font-semibold text-foreground text-lg">

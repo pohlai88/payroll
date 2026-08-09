@@ -84,13 +84,13 @@ function severityBadgeVariant(severity: string): BadgeVariant {
  */
 function severityBadgeClass(severity: string): string {
   if (severity === "BLOCKING") {
-    return "border-0 bg-status-bad-fill text-status-bad-ink";
+    return "border-0 bg-destructive/10 text-destructive";
   }
   if (severity === "WARNING") {
-    return "border-status-warn-border bg-status-warn-fill text-status-warn-ink";
+    return "border-border bg-muted text-foreground";
   }
   if (severity === "REVIEW") {
-    return "border-0 bg-status-info-fill text-status-info-ink";
+    return "border-0 bg-muted text-muted-foreground";
   }
   return "border-border bg-muted text-muted-foreground";
 }

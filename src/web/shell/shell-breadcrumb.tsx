@@ -25,36 +25,36 @@ function ShellBreadcrumb() {
     location !== currentItem.href;
 
   return (
-    <Breadcrumb className="text-brand-foreground/80">
-      <BreadcrumbList className="text-brand-foreground/70 sm:gap-1.5">
+    <Breadcrumb className="text-primary-foreground/80">
+      <BreadcrumbList className="text-primary-foreground/70 sm:gap-1.5">
         <BreadcrumbItem>
           <BreadcrumbLink
-            className="text-brand-foreground/70 hover:text-brand-foreground"
+            className="text-primary-foreground/70 hover:text-primary-foreground"
             render={<Link href="/" />}
           >
             Home
           </BreadcrumbLink>
         </BreadcrumbItem>
-        <BreadcrumbSeparator className="text-brand-foreground/40" />
+        <BreadcrumbSeparator className="text-primary-foreground/40" />
         <BreadcrumbItem>
           {isNested && currentItem !== null ? (
             <BreadcrumbLink
-              className="text-brand-foreground/70 hover:text-brand-foreground"
+              className="text-primary-foreground/70 hover:text-primary-foreground"
               render={<Link href={currentItem.href} />}
             >
               {section}
             </BreadcrumbLink>
           ) : (
-            <BreadcrumbPage className="text-brand-foreground">
+            <BreadcrumbPage className="text-primary-foreground">
               {section}
             </BreadcrumbPage>
           )}
         </BreadcrumbItem>
         {isNested ? (
           <>
-            <BreadcrumbSeparator className="text-brand-foreground/40" />
+            <BreadcrumbSeparator className="text-primary-foreground/40" />
             <BreadcrumbItem>
-              <BreadcrumbPage className="max-w-40 truncate text-brand-foreground">
+              <BreadcrumbPage className="max-w-40 truncate text-primary-foreground">
                 {location.split("/").filter(Boolean).at(-1) ?? location}
               </BreadcrumbPage>
             </BreadcrumbItem>

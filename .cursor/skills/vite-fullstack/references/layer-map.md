@@ -94,11 +94,11 @@ schema → repo (DTO) → service (RBAC + rules) → route (Zod + user) → app.
 - **Layout**: signed-in routes wrap in `ShellLayout` (`src/web/shell/layout.tsx`)
 - **Loading**: no route-level loading files — use `Skeleton` from `src/components/ui/skeleton.tsx` or `src/hooks/use-async-load.ts`
 - **Errors**: `formatApiError` from `src/web/api/format-error`
-- **shadcn UI**: `src/components/ui` — configured by `components.json` (`style: base-nova`, `rsc: false`, CSS entry `src/web/styles.css`). Install/refine via `/rui` only among studio commands for atoms
+- **shadcn UI**: `src/components/ui` — configured by `components.json` (`style: base-nova`, `rsc: false`, CSS entry `src/web/shadcn.css`). Install/refine via `/rui` only among studio commands for atoms
 - **shadcn studio**: `src/components/shadcn-studio` — registries in `components.json` (`@shadcn-studio`, `@ss-blocks`, `@ss-components`). New blocks via `/cui` or `/iui`; compose in pages/shell; keep I/O and RBAC out of studio modules. **No freehand UI; no `/ftc`.**
 - **Payroll atoms**: `src/components/payroll`
 - **Page-only UI**: stay in `src/web/<feature>/` (see frontend-structure refactor list)
-- **Tailwind v4**: `@tailwindcss/vite` in `vite.config.ts`; `@import "tailwindcss"`, `tw-animate-css`, `shadcn/tailwind.css` in `src/web/styles.css` — no `tailwind.config.js`
+- **Tailwind v4**: `@tailwindcss/vite` in `vite.config.ts`; `@import "tailwindcss"`, `tw-animate-css`, `shadcn/tailwind.css` in `src/web/shadcn.css` — no `tailwind.config.js`
 - **Dark mode**: `next-themes` + `use-dark-mode` — package name only; app is still Vite
 
 ## API style (REST, not tRPC)

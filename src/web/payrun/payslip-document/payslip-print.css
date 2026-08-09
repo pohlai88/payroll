@@ -1,4 +1,35 @@
-/* payslip-print.css — Phase 8 production payslip print stylesheet */
+/**
+ * Light-theme document / print CSS only.
+ *
+ * --doc-* values are light-only (never remapped under .dark).
+ * Screen theme tokens live in src/web/shadcn.css (stock shadcn).
+ */
+
+:root {
+  --doc-ink: oklch(0.314 0.025 241.668);
+  --doc-ink-secondary: oklch(0.549 0.023 243.693);
+  --doc-ink-heading: oklch(0.307 0.056 245.291);
+  --doc-ink-brand: oklch(0.541 0.076 191.626);
+  --doc-ink-disabled: oklch(0.665 0.018 245.201);
+  --doc-rule-hairline: oklch(0.897 0.012 247.963);
+  --doc-rule-standard: oklch(0.841 0.016 248.018);
+  --doc-rule-emphasis: oklch(0.807 0.016 248.028);
+  --doc-rule-total: oklch(0.307 0.056 245.291);
+  --doc-fill-header: oklch(0.884 0.014 240.975);
+  --doc-fill-zebra: oklch(0.96 0.006 255.475);
+  --doc-fill-subtotal: oklch(0.922 0.009 242.845);
+  --doc-fill-paper: oklch(1 0 0);
+  --doc-section-earning-fill: oklch(0.898 0.019 242.986);
+  --doc-section-earning-ink: oklch(0.387 0.072 234.272);
+  --doc-section-deduction-fill: oklch(0.9 0.061 86.415);
+  --doc-section-deduction-ink: oklch(0.465 0.1 70.683);
+  --doc-section-employer-fill: oklch(0.893 0.018 188.348);
+  --doc-section-employer-ink: oklch(0.429 0.06 192.007);
+  --doc-section-summary-fill: oklch(0.888 0.014 247.985);
+  --doc-section-summary-ink: oklch(0.307 0.056 245.291);
+  /* RESERVED (no canonical value): --doc-fill-grand-total */
+}
+
 @media print {
   :root,
   .dark {

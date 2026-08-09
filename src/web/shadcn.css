@@ -1,0 +1,212 @@
+/**
+ * SPA theme — governance-briefing identity, light and dark.
+ *
+ * Hues come from the Singapore share-sale alignment deck (the same identity
+ * src/marketing/styles.css carries), taken from the source PPTX rather than
+ * sampled by eye:
+ *
+ *   navy  #14324A h245.3   authority surfaces, primary
+ *   steel #1D5B79 h233.8   card headings, info
+ *   teal  #2E7D7A h191.6   brand accent, ring, success
+ *   amber #A66A00 h70.8    warning
+ *   red   #A34141 h22.9    blocking
+ *
+ * Hue is fixed brand identity. Lightness and chroma are *solved*, not picked:
+ * every value below was generated against WCAG targets and re-verified by
+ * `npm run audit:contrast`. The rules that produced them, so edits do not
+ * silently regress:
+ *
+ *  1. Text pairs clear 4.5:1; UI boundaries and chart marks clear 3:1.
+ *  2. Status inks are consumed as `bg-X/10 text-X` (`/20` in dark) with a
+ *     one-step-heavier hover, so each ink is checked against its own composited
+ *     tint — the hardest backdrop it ever sits on — not just against the card.
+ *  3. `--input` is solved to 3:1 because an input's border is its only
+ *     affordance (WCAG 1.4.11). `--border` stays a decorative hairline.
+ *  4. Status inks and chart series sit on a *lightness ladder*. Dichromacy
+ *     destroys hue but not lightness, so hue-to-rung assignment is chosen to
+ *     maximise the worst-case OKLab ΔE under deuteranopia, protanopia and
+ *     tritanopia.
+ *  5. Dark is not an inversion: the ground keeps the navy hue at low chroma,
+ *     elevation is carried by lightness (background < card < muted < accent),
+ *     and `--primary` becomes teal because navy is invisible on navy.
+ *
+ * Colour is never the only channel — status variants pair with a glyph
+ * (WCAG 1.4.1), which is what covers the residual tritanopia teal/amber
+ * overlap that no single-brand palette can design away.
+ *
+ * Light-theme document printing tokens live in payslip-print.css only.
+ */
+
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, Consolas, monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  color-scheme: light;
+  --radius: 0.625rem;
+
+  /* Ground is a whisper of the deck's blue-grey, cards are true white, so
+     dense tables lift off the page instead of relying on the hairline. */
+  --background: oklch(0.9825 0.0035 245.3); /* #f7f9fb */
+  --foreground: oklch(0.314 0.025 241.7); /* #26333d  deck ink, 12.3:1 */
+  --card: oklch(1 0 0); /* #ffffff */
+  --card-foreground: oklch(0.314 0.025 241.7);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.314 0.025 241.7);
+
+  --primary: oklch(0.307 0.056 245.3); /* #14324a  deck navy, verbatim */
+  --primary-foreground: oklch(0.985 0.004 245.3); /* 12.7:1 */
+  --secondary: oklch(0.955 0.011 243.7); /* #eaf1f7  deck blue-fill */
+  --secondary-foreground: oklch(0.446 0.079 233.8); /* #1d5b79  6.5:1 */
+  --muted: oklch(0.969 0.005 245.3); /* #f2f5f8  deck ground-2 */
+  --muted-foreground: oklch(0.5464 0.023 243.7); /* solved to 4.5:1 on muted */
+  --accent: oklch(0.943 0.014 243.7); /* one step past secondary, so hover
+                                         reads over both card and secondary */
+  --accent-foreground: oklch(0.307 0.056 245.3);
+
+  /* Status ladder — ascending L: success, destructive, info, warning. */
+  --success: oklch(0.4 0.0689 191.6); /* #005351 */
+  --destructive: oklch(0.43 0.135 22.9); /* #8b272a */
+  --info: oklch(0.46 0.085 233.8); /* #195f80 */
+  --warning: oklch(0.49 0.1058 70.8); /* #855400 */
+
+  --border: oklch(0.897 0.012 248); /* #d7dee5  deck hairline, decorative */
+  --input: oklch(0.6541 0.016 248); /* solved to 3:1 — WCAG 1.4.11 */
+  --ring: oklch(0.541 0.076 191.6); /* #2e7d7a  deck teal, 4.6:1 */
+
+  --chart-1: oklch(0.435 0.0749 191.6); /* teal  */
+  --chart-2: oklch(0.585 0.1 233.8); /* steel */
+  --chart-3: oklch(0.51 0.1101 70.8); /* amber */
+  --chart-4: oklch(0.66 0.135 22.9); /* red   */
+  --chart-5: oklch(0.36 0.09 151.8); /* green */
+
+  --sidebar: oklch(0.969 0.005 245.3);
+  --sidebar-foreground: oklch(0.314 0.025 241.7);
+  --sidebar-primary: oklch(0.307 0.056 245.3);
+  --sidebar-primary-foreground: oklch(0.985 0.004 245.3);
+  --sidebar-accent: oklch(0.943 0.014 243.7);
+  --sidebar-accent-foreground: oklch(0.307 0.056 245.3);
+  --sidebar-border: oklch(0.897 0.012 248);
+  --sidebar-ring: oklch(0.541 0.076 191.6);
+}
+
+.dark {
+  color-scheme: dark;
+
+  /* Not an inversion. The ground keeps the navy hue at low chroma — large
+     surfaces stay quiet — and elevation is carried by lightness alone. */
+  --background: oklch(0.175 0.018 245.3); /* #0a1118 */
+  --foreground: oklch(0.965 0.005 245.3); /* off-white; pure white halates */
+  --card: oklch(0.218 0.02 245.3); /* #121b23 */
+  --card-foreground: oklch(0.965 0.005 245.3);
+  --popover: oklch(0.218 0.02 245.3);
+  --popover-foreground: oklch(0.965 0.005 245.3);
+
+  /* `--primary` is not just a button fill here: shell/layout.tsx paints a
+     26.25rem header band with `before:bg-primary`. So it has to survive as a
+     large surface, which rules out an accent colour — a teal at this size is
+     a slab, and the deck only ever uses teal as a thin rule or a small
+     heading. Navy stays navy in both themes: the band reads as the deck's
+     title panel light or dark, instead of stock's inverting near-white. */
+  --primary: oklch(0.34 0.048 245.3); /* #1c2f42 */
+  --primary-foreground: oklch(0.97 0.005 245.3); /* 9.9:1 */
+  --secondary: oklch(0.272 0.022 245.3);
+  --secondary-foreground: oklch(0.965 0.005 245.3);
+  --muted: oklch(0.272 0.022 245.3);
+  --muted-foreground: oklch(0.6417 0.022 243.7); /* solved to 4.5:1 on muted */
+  --accent: oklch(0.305 0.024 243.7);
+  --accent-foreground: oklch(0.965 0.005 245.3);
+
+  /* Same ladder, lifted: destructive, info, warning, success. */
+  --destructive: oklch(0.79 0.115 22.9); /* #fc9c98 */
+  --info: oklch(0.83 0.09 233.8); /* #8bd2f9 */
+  --warning: oklch(0.87 0.1017 70.8); /* #ffc989 */
+  --success: oklch(0.91 0.09 191.6); /* #97f5f0 */
+
+  --border: oklch(0.9 0.012 245 / 14%);
+  --input: oklch(0.9 0.012 245 / 39%); /* alpha solved to 3:1 over card;
+                                          stock `oklch(1 0 0 / 15%)` is ~1.5:1 */
+  --ring: oklch(0.62 0.085 191.6);
+
+  --chart-1: oklch(0.675 0.09 191.6); /* teal  */
+  --chart-2: oklch(0.5 0.1 233.8); /* steel */
+  --chart-3: oklch(0.76 0.125 70.8); /* amber */
+  --chart-4: oklch(0.585 0.135 22.9); /* red   */
+  --chart-5: oklch(0.845 0.09 151.8); /* green */
+
+  --sidebar: oklch(0.198 0.019 245.3);
+  --sidebar-foreground: oklch(0.965 0.005 245.3);
+  --sidebar-primary: oklch(0.34 0.048 245.3);
+  --sidebar-primary-foreground: oklch(0.97 0.005 245.3);
+  --sidebar-accent: oklch(0.305 0.024 243.7);
+  --sidebar-accent-foreground: oklch(0.965 0.005 245.3);
+  --sidebar-border: oklch(0.9 0.012 245 / 14%);
+  --sidebar-ring: oklch(0.62 0.085 191.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+  }
+}

@@ -32,7 +32,7 @@ function IdentityBanner() {
 
 function ShellLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="relative flex h-screen w-full overflow-hidden bg-muted before:fixed before:inset-x-0 before:top-0 before:h-[26.25rem] before:bg-brand">
+    <div className="relative flex h-screen w-full overflow-hidden bg-muted before:fixed before:inset-x-0 before:top-0 before:h-[26.25rem] before:bg-primary">
       <SidebarProvider
         style={
           {

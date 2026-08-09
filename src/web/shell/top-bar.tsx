@@ -140,11 +140,11 @@ function TopBar() {
   }, []);
 
   return (
-    <header className="text-brand-foreground">
+    <header className="text-primary-foreground">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <MenuTrigger
-            className="border-brand-foreground! bg-brand-foreground! text-brand! shadow-none hover:bg-brand-foreground/90! hover:text-brand! aria-expanded:bg-brand-foreground/90! aria-expanded:text-brand!"
+            className="border-primary-foreground! bg-primary-foreground! text-primary! shadow-none hover:bg-primary-foreground/90! hover:text-primary! aria-expanded:bg-primary-foreground/90! aria-expanded:text-primary!"
             variant="outline"
           />
           <div className="hidden min-w-0 sm:flex sm:flex-col sm:items-start">
@@ -160,7 +160,7 @@ function TopBar() {
             <PopoverTrigger
               render={
                 <Button
-                  className="h-8 max-w-48 gap-1 truncate border-brand-foreground/20 bg-brand-foreground/10 text-brand-foreground hover:bg-brand-foreground/20 hover:text-brand-foreground aria-expanded:bg-brand-foreground/20 aria-expanded:text-brand-foreground"
+                  className="h-8 max-w-48 gap-1 truncate border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 hover:text-primary-foreground aria-expanded:bg-primary-foreground/20 aria-expanded:text-primary-foreground"
                   size="sm"
                   variant="outline"
                 />
@@ -219,7 +219,7 @@ function TopBar() {
             <PopoverTrigger
               render={
                 <Button
-                  className="h-8 border-brand-foreground/20 bg-brand-foreground/10 text-brand-foreground hover:bg-brand-foreground/20 hover:text-brand-foreground aria-expanded:bg-brand-foreground/20 aria-expanded:text-brand-foreground"
+                  className="h-8 border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 hover:text-primary-foreground aria-expanded:bg-primary-foreground/20 aria-expanded:text-primary-foreground"
                   size="sm"
                   variant="outline"
                 />
@@ -247,7 +247,7 @@ function TopBar() {
           </Popover>
 
           <Button
-            className="h-8 gap-2 border-brand-foreground/20 bg-brand-foreground/10 text-brand-foreground hover:bg-brand-foreground/20 hover:text-brand-foreground aria-expanded:bg-brand-foreground/20 aria-expanded:text-brand-foreground"
+            className="h-8 gap-2 border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 hover:text-primary-foreground aria-expanded:bg-primary-foreground/20 aria-expanded:text-primary-foreground"
             onClick={openCommandPalette}
             size="sm"
             type="button"
@@ -255,7 +255,7 @@ function TopBar() {
           >
             <SearchIcon className="size-3" />
             <span className="hidden text-xs lg:inline">Search or jump…</span>
-            <Badge className="ml-1 border-0 bg-brand-foreground/20 px-1 py-0 text-brand-foreground text-xs">
+            <Badge className="ml-1 border-0 bg-primary-foreground/20 px-1 py-0 text-primary-foreground text-xs">
               ⌘K
             </Badge>
           </Button>
@@ -270,13 +270,13 @@ function TopBar() {
             trigger={
               <Button
                 aria-label="User menu"
-                className="ml-0.5 size-8 rounded-full border-0 bg-transparent p-0 text-brand-foreground hover:bg-brand-foreground/15 hover:text-brand-foreground aria-expanded:bg-brand-foreground/15 aria-expanded:text-brand-foreground"
+                className="ml-0.5 size-8 rounded-full border-0 bg-transparent p-0 text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground aria-expanded:bg-primary-foreground/15 aria-expanded:text-primary-foreground"
                 size="icon"
                 type="button"
                 variant="ghost"
               >
-                <Avatar className="size-8 after:border-brand-foreground/35">
-                  <AvatarFallback className="bg-brand-foreground/15 text-brand-foreground text-xs">
+                <Avatar className="size-8 after:border-primary-foreground/35">
+                  <AvatarFallback className="bg-primary-foreground/15 text-primary-foreground text-xs">
                     {initialsOf(me)}
                   </AvatarFallback>
                 </Avatar>

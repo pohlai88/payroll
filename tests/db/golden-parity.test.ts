@@ -154,6 +154,13 @@ beforeAll(async () => {
   await database.truncate(...ALL_TABLES);
   const rulePackId = await seed(db);
 
+  // The seed ships companies DLBB/DLBM plus demo employments and DRAFT pay
+  // runs. The golden fixture owns its own company row — and needs a
+  // deterministic id the rest of this file joins on — so clear the seeded ones
+  // first; without this the insert below hits `companies_code_unique` and the
+  // whole suite fails before a single golden case runs.
+  await database.truncate("companies");
+
   await db.execute(sql`
     INSERT INTO companies (id, code, name, hrdf_enabled)
     VALUES (${COMPANY_ID}, 'DLBB', 'DLB Bina Sdn Bhd', false)`);

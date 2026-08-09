@@ -18,10 +18,10 @@ interface SectionHeaderProps
 }
 
 const SECTION_CLASSES: Record<Section, string> = {
-  earning: "bg-section-earning-fill text-section-earning-ink",
-  deduction: "bg-section-deduction-fill text-section-deduction-ink",
-  employer: "bg-section-employer-fill text-section-employer-ink",
-  summary: "bg-section-summary-fill text-section-summary-ink",
+  earning: "bg-muted text-foreground",
+  deduction: "bg-muted text-foreground",
+  employer: "bg-muted text-foreground",
+  summary: "bg-muted text-foreground",
 };
 
 function SectionHeader({

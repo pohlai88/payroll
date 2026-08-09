@@ -116,7 +116,7 @@ export function App() {
       nextPassword.length < 8
     ) {
       setSignInError(
-        "Developer Login needs VITE_DEV_EMAIL and VITE_DEV_PASSWORD (≥8 chars) in .env.local — run: npx tsx scripts/setup-dev-user.ts --email … --name … --password … --system-admin"
+        "Developer Login needs VITE_DEV_EMAIL and VITE_DEV_PASSWORD (≥8 chars) in .env.local — run: npm run setup:dev-user -- --email … --name … --password …"
       );
       return;
     }

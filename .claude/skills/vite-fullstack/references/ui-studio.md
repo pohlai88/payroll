@@ -6,7 +6,7 @@ Load when building, refining, or inspiring UI. Overrides freehand layout inventi
 
 `/rui`, `/cui`, and `/iui` are project slash commands defined in `.claude/commands/`. Each one's job is to call a `get-*-instructions` tool on the **`shadcn-studio` MCP server** (configured in the repo's `.mcp.json`, tools appear as `mcp__shadcn-studio__*`) and then follow the returned workflow. Invoke them with the Skill tool, or let the user type them.
 
-The reason the gate exists: the studio MCP returns *real block source* from the registry. Anything you compose by hand looks plausible but drifts from the token system in `src/web/styles.css` and from `base-nova` primitive APIs — and that drift is only visible once several pages have accumulated it.
+The reason the gate exists: the studio MCP returns *real block source* from the registry. Anything you compose by hand looks plausible but drifts from the token system in `src/web/shadcn.css` and from `base-nova` primitive APIs — and that drift is only visible once several pages have accumulated it.
 
 ## Validation (MCP)
 
@@ -41,7 +41,7 @@ If the MCP server is not connected, say so and stop rather than falling back to 
 | Re-init `shadcn` / change `components.json` style | Breaks `base-nova` + aliases |
 | Put `payrollApi`, fetch, or RBAC inside `shadcn-studio/` | Studio = presentational only |
 | Next `app/**/page.tsx` as product routes | Adapt installs into `src/web/<feature>/` + Wouter |
-| Parallel design systems (random card grids, purple themes, etc.) | Studio + `styles.css` tokens only |
+| Parallel design systems (random card grids, purple themes, etc.) | Studio + `shadcn.css` tokens only |
 
 ## Vite path adaptation (mandatory)
 
@@ -51,7 +51,7 @@ Studio docs often say `page.tsx` / `app/…`. **Here:**
 2. Blocks / inspired sections → `src/components/shadcn-studio/…`
 3. Product composition → `src/web/<feature>/*-page.tsx` or feature widgets
 4. Shell chrome → `src/web/shell/`
-5. Marketing → `src/marketing/` only (`landing.html`); never import `src/web/styles.css` into marketing or vice versa
+5. Marketing → `src/marketing/` only (`landing.html`); never import `src/web/shadcn.css` into marketing or vice versa
 6. Wire routes in `src/web/app.tsx` + `app-nav.ts` when shell-visible
 
 One block at a time for `/cui` and `/iui` unless the instruction set explicitly batches.

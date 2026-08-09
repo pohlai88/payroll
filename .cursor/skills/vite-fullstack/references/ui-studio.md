@@ -33,7 +33,7 @@ If a tool reports freemium/license limit on `/iui`, say so and fall back to `/cu
 | Re-init `shadcn` / change `components.json` style | Breaks `base-nova` + aliases |
 | Put `payrollApi`, fetch, or RBAC inside `shadcn-studio/` | Studio = presentational only |
 | Next `app/**/page.tsx` as product routes | Adapt installs into `src/web/<feature>/` + Wouter |
-| Parallel design systems (random card grids, purple themes, etc.) | Studio + `styles.css` tokens only |
+| Parallel design systems (random card grids, purple themes, etc.) | Studio + `shadcn.css` tokens only |
 
 ## Vite path adaptation (mandatory)
 
@@ -43,7 +43,7 @@ Studio docs often say `page.tsx` / `app/…`. **Here:**
 2. Blocks / inspired sections → `src/components/shadcn-studio/…`
 3. Product composition → `src/web/<feature>/*-page.tsx` or feature widgets
 4. Shell chrome → `src/web/shell/`
-5. Marketing → `src/marketing/` only (`landing.html`); never import `src/web/styles.css` into marketing or vice versa
+5. Marketing → `src/marketing/` only (`landing.html`); never import `src/web/shadcn.css` into marketing or vice versa
 6. Wire routes in `src/web/app.tsx` + `app-nav.ts` when shell-visible
 
 One block at a time for `/cui` and `/iui` unless the instruction set explicitly batches.

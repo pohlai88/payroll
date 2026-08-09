@@ -131,7 +131,7 @@ function CompanyDatatable({
                     className={cn(
                       "h-auto rounded-sm border-none",
                       company.hrdfEnabled
-                        ? "bg-status-ok-fill text-status-ok-ink"
+                        ? "bg-secondary text-secondary-foreground"
                         : "bg-muted text-muted-foreground"
                     )}
                   >

@@ -12,12 +12,12 @@ Load when unsure about Vite vs Next, REST vs tRPC, or where UI belongs.
 | FE contract | Hand-mirrored `src/web/api/types.ts` + `requestJson` cast | Shared `AppRouter` inference |
 | DB | Drizzle + `pg` + Neon/Postgres | Prisma |
 | Auth | Neon Auth (browser) + JWT middleware | NextAuth as the app framework |
-| CSS | Tailwind v4 via `@tailwindcss/vite`; `@import "tailwindcss"` in `src/web/styles.css` | Tailwind v3 `tailwind.config.js` |
+| CSS | Tailwind v4 via `@tailwindcss/vite`; `@import "tailwindcss"` in `src/web/shadcn.css` | Tailwind v3 `tailwind.config.js` |
 | UI primitives | shadcn `base-nova` + `@base-ui/react` (`components.json` `style: "base-nova"`) → `src/components/ui` | Radix primitives (`radix-ui` / `@radix-ui/*`) — not this stack’s runtime |
 | Studio | Registries `@shadcn-studio` / `@ss-blocks` / `@ss-components` → `src/components/shadcn-studio/` | RBAC / Drizzle / `payrollApi` inside studio files |
 | Icons | `lucide-react` | — |
 | Validation | Zod 4 on routes | — |
-| Themes | CSS variables / app theme tokens in `styles.css` | Next.js theme providers |
+| Themes | CSS variables / app theme tokens in `shadcn.css` | Next.js theme providers |
 
 `radix-ui` may remain in `package.json` as inventory; primitives must stay `@base-ui/react`.
 
@@ -38,7 +38,7 @@ Load when unsure about Vite vs Next, REST vs tRPC, or where UI belongs.
 1. **Primitives** — shadcn into `src/components/ui` (`components.json`). Use `cn()` from `@/lib/utils`.
 2. **Studio** — blocks under `src/components/shadcn-studio/`. Compose in pages/shell; no I/O or RBAC inside studio modules.
 3. **Domain widgets** — `src/components/payroll`.
-4. **Tokens** — CSS variables in `src/web/styles.css`. Do not add a Tailwind v3 config.
+4. **Tokens** — CSS variables in `src/web/shadcn.css`. Do not add a Tailwind v3 config.
 5. **Marketing** — separate Vite entry (`landing.html` / `src/marketing/`); do not cross-import SPA styles.
 
 **UI/UX gate:** only `/rui`, `/cui`, `/iui` — see [ui-studio.md](ui-studio.md). Folder target: [frontend-structure.md](frontend-structure.md).

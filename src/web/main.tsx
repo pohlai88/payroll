@@ -8,7 +8,9 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./app";
-import "./styles.css";
+import "./shadcn.css";
+import "./payrun/payslip-document/payslip-print.css";
+
 
 const root = document.getElementById("root");
 if (root === null) {

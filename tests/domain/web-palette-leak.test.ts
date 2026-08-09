@@ -36,12 +36,25 @@ const ROOTS = [
   resolve("src/assets"),
 ];
 const TOKEN_FILES = new Set([
-  resolve("src/web/styles.css"),
+  resolve("src/web/shadcn.css"),
   resolve("src/web/payrun/payslip-document/payslip-print.css"),
 ]);
 
+
+/**
+ * Block comments and whole-line `//` comments.
+ *
+ * A studio block is often adapted rather than installed raw, and the honest way
+ * to record that is a header naming the palette classes the original hardcoded
+ * ("synthesised, not copied: the source uses bg-green-600 …"). Scanning prose
+ * makes that note indistinguishable from the leak it documents, so the guard
+ * would punish exactly the comment worth writing. Mid-line `//` is left alone
+ * so a URL cannot swallow the rest of a real code line.
+ */
+const COMMENTS = /\/\*[\s\S]*?\*\/|^[^\S\n]*\/\/.*$/gm;
+
 function leaksPalette(source: string): boolean {
-  const text = source.replace(RECHARTS_ATTR_SELECTOR, "");
+  const text = source.replace(COMMENTS, "").replace(RECHARTS_ATTR_SELECTOR, "");
   return (
     HEX.test(text) || PALETTE_UTIL.test(text) || DARK_PALETTE_SPLIT.test(text)
   );

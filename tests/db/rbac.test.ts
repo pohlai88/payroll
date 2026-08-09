@@ -45,7 +45,11 @@ beforeEach(async () => {
   await db.delete(rolePermissions);
   await db.delete(users);
   await db.delete(roles).where(eq(roles.isSystem, false));
-  await db.delete(companies);
+  // TRUNCATE ... CASCADE, not a bare DELETE: the seed ships demo employments
+  // that reference these companies, so deleting the parent directly trips
+  // `employments_company_id_companies_id_fk`. This file owns its own company
+  // fixtures (below), so clearing dependents with them is the intent.
+  await database.truncate("companies");
 });
 
 afterAll(async () => {
