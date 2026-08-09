@@ -11,29 +11,30 @@ export interface PutObjectInput {
 }
 
 export interface ArtifactStore {
-  put(input: PutObjectInput): Promise<void>;
-  get(key: string): Promise<Uint8Array | null>;
+  put: (input: PutObjectInput) => Promise<void>;
+  get: (key: string) => Promise<Uint8Array | null>;
   /** Short-lived download URL for the future UI agent. */
-  signedGetUrl(key: string, expiresInSeconds?: number): Promise<string>;
+  signedGetUrl: (key: string, expiresInSeconds?: number) => Promise<string>;
 }
 
 /** In-memory store for tests — never hits the network. */
 export class MemoryArtifactStore implements ArtifactStore {
   private readonly objects = new Map<string, Uint8Array>();
 
-  async put(input: PutObjectInput): Promise<void> {
+  put(input: PutObjectInput): Promise<void> {
     this.objects.set(input.key, input.body);
+    return Promise.resolve();
   }
 
-  async get(key: string): Promise<Uint8Array | null> {
-    return this.objects.get(key) ?? null;
+  get(key: string): Promise<Uint8Array | null> {
+    return Promise.resolve(this.objects.get(key) ?? null);
   }
 
-  async signedGetUrl(key: string, _expiresInSeconds = 300): Promise<string> {
+  signedGetUrl(key: string, _expiresInSeconds = 300): Promise<string> {
     if (!this.objects.has(key)) {
       throw new Error(`artifact missing: ${key}`);
     }
-    return `memory://${key}`;
+    return Promise.resolve(`memory://${key}`);
   }
 
   clear(): void {

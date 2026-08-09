@@ -8,9 +8,11 @@ import path from "node:path";
 import type { ArtifactStore, PutObjectInput } from "./store";
 
 export class LocalFsArtifactStore implements ArtifactStore {
-  constructor(
-    private readonly root = path.join(process.cwd(), "data", "artifacts")
-  ) {}
+  private readonly root: string;
+
+  constructor(root = path.join(process.cwd(), "data", "artifacts")) {
+    this.root = root;
+  }
 
   async put(input: PutObjectInput): Promise<void> {
     const absolute = this.resolve(input.key);
@@ -33,10 +35,10 @@ export class LocalFsArtifactStore implements ArtifactStore {
     }
   }
 
-  async signedGetUrl(key: string, _expiresInSeconds = 300): Promise<string> {
+  signedGetUrl(key: string, _expiresInSeconds = 300): Promise<string> {
     const absolute = this.resolve(key);
     // file:// is enough for local ops; UI will use R2 signed URLs in prod.
-    return `file://${absolute.replace(/\\/g, "/")}`;
+    return Promise.resolve(`file://${absolute.replace(/\\/g, "/")}`);
   }
 
   private resolve(key: string): string {

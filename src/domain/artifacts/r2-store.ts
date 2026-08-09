@@ -27,7 +27,7 @@ export function createR2Store(config: R2Config): ArtifactStore {
       secretAccessKey: config.secretAccessKey,
     },
   });
-  const bucket = config.bucket;
+  const { bucket } = config;
 
   return {
     async put(input: PutObjectInput): Promise<void> {

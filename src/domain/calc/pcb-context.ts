@@ -6,9 +6,10 @@ import type {
   PayItemDef,
   PcbMonthContext,
   PcbRemunerationClass,
-  PcbTaxProfile,
   ResolvedLineItem,
 } from "./types";
+
+export type { PcbTaxProfile } from "./types";
 
 /**
  * @deprecated Prefer `pcbRemunerationClass` on {@link PayItemDef}. Kept as the
@@ -125,5 +126,3 @@ export function buildPcbMonthContext(
     electDeductBelowRm10: input.electDeductBelowRm10,
   };
 }
-
-export type { PcbTaxProfile };
