@@ -48,6 +48,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useDialogSubmit } from "@/hooks/use-dialog-submit";
 import { cn } from "@/lib/utils";
 import { formatApiError } from "@/web/api/format-error";
 import type {
@@ -443,8 +444,7 @@ interface DialogBaseProps {
 
 function HoldDialog({ runId, target, onClose, onDone }: DialogBaseProps) {
   const [reason, setReason] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { submitting, error, reset, run } = useDialogSubmit();
 
   const handleReasonChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => setReason(e.target.value),
@@ -455,30 +455,24 @@ function HoldDialog({ runId, target, onClose, onDone }: DialogBaseProps) {
     (next: boolean) => {
       if (!(next || submitting)) {
         setReason("");
-        setError(null);
+        reset();
         onClose();
       }
     },
-    [onClose, submitting]
+    [onClose, reset, submitting]
   );
 
-  const handleConfirm = useCallback(async () => {
+  const handleConfirm = useCallback(() => {
     if (target === null || reason.trim() === "") {
       return;
     }
-    setSubmitting(true);
-    setError(null);
-    try {
+    return run(async () => {
       await payrollApi.holdLine(runId, target, reason.trim());
       setReason("");
       onClose();
       await onDone();
-    } catch (err) {
-      setError(formatApiError(err, "Hold failed"));
-    } finally {
-      setSubmitting(false);
-    }
-  }, [onClose, onDone, reason, runId, target]);
+    }, "Hold failed");
+  }, [onClose, onDone, reason, run, runId, target]);
 
   return (
     <Dialog onOpenChange={handleOpenChange} open={target !== null}>
@@ -523,8 +517,7 @@ function HoldDialog({ runId, target, onClose, onDone }: DialogBaseProps) {
 function WithdrawDialog({ runId, target, onClose, onDone }: DialogBaseProps) {
   const [reasonCode, setReasonCode] = useState<WithdrawalReason | null>(null);
   const [note, setNote] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { submitting, error, reset, run } = useDialogSubmit();
 
   const handleNoteChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => setNote(e.target.value),
@@ -539,22 +532,20 @@ function WithdrawDialog({ runId, target, onClose, onDone }: DialogBaseProps) {
       if (!(next || submitting)) {
         setReasonCode(null);
         setNote("");
-        setError(null);
+        reset();
         onClose();
       }
     },
-    [onClose, submitting]
+    [onClose, reset, submitting]
   );
 
   const canConfirm = reasonCode !== null && note.trim() !== "";
 
-  const handleConfirm = useCallback(async () => {
+  const handleConfirm = useCallback(() => {
     if (target === null || !canConfirm || reasonCode === null) {
       return;
     }
-    setSubmitting(true);
-    setError(null);
-    try {
+    return run(async () => {
       await payrollApi.withdrawLine(runId, target, {
         reasonCode,
         note: note.trim(),
@@ -563,12 +554,8 @@ function WithdrawDialog({ runId, target, onClose, onDone }: DialogBaseProps) {
       setNote("");
       onClose();
       await onDone();
-    } catch (err) {
-      setError(formatApiError(err, "Withdraw failed"));
-    } finally {
-      setSubmitting(false);
-    }
-  }, [canConfirm, note, onClose, onDone, reasonCode, runId, target]);
+    }, "Withdraw failed");
+  }, [canConfirm, note, onClose, onDone, reasonCode, run, runId, target]);
 
   return (
     <Dialog onOpenChange={handleOpenChange} open={target !== null}>
@@ -628,8 +615,7 @@ function WithdrawDialog({ runId, target, onClose, onDone }: DialogBaseProps) {
 function DistributeDialog({ runId, target, onClose, onDone }: DialogBaseProps) {
   const [channel, setChannel] = useState<DistributionChannel | null>(null);
   const [note, setNote] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { submitting, error, reset, run } = useDialogSubmit();
 
   const handleNoteChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => setNote(e.target.value),
@@ -644,20 +630,18 @@ function DistributeDialog({ runId, target, onClose, onDone }: DialogBaseProps) {
       if (!(next || submitting)) {
         setChannel(null);
         setNote("");
-        setError(null);
+        reset();
         onClose();
       }
     },
-    [onClose, submitting]
+    [onClose, reset, submitting]
   );
 
-  const handleConfirm = useCallback(async () => {
+  const handleConfirm = useCallback(() => {
     if (target === null || channel === null) {
       return;
     }
-    setSubmitting(true);
-    setError(null);
-    try {
+    return run(async () => {
       await payrollApi.recordDistribution(runId, target, {
         channel,
         note: note.trim() === "" ? undefined : note.trim(),
@@ -666,12 +650,8 @@ function DistributeDialog({ runId, target, onClose, onDone }: DialogBaseProps) {
       setNote("");
       onClose();
       await onDone();
-    } catch (err) {
-      setError(formatApiError(err, "Record failed"));
-    } finally {
-      setSubmitting(false);
-    }
-  }, [channel, note, onClose, onDone, runId, target]);
+    }, "Record failed");
+  }, [channel, note, onClose, onDone, run, runId, target]);
 
   return (
     <Dialog onOpenChange={handleOpenChange} open={target !== null}>
