@@ -3,6 +3,7 @@
  * Shows NodeDiffRow[] grouped by kind (VALUE / ADDED / REMOVED / STRUCTURE / CITATION).
  */
 import { useEffect, useState } from "react";
+import { formatRM } from "@/domain/money";
 import type { NodeDiffRow, RunLineDiffDto } from "@/web/api/payroll-api";
 import { fetchLineDiff } from "@/web/api/payroll-api";
 
@@ -28,6 +29,11 @@ const KIND_LABEL: Record<DiffKind, string> = {
   CITATION: "Source changes",
 };
 
+function deltaLabel(deltaSen: number): string {
+  const sign = deltaSen > 0 ? "+" : "";
+  return `${sign}RM ${formatRM(deltaSen)}`;
+}
+
 function ValueRow({ row }: { row: NodeDiffRow }) {
   return (
     <div className="flex items-start gap-3 border-border/50 border-b px-4 py-2 text-sm">
@@ -39,6 +45,17 @@ function ValueRow({ row }: { row: NodeDiffRow }) {
         <span className="text-muted-foreground">{row.fromValue ?? "—"}</span>
         <span className="text-muted-foreground">→</span>
         <span>{row.toValue ?? "—"}</span>
+        {row.deltaSen !== null && row.deltaSen !== 0 && (
+          <span
+            className={
+              row.deltaSen > 0
+                ? "font-medium text-emerald-600"
+                : "font-medium text-red-600"
+            }
+          >
+            ({deltaLabel(row.deltaSen)})
+          </span>
+        )}
       </div>
     </div>
   );
