@@ -117,6 +117,7 @@ const EXPECTED: Record<string, readonly string[]> = {
     "PAYSLIP_PDF",
     "MANIFEST",
     "EXCEPTION_REPORT",
+    "TIMESTAMP_TOKEN",
   ],
   artifact_source: ["ATTACHED", "GENERATED"],
   finding_severity: ["INFO", "REVIEW", "WARNING", "BLOCKING"],

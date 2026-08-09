@@ -19,6 +19,7 @@ import {
   type ArtifactsListResponse,
   type ArtifactType,
   type CloseRunResponse,
+  type ClosureChainResponse,
   type ClosureChecklistResponse,
   type DistributionChannel,
   type EmployeeSummary,
@@ -38,6 +39,7 @@ import {
   type ReleaseMethod,
   type ReleasePreviewResponse,
   type RunLineDiffDto,
+  type RunSealResponse,
   SessionExpiredError,
   type SignedArtifactUrlResponse,
   type StatutorySummaryDto,
@@ -325,6 +327,10 @@ export function createApiClient(deps: ApiClientDeps) {
       requestJson<CloseRunResponse>(`/v1/pay-runs/${runId}/close`, {
         method: "POST",
       }),
+    getRunSeal: (runId: string) =>
+      requestJson<RunSealResponse>(`/v1/pay-runs/${runId}/seal`),
+    getClosureChain: (runId: string) =>
+      requestJson<ClosureChainResponse>(`/v1/pay-runs/${runId}/closure-chain`),
     getPayslip: (runId: string, lineId: string) =>
       requestJson<PayslipDocumentDto>(
         `/v1/pay-runs/${runId}/lines/${lineId}/payslip`

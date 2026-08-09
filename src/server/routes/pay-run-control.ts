@@ -8,7 +8,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import type { Database } from "@/db/client";
 import { linePayments } from "@/db/schema/control";
-import { payLines } from "@/db/schema/run";
+import { payLines, payRuns } from "@/db/schema/run";
 import type { ArtifactStore } from "@/domain/artifacts/store";
 import {
   listRunArtifacts,
@@ -22,6 +22,9 @@ import {
   reconcileAttempt,
   recordDistribution,
 } from "@/service/close";
+import { getRunSeal, verifyClosureChain } from "@/service/closure-seal";
+import { ControlError } from "@/service/control-errors";
+import { closureTimestampStatus } from "@/service/manifest-timestamp";
 import { holdLine, unholdLine, withdrawLine } from "@/service/payments";
 import {
   cancelRelease,
@@ -59,6 +62,44 @@ export function payRunControlRoutes(
       const runId = c.req.param("runId");
       await requirePayRunAccess(db, c.get("user").id, "READ", runId);
       return c.json({ checklist: await closureChecklist(db, runId) });
+    } catch (error) {
+      return handleRouteError(c, error);
+    }
+  });
+
+  /**
+   * The run's own seal, plus how the company's chain verifies around it —
+   * a seal that recomputes but sits on a broken chain is not good news, so
+   * the panel is told both.
+   */
+  app.get("/pay-runs/:runId/seal", async (c) => {
+    try {
+      const runId = c.req.param("runId");
+      await requirePayRunAccess(db, c.get("user").id, "READ", runId);
+      const [seal, timestamp] = await Promise.all([
+        getRunSeal(db, runId),
+        closureTimestampStatus(db, runId),
+      ]);
+      return c.json({ seal, timestamp });
+    } catch (error) {
+      return handleRouteError(c, error);
+    }
+  });
+
+  /** Scoped by run rather than company so run access governs it. */
+  app.get("/pay-runs/:runId/closure-chain", async (c) => {
+    try {
+      const runId = c.req.param("runId");
+      await requirePayRunAccess(db, c.get("user").id, "READ", runId);
+      const [run] = await db
+        .select({ companyId: payRuns.companyId })
+        .from(payRuns)
+        .where(eq(payRuns.id, runId))
+        .limit(1);
+      if (run === undefined) {
+        throw new ControlError("NOT_FOUND", `no such run: ${runId}`);
+      }
+      return c.json(await verifyClosureChain(db, run.companyId));
     } catch (error) {
       return handleRouteError(c, error);
     }

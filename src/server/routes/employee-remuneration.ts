@@ -9,9 +9,9 @@ import { Hono } from "hono";
 import type { Database } from "@/db/client";
 import { companies, employments } from "@/db/schema/parties";
 import { payLines, payRuns } from "@/db/schema/run";
+import { requirePermission } from "@/service/rbac";
 import type { AuthVariables } from "../auth/middleware";
 import { handleRouteError } from "../errors";
-import { requirePermission } from "@/service/rbac";
 
 const REPORT_SCHEMA_VERSION = "1.0";
 
@@ -129,7 +129,13 @@ export function employeeRemunerationRoutes(db: Database) {
       const { companyId, employeeCode: employmentEmployeeCode } = employment;
 
       // Check user has REPORT READ permission on the employee's company
-      await requirePermission(db, c.get("user").id, "REPORT", "READ", companyId);
+      await requirePermission(
+        db,
+        c.get("user").id,
+        "REPORT",
+        "READ",
+        companyId
+      );
 
       const [company] = await db
         .select({ id: companies.id, name: companies.name })

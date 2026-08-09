@@ -92,6 +92,22 @@ export function App() {
     []
   );
 
+  const onDevLogin = useCallback(async () => {
+    setBusy(true);
+    setSignInError(null);
+    try {
+      const devEmail = import.meta.env.VITE_DEV_EMAIL || "dev@example.com";
+      const devPassword = import.meta.env.VITE_DEV_PASSWORD || "dev123";
+      await signInWithEmail(devEmail, devPassword);
+      setScreen("signed_in");
+    } catch (cause) {
+      setSignInError(formatApiError(cause));
+      setScreen("signed_out");
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+
   if (screen === "loading") {
     return (
       <main className="container mx-auto space-y-4 p-4">
@@ -142,9 +158,22 @@ export function App() {
                   value={password}
                 />
               </div>
-              <Button className="w-full" disabled={busy} type="submit">
-                Sign in
-              </Button>
+              <div className="flex gap-2">
+                <Button className="flex-1" disabled={busy} type="submit">
+                  Sign in
+                </Button>
+                {import.meta.env.MODE === "development" && (
+                  <Button
+                    className="flex-1"
+                    disabled={busy}
+                    onClick={onDevLogin}
+                    type="button"
+                    variant="outline"
+                  >
+                    Developer Login
+                  </Button>
+                )}
+              </div>
             </form>
           </CardContent>
         </Card>

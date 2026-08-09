@@ -20,7 +20,8 @@ export type ArtifactType =
   | "CASH_SHEET"
   | "PAYSLIP_PDF"
   | "MANIFEST"
-  | "EXCEPTION_REPORT";
+  | "EXCEPTION_REPORT"
+  | "TIMESTAMP_TOKEN";
 
 export interface StoreArtifactInput {
   readonly runId: string;

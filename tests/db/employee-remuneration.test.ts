@@ -2,7 +2,13 @@ import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { roles, userRoleAssignments, users } from "@/db/schema/rbac";
 import { SYSTEM_ADMIN_ROLE_CODE } from "@/domain/rbac/types";
-import { assignUserToRole, createUser, getRoleByCode, createRole, grantPermission } from "@/repo/rbac";
+import {
+  assignUserToRole,
+  createRole,
+  createUser,
+  getRoleByCode,
+  grantPermission,
+} from "@/repo/rbac";
 import { createApp } from "@/server/app";
 import { AuthError } from "@/server/auth/errors";
 import type { NeonAuthClaims, VerifyJwt } from "@/server/auth/jwt";

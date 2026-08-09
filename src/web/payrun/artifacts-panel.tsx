@@ -7,6 +7,7 @@
  */
 
 import { useCallback, useState } from "react";
+import { HashChip } from "@/components/payroll/hash-chip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -220,12 +221,20 @@ function ArtifactRowView({ artifact, onGetLink }: ArtifactRowViewProps) {
 
   return (
     <li className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
-      <div className="flex min-w-0 items-center gap-2">
-        <Badge variant="outline">{artifact.type}</Badge>
-        <span className="truncate">{filenameOf(artifact)}</span>
-        <span className="shrink-0 text-muted-foreground text-xs">
-          {formatBytes(artifact.byteSize)}
-        </span>
+      <div className="flex min-w-0 flex-col gap-1">
+        <div className="flex min-w-0 items-center gap-2">
+          <Badge variant="outline">{artifact.type}</Badge>
+          <span className="truncate">{filenameOf(artifact)}</span>
+          <span className="shrink-0 text-muted-foreground text-xs">
+            {formatBytes(artifact.byteSize)}
+          </span>
+        </div>
+        {/* The hash, not the filename, is what a manifest commits to. */}
+        <HashChip
+          className="self-start"
+          label={`sha256 of ${filenameOf(artifact)}`}
+          value={artifact.sha256}
+        />
       </div>
       <Button onClick={handleClick} size="sm" variant="ghost">
         Get link

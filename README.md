@@ -13,7 +13,7 @@ Rebuilt from scratch. Documentation roles:
 |---|---|---|
 | Authoritative doctrine / current architecture | `docs/architecture/` (`payroll-architecture.md`, `presentation-facade.md`, payslip docs) | What exists in `src/` / `db/` and what the UI may rely on |
 | Living implementation / status | this README; approved specs under `docs/superpowers/specs/` for shipped slices | Phase table, how to run, feature contracts |
-| Active plans | recent `docs/superpowers/plans/` for unfinished work | Phase 9 Vercel deploy pending; landing-page redesign is designed (spec approved-pending-final-sign-off) but not yet implemented — `src/marketing/**` still renders the prior six-section page; 4C, 5B, 5C, 6–7, 8A, 8B, 8C, and the Phase 4-8 deferred-cleanup slice are complete |
+| Active plans | recent `docs/superpowers/plans/` for unfinished work | **Phase 9 Vercel deploy is the only open item.** All prior phases (4C, 5B, 5C, 6–7, 8A, 8B, 8C, deferred cleanup, marketing landing redesign) are complete. |
 | Historical / archive | Plan1 control-foundation plans & handoff; `c:\JackProject\_payroll-v1-backup` | Prior SQLite/Next rebuild — not current authority |
 | Design system (Phase 4+) | `docs/palette/` + `src/web/styles.css` | Straits colour/grid/print contracts; 4C projects tokens into the Vite SPA |
 
@@ -23,143 +23,95 @@ Rebuilt from scratch. Documentation roles:
 | 1 · Derivation graph engine | done |
 | 2 · Neon Postgres schema, plpgsql triggers, seed, Docker | done |
 | 3 · Hono API + Neon Auth (auth platform) | done |
-| 4 · Vite SPA shell | 4A auth + 4B import + 4C design-system foundation done |
-| 5 · Payroll UI + derivation drawer | 5A mutation envelope done; **5B payroll workspace SPA done**; **5C control SPA done** — findings panel, gate-check review/approve, `/control` cross-run overview |
-| 6 · Findings, gates, approval | done (API/service + 5C SPA wire-up) |
-| 7 · Release, payments, closure, R2 artifacts | **done** — backend + Hono + SPA fully wired: payments panel, release/batch drawer, artifacts panel, closure checklist, control gate |
-| 8 · Import, reports, bilingual payslip, run diff | create-only import done (4B); **8A bilingual payslip done**; **8B run-diff UI done** — Compare panel + graph diff tab; **8C reports done** — payment register, statutory summary, exception, and annual remuneration reports, server routes + SPA portal + deep-link |
-| — · Deferred cleanup (PAY-8D + DRY pass) | **done** — server-side per-statutory-root variance (`rootVariances`), `formatApiError`/`isRunStatus`/severity-badge dedup, `useAsyncLoad` + `useDialogSubmit` hooks, Phase 4B import verification |
-| 9 · Vercel deploy | pending |
-| — · Marketing landing page redesign | **designed, not built** — governance/assurance-briefing redesign spec approved-pending-final-sign-off; `src/marketing/**` still ships the prior six-section page (Hero/Ledger/Method/Provenance/DrillDown/Closing) |
+| 4 · Vite SPA shell | done |
+| 5 · Payroll UI + derivation drawer | done |
+| 6 · Findings, gates, approval | done |
+| 7 · Release, payments, closure, R2 artifacts | done |
+| 8 · Import, reports, bilingual payslip, run diff | done |
+| — · Marketing landing page | done |
+| 9 · Vercel deploy | **pending** — `src/` is production-ready; Phase 9 wires environment variables, sets `vercel.json` build/output config, and ships to Vercel |
 
-Phase 2 closed: Docker/Neon Postgres via one `pg` driver, Drizzle schema and
-plpgsql triggers, content-hashed seed, repository/service layers, golden
-parity, statutory authority governance, RBAC, internal group transfer, and
-create-only employee master import. See
-`docs/superpowers/specs/2026-08-08-phase2-persistence-design.md` and
-`docs/superpowers/plans/2026-08-08-phase2-persistence.md`.
+Phase 9 — Vercel deploy: remaining work is `vercel.json` output config, environment variable
+wiring (`DATABASE_URL`, `NEON_AUTH_*`, `VITE_NEON_AUTH_URL`, `VITE_API_BASE`, `R2_*`,
+`TSA_URL`), Hono server entry-point for Vercel Functions, and a smoke-test deploy.
+All application code in `src/` is production-ready.
 
-Transfer / statutory follow-ups (artifacts evidence, §8.6 transfer findings,
-S06 wage treatments + PCB Y1/Yt class):
-`docs/superpowers/specs/2026-08-08-transfer-statutory-followups-design.md`.
+## The closure chain
 
-Phase 3 auth platform is built: Hono verifies Neon Auth Bearer JWTs, invite-only
-links `users.auth_subject`, exposes `/health`, `/v1/me*`, and SYSTEM_ADMIN
-`/v1/admin/users*`. Design:
-`docs/superpowers/specs/2026-08-08-hono-neon-auth-design.md`.
-`dev:api` and `invite-user` load `.env.local` when present (see `.env.example`).
+`closeRun` seals a `manifest.json` carrying every artifact's SHA-256, then — in
+the same transaction, so a CLOSED run without one is unreachable — issues a
+**closure seal**: a SHA-256 over the manifest hash, the revisions, who closed
+the run and when, and the seal hash of the previous closure *in the same
+company*. Nobody outside this system signs it. What it buys is detectability:
+revising a closed run's facts means reissuing its seal and every seal closed
+after it, and `closure_seals` refuses UPDATE and DELETE outright (migration
+0024).
 
-Pay-run business HTTP (Neon Auth + `PAY_RUN`): create/recompute/review/approve
-and related control routes. Mutation success bodies use the Phase 5A
-`PayRunMutationEnvelope` (run snapshot + findings/gate counters; no line roots).
-Specs: `docs/superpowers/specs/2026-08-08-pay-run-http-api-design.md`,
-`docs/superpowers/specs/2026-08-08-phase5a-mutation-envelope-design.md`.
+`verifyClosureChain()` walks a company's chain and re-derives everything rather
+than trusting the row: each seal is recomputed from its own columns, each link
+is checked against its predecessor, and the run and manifest artifact are
+re-read and compared. Drift is reported per seal in plain words — "closedBy on
+the run differs from the seal" — because a chain that only says "broken" tells
+an auditor nothing. The canonical form is pinned byte-for-byte by
+`tests/domain/closure-seal.test.ts`; the chain and the append-only guarantee by
+`tests/db/closure-seal.test.ts`.
+
+The SPA surfaces this: the workspace has a **Closure seal** panel with both
+verdicts kept apart (this seal recomputes / the chain is intact), the artifacts
+panel shows each SHA-256 with copy-to-clipboard, the closure dialog reports the
+seal it just issued, and `/control` badges closed runs with their chain
+position.
+
+### Optional third-party countersignature (RFC 3161)
+
+Off unless a client asks for it. When `TSA_URL` is set, the manifest's own
+SHA-256 is also sent to a Time Stamp Authority and the whole reply is stored as
+a `TIMESTAMP_TOKEN` artifact (`manifest.json.tsr`), with the authority, its
+`genTime`, the token serial and the stamped hash written to `audit_events` as
+`TIMESTAMP_MANIFEST`. Verify a stored token with
+`openssl ts -verify -data manifest.json -in manifest.json.tsr`. The seal panel
+shows the setting and what to set it to when it is off.
+
+Deliberate properties, all covered by `tests/db/manifest-timestamp.test.ts`:
+
+- **Never blocks closure.** An unreachable authority leaves the run CLOSED and
+  unstamped; `timestampClosureManifest()` is the idempotent retry.
+- **Off by default.** No `TSA_URL`, no network call — tests and local work never
+  reach a third party.
+- **One carve-out in the freeze.** Migration 0023 lets a `TIMESTAMP_TOKEN`
+  INSERT land on a CLOSED run, because a token attests to already-frozen bytes
+  and may have to be obtained later. Every other artifact write stays refused.
+- **Not signature verification.** `src/domain/timestamp/` builds the request and
+  reads the reply, checking the imprint and nonce are ours. It does not verify
+  the authority's signature or chain; the stored bytes are what a verifier reads.
+
+DigiCert's free endpoint is audited but is **not** a recognised date/time stamp
+service under the Digital Signature Act 1997. Only the MCMC's list (currently
+Pos Digicert and MSC Trustgate) carries the s.62 presumption that a signature
+existed before it was stamped. Moving to one is a `TSA_URL` change.
+
+## Development
+
+### Developer Login
+
+For quick access during development, the login page includes a "Developer Login" button
+that uses pre-configured credentials from environment variables. See
+[docs/developer-login.md](docs/developer-login.md) for setup instructions.
+
+Quick setup:
 
 ```bash
-# API (DATABASE_URL + NEON_AUTH_* from .env.local or the environment)
-npm run dev:api
+# 1. Create user in Neon Auth Console
+# 2. Run the setup script
+npx tsx scripts/setup-dev-user.ts --email dev@example.com --name "Dev User" --system-admin
 
-# Bootstrap first System Admin (no JWT)
-npx tsx scripts/invite-user.ts --email you@example.com --name "You" --system-admin
+# 3. Add to .env.local
+echo "VITE_DEV_EMAIL=dev@example.com" >> .env.local
+echo "VITE_DEV_PASSWORD=<your-password>" >> .env.local
 
-# Phase 4A auth-consuming shell (needs VITE_NEON_AUTH_URL + VITE_API_BASE)
+# 4. Restart dev server
 npm run dev
 ```
-
-Phase 4A design:
-`docs/superpowers/specs/2026-08-08-phase4a-auth-shell-design.md`.
-Auth-consuming shell under `src/web/`: Neon Auth → Bearer → `/v1/me` +
-permissions + conditional read-only admin users.
-
-Phase 4B: auth-gated create-only employee import —
-`GET/POST /v1/employee-import*` (`EMPLOYMENT`/`CREATE`) and a thin SPA panel.
-Spec: `docs/superpowers/specs/2026-08-08-phase4b-employee-import-api-design.md`.
-CLI import/template scripts remain available.
-
-Phase 4C: Straits / shadcn design-system foundation on the Vite SPA —
-Tailwind v4, Studio-selected primitives under `src/components/ui`, Straits
-tokens in `src/web/styles.css`, restyled 4A/4B surfaces only. No product chrome
-or Phase 5 payroll UI. Spec:
-`docs/superpowers/specs/2026-08-08-phase4c-straits-shadcn-design.md`.
-
-Phase 5B: full payroll workspace SPA. Preflight plan added the missing server
-read-facade routes (`GET /v1/pay-runs`, `GET /v1/pay-runs/:id/workspace`,
-`GET /v1/employees`, `GET /v1/me` extended with `companies[]`). SPA plan built
-the complete product UI: company-first scope shell (sidebar + top bar +
-⌘K command palette), pay-run list, workspace screen (totals strip with
-server-computed variance, employee grid with Earning/Deduction/Employer/Summary
-section tints, employee slide-over with Line / Derivation / Payslip-preview
-tabs), and the employees roster page with import panel. All money flows through
-`MoneyCell`; variance through server-owned `VarianceDto` rendered by `DeltaBadge`
-with neutral directional ink; action buttons gated by server-returned
-`actionAvailability`; PCB read-only. Specs:
-`docs/superpowers/specs/2026-08-08-phase5b-payroll-ui-shell-workspace-design.md`,
-`docs/superpowers/plans/2026-08-08-phase5b-preflight.md`,
-`docs/superpowers/plans/2026-08-08-phase5b-spa.md`.
-
-Phase 5C: control SPA wire-up for the Phase 6 findings/gates/approval backend.
-Workspace findings panel (scan, severity chips, acknowledge warnings),
-gate-check dialog before Review/Approve (passes `calcRevision`; confirm only
-when the gate is clear), and `/control` cross-run overview with finding counts
-and gate pills. No new server routes — uses existing findings/gates/review/
-approve endpoints. Spec companion:
-`docs/superpowers/specs/2026-08-08-phase6-findings-gates-approval-design.md`.
-
-Phase 6: findings, gates, and `DRAFT → REVIEWED → APPROVED` control layer
-(API/service + 5C SPA). Spec:
-`docs/superpowers/specs/2026-08-08-phase6-findings-gates-approval-design.md`.
-
-Phase 7: payments, release, distribution, reconciliation, closure manifest, and
-R2 artifact store over Hono (`PAY_RUN`). SPA fully wired: payments panel (hold/
-unhold/withdraw/distribute), release/batch drawer (preview → commit), artifacts
-panel, closure checklist dialog, and RELEASE gate on the control screen. Spec:
-`docs/superpowers/specs/2026-08-08-phase6-7-control-backend-design.md`.
-
-Phase 8A: bilingual production payslip. Full-page EN/MS payslip document at
-`/pay-runs/:runId/payslip/:lineId`, served by `GET .../payslip` read facade.
-KWSP-aligned `PayslipDocumentDto` from immutable `payLines` snapshot data and
-`payLineItems`. `--doc-*` token–isolated document components (14 files), YTD
-scoped to `companyId + employmentId + calendarYear`, DRAFT_PREVIEW watermark,
-provisional YTD label, audit annex with `rulePackId` + approval provenance.
-Slide-over upgraded with "Open full payslip →" link. Spec §3:
-`docs/superpowers/specs/2026-08-09-phase8-reports-payslip-diff-design.md`.
-Plan: `docs/superpowers/plans/2026-08-09-phase8a-bilingual-payslip.md`.
-
-Phase 8B: run-diff UI. `GET .../lines/:lineId/diff` compares a line's derivation
-graph against the linked prior run via `diffGraphs()`, returning flat
-`NodeDiffRow[]` (VALUE/ADDED/REMOVED/STRUCTURE/CITATION). A "Compare" toggle in
-the workspace header shows a run-level panel of changed employees; a "Diff" tab
-in the employee slide-over lazy-loads the per-employee graph diff. Both are
-gated on `previousRoots !== null`, so a first run of its lineage shows neither.
-Spec §4: `docs/superpowers/specs/2026-08-09-phase8-reports-payslip-diff-design.md`.
-Plan: `docs/superpowers/plans/2026-08-09-phase8b-run-diff.md`.
-
-Phase 8C: reports portal. Run-scoped payment register, statutory summary, and
-exception reports over `GET /v1/pay-runs/:runId/reports/:type`
-(`PAY_RUN`/`READ`); annual remuneration summary (explicitly not Form
-EA/C.P.8A) over `GET /v1/employees/:employeeId/remuneration-summary/:year`
-(`REPORT`/`READ`, company-scoped via the employee's employment record),
-aggregating `APPROVED`/`CLOSED` runs only by `companyId + employmentId +
-calendar year`, with a visible `limitationNotice` and disclaimer. Every
-report DTO carries a `reportMeta` provenance envelope. SPA portal at
-`/reports` (URL-driven `type`/`runId` state, type sidebar, run/employee
-pickers, four report views under `src/web/reports/`) with a "Reports ↗"
-deep-link from the workspace run header. Spec §5:
-`docs/superpowers/specs/2026-08-09-phase8-reports-payslip-diff-design.md`.
-Plan: `docs/superpowers/plans/2026-08-09-phase8c-reports.md`.
-
-Deferred cleanup (Phase 4-8): a follow-on slice closing three items left open across
-earlier phases. PAY-8D — the workspace read model (`src/repo/workspace.ts`) now computes
-a `VarianceDto` per statutory root (`rootVariances`), so `employee-slide-over.tsx`,
-`employee-grid.tsx`, and `run-diff-panel.tsx` render server-owned direction/delta instead
-of a client-side `directionFor()` comparison. A DRY pass replaced 28 inline
-`instanceof Error` ternaries with `formatApiError()`, deduplicated the four-times-repeated
-`isRunStatus` guard onto `status-badge.tsx`, unified severity-badge tone across the
-findings panel and exception report, and extracted `useAsyncLoad` /
-`useDialogSubmit` hooks (`src/hooks/`) to remove repeated fetch and dialog-submission
-boilerplate. Phase 4B's four previously "deferred" import findings were confirmed already
-fixed and closed out with one new regression test. No plan/spec file; tracked in
-`.superpowers/sdd/2026-08-09-phase-cleanup/`.
 
 ## The golden master
 

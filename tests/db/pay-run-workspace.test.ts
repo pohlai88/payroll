@@ -366,14 +366,7 @@ describe("GET /v1/pay-runs/:runId/workspace", () => {
 
     // rootVariances must be present (runs are identical so every root is SAME)
     expect(line.rootVariances).not.toBeNull();
-    for (const key of [
-      "gross",
-      "net",
-      "epfEe",
-      "epfEr",
-      "eisEe",
-      "eisEr",
-    ]) {
+    for (const key of ["gross", "net", "epfEe", "epfEr", "eisEe", "eisEr"]) {
       expect(line.rootVariances[key]).toMatchObject({
         deltaSen: 0,
         direction: "SAME",

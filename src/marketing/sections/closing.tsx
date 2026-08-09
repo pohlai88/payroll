@@ -1,87 +1,66 @@
-const PROOF_POINTS = [
-  { id: "golden", text: "37 real employees, verified to the sen" },
-  { id: "graph", text: "Derivation DAG beside every arithmetic figure" },
-  { id: "pack", text: "Eight cited source documents, SHA-256 committed" },
-  { id: "db", text: "Invariants held by plpgsql triggers, not app code" },
-] as const;
+import { Check } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { CLOSING } from "@/marketing/content";
+import { CtaLink } from "@/marketing/cta-link";
 
+/**
+ * Inspired by studio cta-section-07 / 10: split message + dual actions with a
+ * concrete checklist. No stock imagery, email capture, or motion package —
+ * the chain is the product's own Findings → Release preview sequence.
+ */
 export function Closing() {
   return (
-    <section className="grain relative overflow-hidden bg-ink text-paper">
-      {/* Marginal rule */}
+    <section className="relative isolate overflow-hidden bg-navy">
       <span
         aria-hidden="true"
-        className="absolute inset-y-0 left-6 hidden w-px bg-stamp/40 md:block lg:left-10"
+        className="pattern-grid absolute inset-0 opacity-70"
       />
-
-      {/* Subtle horizontal fibre */}
-      <div
+      <span
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(to bottom, transparent 0 31px, color-mix(in srgb, white 4%, transparent) 31px 32px)",
-        }}
+        className="glow absolute -right-24 -bottom-32 size-[28rem] rounded-full opacity-60"
       />
-
-      <div className="relative mx-auto max-w-6xl px-6 py-24 md:px-10 md:py-32">
-        <div className="grid items-end gap-12 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-16">
-          {/* Left: headline + body + CTAs */}
-          <div>
-            <p className="rubric text-paper/45">Open the ledger</p>
-            <h2
-              className="mt-6 max-w-3xl font-display text-[clamp(2.2rem,5.5vw,4rem)] text-paper leading-[1] tracking-[-0.03em]"
-              style={{
-                fontVariationSettings: '"opsz" 144, "SOFT" 40, "WONK" 1',
-              }}
-            >
-              Run the month. Then ask it{" "}
-              <em className="text-stamp not-italic">why</em>.
-            </h2>
-            <p className="mt-7 max-w-xl text-lg text-paper/70 leading-relaxed">
-              Import your employee master, compute against a cited rule pack,
-              and open any figure down to the row of the schedule it was read
-              from.
-            </p>
-
-            <div className="mt-10 flex flex-wrap items-center gap-3">
-              <a
-                className="rounded-sm bg-paper px-6 py-3 font-medium text-ink text-sm no-underline transition-colors hover:bg-stamp hover:text-paper"
-                href="/"
+      <div className="page-shell section-space relative">
+        <div className="panel-cut-lg border border-white/10 bg-white/[0.03] p-8 sm:p-12 lg:p-14">
+          <div className="grid gap-12 lg:grid-cols-12 lg:items-end lg:gap-16">
+            <div className="lg:col-span-7">
+              <Badge
+                className="rounded-md border-teal-lift/40 bg-white/5 px-3 py-1 font-normal text-sm text-teal-lift"
+                variant="outline"
               >
-                Open the app
-              </a>
-              <a
-                className="rounded-sm border border-paper/25 px-6 py-3 font-medium text-paper text-sm no-underline transition-colors hover:border-paper/60 hover:bg-paper/5"
-                href="#ledger"
-              >
-                Re-read the ledger
-              </a>
+                Next step
+              </Badge>
+              <h2 className="mt-6 max-w-[22ch] font-display font-semibold text-[clamp(2.25rem,5vw,3.75rem)] text-white leading-[1.04] tracking-[-0.045em]">
+                {CLOSING.headline}
+              </h2>
+              <p className="mt-6 max-w-[58ch] text-lg text-white/65 leading-[1.7]">
+                {CLOSING.secondary}
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-8 lg:col-span-5">
+              <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                {CLOSING.chain.map((step) => (
+                  <li className="flex items-center gap-3" key={step}>
+                    <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-teal-lift/20 text-teal-lift">
+                      <Check aria-hidden="true" className="size-3.5" />
+                    </span>
+                    <span className="font-medium text-sm text-white/85">
+                      {step}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <CtaLink href="/" tone="inverse">
+                  Open the app
+                </CtaLink>
+                <CtaLink href="#control" tone="ghost">
+                  Review control
+                </CtaLink>
+              </div>
             </div>
           </div>
-
-          {/* Right: proof-point list */}
-          <aside>
-            <p className="rubric text-paper/40">Why it holds</p>
-            <ul className="mt-5 list-none space-y-0 border-paper/15 border-t p-0">
-              {PROOF_POINTS.map((pt) => (
-                <li
-                  className="flex items-baseline gap-3 border-paper/15 border-b py-4"
-                  key={pt.id}
-                >
-                  <span
-                    aria-hidden="true"
-                    className="mt-0.5 shrink-0 text-stamp"
-                  >
-                    §
-                  </span>
-                  <span className="text-paper/70 text-sm leading-relaxed">
-                    {pt.text}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </aside>
         </div>
       </div>
     </section>

@@ -14,6 +14,7 @@ import type {
   GateKind,
   GateResult,
   PayRunSummary,
+  RunSeal,
 } from "@/web/api/payroll-api";
 import { payrollApi } from "@/web/api/payroll-api";
 import { useScopeContext } from "@/web/context/scope-context";
@@ -25,6 +26,8 @@ interface RunControlState {
   readonly warningCount: number | null;
   readonly gatePill: GatePill;
   readonly gateResult: GateResult | null;
+  /** Closed runs only: a gate has nothing left to say about them, a seal does. */
+  readonly seal: RunSeal | null;
 }
 
 function countOpenFindings(findings: readonly FindingRow[]): {
@@ -44,6 +47,22 @@ function countOpenFindings(findings: readonly FindingRow[]): {
     }
   }
   return { blockingCount, warningCount };
+}
+
+/**
+ * A run whose seal cannot be fetched is shown without one rather than failing
+ * the whole overview — an unverifiable seal is not the same claim as a broken
+ * one, and the card must not conflate them.
+ */
+async function loadSealOrNull(run: PayRunSummary): Promise<RunSeal | null> {
+  if (run.status !== "CLOSED") {
+    return null;
+  }
+  try {
+    return (await payrollApi.getRunSeal(run.id)).seal;
+  } catch {
+    return null;
+  }
 }
 
 function gateForStatus(status: string): GateKind | null {
@@ -109,6 +128,7 @@ function ControlPage() {
               warningCount: null,
               gatePill: "N/A",
               gateResult: null,
+              seal: await loadSealOrNull(run),
             };
           }
           try {
@@ -123,6 +143,7 @@ function ControlPage() {
               warningCount: counts.warningCount,
               gatePill: gateResult.ok ? "CLEAR" : "BLOCKED",
               gateResult,
+              seal: null,
             };
           } catch {
             return {
@@ -131,6 +152,7 @@ function ControlPage() {
               warningCount: null,
               gatePill: "UNKNOWN",
               gateResult: null,
+              seal: null,
             };
           }
         })
@@ -231,6 +253,7 @@ function ControlPage() {
             onScan={handleScan}
             run={row.run}
             scanning={scanningId === row.run.id}
+            seal={row.seal}
             warningCount={row.warningCount}
           />
         ))}

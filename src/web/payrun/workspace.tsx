@@ -23,7 +23,11 @@ import type {
 import { payrollApi } from "@/web/api/payroll-api";
 import { ArtifactsPanel } from "./artifacts-panel";
 import { BatchDrawer } from "./batch-drawer";
-import { ClosureChecklistDialog } from "./closure-checklist-dialog";
+import {
+  ClosureChecklistDialog,
+  type ClosureOutcome,
+} from "./closure-checklist-dialog";
+import { ClosureSealPanel } from "./closure-seal-panel";
 import { EmployeeGrid } from "./employee-grid";
 import { EmployeeSlideOver } from "./employee-slide-over";
 import { FindingsPanel } from "./findings-panel";
@@ -59,6 +63,9 @@ function WorkspacePage() {
   const [closureLoading, setClosureLoading] = useState(false);
   const [closureSubmitting, setClosureSubmitting] = useState(false);
   const [closureError, setClosureError] = useState<string | null>(null);
+  const [closureOutcome, setClosureOutcome] = useState<ClosureOutcome | null>(
+    null
+  );
 
   const [paymentsSelection, setPaymentsSelection] = useState<readonly string[]>(
     []
@@ -103,6 +110,20 @@ function WorkspacePage() {
 
   const payments = paymentsData ?? [];
 
+  const fetchSeal = useCallback(async () => {
+    if (runId === undefined) {
+      return null;
+    }
+    return await payrollApi.getRunSeal(runId);
+  }, [runId]);
+
+  const {
+    data: seal,
+    loading: sealLoading,
+    error: sealError,
+    reload: loadSeal,
+  } = useAsyncLoad(fetchSeal, "Failed to verify the closure seal");
+
   // Derived from the single payments list — no separate fetch needed.
   const paymentStateByEmployeeId = useMemo<
     ReadonlyMap<string, LinePaymentState> | undefined
@@ -145,6 +166,12 @@ function WorkspacePage() {
       loadArtifacts();
     }
   }, [view, loadArtifacts]);
+
+  useEffect(() => {
+    if (view !== null && view.run.status === "CLOSED") {
+      loadSeal();
+    }
+  }, [view, loadSeal]);
 
   // paymentsRefreshKey is a refetch trigger — bumping it forces
   // a reload without changing the effect dependencies otherwise.
@@ -280,6 +307,7 @@ function WorkspacePage() {
     setClosureDialogOpen(false);
     setClosureChecklist(null);
     setClosureError(null);
+    setClosureOutcome(null);
   }, [closureSubmitting]);
 
   const handleClose = useCallback(async () => {
@@ -289,6 +317,7 @@ function WorkspacePage() {
     setClosureDialogOpen(true);
     setClosureChecklist(null);
     setClosureError(null);
+    setClosureOutcome(null);
     setClosureLoading(true);
     try {
       const res = await payrollApi.getClosureChecklist(runId);
@@ -307,8 +336,12 @@ function WorkspacePage() {
     setClosureSubmitting(true);
     setClosureError(null);
     try {
-      await payrollApi.closeRun(runId);
-      setClosureDialogOpen(false);
+      const result = await payrollApi.closeRun(runId);
+      // The dialog stays open on the seal it just produced; `Done` dismisses it.
+      setClosureOutcome({
+        seal: result.seal,
+        timestamp: result.timestamp,
+      });
       setClosureChecklist(null);
       await reload();
     } catch (err) {
@@ -427,6 +460,16 @@ function WorkspacePage() {
           />
         ) : null}
 
+        {view.run.status === "CLOSED" ? (
+          <ClosureSealPanel
+            error={sealError}
+            loading={sealLoading}
+            onReverify={loadSeal}
+            runId={runId}
+            seal={seal}
+          />
+        ) : null}
+
         {view.run.status === "APPROVED" || view.run.status === "CLOSED" ? (
           <ArtifactsPanel
             artifacts={artifacts}
@@ -475,6 +518,7 @@ function WorkspacePage() {
         onClose={closeClosureDialog}
         onConfirm={handleClosureConfirm}
         open={closureDialogOpen}
+        outcome={closureOutcome}
         submitting={closureSubmitting}
       />
 

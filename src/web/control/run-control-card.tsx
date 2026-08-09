@@ -4,12 +4,13 @@
  */
 
 import { useCallback } from "react";
+import { HashChip } from "@/components/payroll/hash-chip";
 import { isRunStatus, StatusBadge } from "@/components/payroll/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import type { GateResult, PayRunSummary } from "@/web/api/payroll-api";
+import type { GateResult, PayRunSummary, RunSeal } from "@/web/api/payroll-api";
 
 type GatePill = "CLEAR" | "BLOCKED" | "UNKNOWN" | "N/A";
 
@@ -22,6 +23,8 @@ interface RunControlCardProps {
   readonly onOpenWorkspace: (runId: string) => void;
   readonly onScan: (runId: string) => void;
   readonly scanning: boolean;
+  /** Null for runs that are not closed, and for a seal that could not be read. */
+  readonly seal: RunSeal | null;
 }
 
 function pillClass(pill: GatePill): string {
@@ -32,6 +35,28 @@ function pillClass(pill: GatePill): string {
     return "border-0 bg-[var(--status-bad-fill)] text-[var(--status-bad-ink)]";
   }
   return "border-border text-muted-foreground";
+}
+
+/**
+ * Two claims, kept apart: this run's own seal recomputes, and the company's
+ * chain around it is unbroken. A run can be fine while the chain is not.
+ */
+function SealBadges({ seal }: { readonly seal: RunSeal }) {
+  const intact = seal.ok && seal.chainOk;
+  return (
+    <Badge
+      className={cn(
+        "border-0 text-xs",
+        intact
+          ? "bg-[var(--status-ok-fill)] text-[var(--status-ok-ink)]"
+          : "bg-[var(--status-bad-fill)] text-[var(--status-bad-ink)]"
+      )}
+    >
+      {intact
+        ? `✓ Sealed #${seal.sequence}`
+        : `✕ ${seal.ok ? "Chain broken" : "Seal broken"}`}
+    </Badge>
+  );
 }
 
 function actionLabel(status: string): string {
@@ -53,6 +78,7 @@ function RunControlCard({
   onOpenWorkspace,
   onScan,
   scanning,
+  seal,
 }: RunControlCardProps) {
   const handleOpen = useCallback(() => {
     onOpenWorkspace(run.id);
@@ -79,9 +105,13 @@ function RunControlCard({
             <StatusBadge
               status={isRunStatus(run.status) ? run.status : "DRAFT"}
             />
-            <Badge className={cn("text-xs", pillClass(gatePill))}>
-              Gate {gatePill}
-            </Badge>
+            {seal === null ? (
+              <Badge className={cn("text-xs", pillClass(gatePill))}>
+                Gate {gatePill}
+              </Badge>
+            ) : (
+              <SealBadges seal={seal} />
+            )}
           </div>
         </div>
         <div className="flex shrink-0 gap-2">
@@ -125,6 +155,22 @@ function RunControlCard({
             </span>
           </span>
         </div>
+        {seal === null ? null : (
+          <div className="flex flex-wrap items-center gap-2 text-muted-foreground text-xs">
+            <span>Seal</span>
+            <HashChip label="seal hash" value={seal.sealHash} />
+            <span>
+              #{seal.sequence} of {seal.chainLength} · closed by {seal.closedBy}
+            </span>
+          </div>
+        )}
+        {seal === null || seal.problems.length === 0 ? null : (
+          <ul className="space-y-1 rounded-md bg-[var(--status-bad-fill)] p-2 text-[var(--status-bad-ink)] text-xs">
+            {seal.problems.map((problem) => (
+              <li key={problem}>{problem}</li>
+            ))}
+          </ul>
+        )}
         {gateResult !== null &&
         !gateResult.ok &&
         gateResult.issues.length > 0 ? (

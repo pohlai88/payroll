@@ -29,6 +29,7 @@ export type {
   ArtifactType,
   ChecklistItem,
   CloseRunResponse,
+  ClosureChainResponse,
   ClosureChecklistResponse,
   DistributionChannel,
   EmployeeLineDto,
@@ -45,6 +46,7 @@ export type {
   GateKind,
   GateResult,
   GetBatchResponse,
+  IssuedSeal,
   LinePaymentRow,
   LinePaymentState,
   MeCompany,
@@ -68,11 +70,16 @@ export type {
   ReportMeta,
   RootValue,
   RunLineDiffDto,
+  RunSeal,
+  RunSealResponse,
   RunSummary,
+  SealStatus,
   SignedArtifactUrlResponse,
   SparkPoint,
   StatutorySummaryDto,
   StoreArtifactResponse,
+  TimestampOutcome,
+  TimestampStatus,
   VarianceDto,
   WithdrawalReason,
 } from "./types";
@@ -170,6 +177,8 @@ export const payrollApi = {
   getClosureChecklist: (runId: string) =>
     getPayrollApi().getClosureChecklist(runId),
   closeRun: (runId: string) => getPayrollApi().closeRun(runId),
+  getRunSeal: (runId: string) => getPayrollApi().getRunSeal(runId),
+  getClosureChain: (runId: string) => getPayrollApi().getClosureChain(runId),
 };
 
 export function fetchPayslip(

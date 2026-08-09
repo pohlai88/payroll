@@ -68,12 +68,21 @@ export const rulePackLayer = pgEnum("rule_pack_layer", [
 ]);
 
 /**
- * A rule pack's life. Only APPROVED and EFFECTIVE may reach a payroll run.
+ * A rule pack's life. Nothing short of APPROVED may reach a payroll run:
+ * DRAFT, SOURCE_CAPTURED and VERIFIED are excluded unconditionally, however
+ * recent or plausible their contents.
  *
  * SOURCE_CAPTURED means the instrument and its evidence are recorded; VERIFIED
  * means a human has read the provision and confirmed the values against it;
  * APPROVED means someone has taken responsibility for it. SUPERSEDED packs stay
  * exactly as they were — a run calculated under one must remain reproducible.
+ *
+ * That last sentence is why SUPERSEDED is resolvable too, not only APPROVED and
+ * EFFECTIVE: a pack that governed a period must still resolve for that period
+ * after a successor replaces it. `resolveRule` in `@/repo/rule-resolution` owns
+ * the admitted set — see EVER_APPROVED_STATUSES there, and note that governance
+ * status is only half the test. Temporal applicability is evaluated
+ * independently, so approval never overrides effective dating.
  */
 export const rulePackStatus = pgEnum("rule_pack_status", [
   "DRAFT",
@@ -163,6 +172,7 @@ export const artifactType = pgEnum("artifact_type", [
   "PAYSLIP_PDF",
   "MANIFEST",
   "EXCEPTION_REPORT",
+  "TIMESTAMP_TOKEN",
 ]);
 
 /** How the bytes arrived. */

@@ -14,8 +14,14 @@ import {
 import { auditEvents, payLines, payRuns } from "@/db/schema/run";
 import type { ArtifactStore } from "@/domain/artifacts/store";
 import { storeArtifact } from "./artifacts";
+import { type IssuedSeal, issueClosureSeal } from "./closure-seal";
 import { ControlError } from "./control-errors";
 import { evaluateGate } from "./gates";
+import {
+  type TimestampManifestOptions,
+  type TimestampOutcome,
+  timestampClosureManifest,
+} from "./manifest-timestamp";
 import { reconcileLine } from "./payments";
 
 export interface ChecklistItem {
@@ -209,12 +215,28 @@ export async function closureChecklist(
   ];
 }
 
+export interface CloseRunResult {
+  readonly manifestArtifactId: string;
+  /**
+   * Issued in the same transaction as the CLOSED status: a closed run without
+   * a seal is not a state this system can reach.
+   */
+  readonly seal: IssuedSeal;
+  /**
+   * Best-effort, and off unless a client asks for it: an authority that is
+   * down leaves the run closed and the manifest unstamped, to be picked up by
+   * `timestampClosureManifest` later.
+   */
+  readonly timestamp: TimestampOutcome;
+}
+
 export async function closeRun(
   db: Database,
   runId: string,
   actor: string,
-  store?: ArtifactStore
-): Promise<{ manifestArtifactId: string }> {
+  store?: ArtifactStore,
+  timestampOptions: TimestampManifestOptions = {}
+): Promise<CloseRunResult> {
   const checklist = await closureChecklist(db, runId);
   const failed = checklist.filter((c) => !c.ok);
   if (failed.length > 0) {
@@ -239,7 +261,7 @@ export async function closeRun(
     );
   }
 
-  return await db.transaction(async (tx) => {
+  const { manifestArtifactId, seal } = await db.transaction(async (tx) => {
     const artifactRows = await tx
       .select({
         id: artifacts.id,
@@ -251,6 +273,10 @@ export async function closeRun(
       })
       .from(artifacts)
       .where(eq(artifacts.runId, runId));
+
+    // One instant for the manifest, the run and the seal: verification
+    // compares them, so two calls to `new Date()` would be a disagreement.
+    const closedAt = new Date();
 
     const manifest = {
       runId,
@@ -266,7 +292,7 @@ export async function closeRun(
         byteSize: a.byteSize,
         createdAt: a.createdAt?.toISOString() ?? null,
       })),
-      closedAt: new Date().toISOString(),
+      closedAt: closedAt.toISOString(),
       closedBy: actor,
       checklist,
     };
@@ -291,10 +317,21 @@ export async function closeRun(
       .set({
         status: "CLOSED",
         closedManifestArtifactId: stored.id,
-        closedAt: new Date(),
+        closedAt,
         closedBy: actor,
       })
       .where(eq(payRuns.id, runId));
+
+    const issued = await issueClosureSeal(tx, {
+      runId,
+      companyId: run.companyId,
+      manifestArtifactId: stored.id,
+      manifestSha256: stored.sha256,
+      calcRevision: run.calcRevision,
+      approvedRevision: run.approvedRevision,
+      closedAt,
+      closedBy: actor,
+    });
 
     await tx.insert(auditEvents).values({
       actor,
@@ -302,9 +339,21 @@ export async function closeRun(
       entity: "pay_runs",
       entityId: runId,
       action: "CLOSE",
-      after: { manifestArtifactId: stored.id },
+      after: {
+        manifestArtifactId: stored.id,
+        sealHash: issued.sealHash,
+        sealSequence: issued.sequence,
+        previousSealHash: issued.previousSealHash,
+      },
     });
 
-    return { manifestArtifactId: stored.id };
+    return { manifestArtifactId: stored.id, seal: issued };
   });
+
+  const timestamp = await timestampClosureManifest(db, runId, actor, {
+    store,
+    ...timestampOptions,
+  });
+
+  return { manifestArtifactId, seal, timestamp };
 }

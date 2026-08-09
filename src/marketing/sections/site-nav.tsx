@@ -1,53 +1,30 @@
-"use client";
-
-import { MenuIcon, XIcon } from "lucide-react";
-import { useCallback, useState } from "react";
-import { RULE_PACK } from "@/marketing/content";
-
-const NAV_LINKS = [
-  { id: "ledger", href: "#ledger", label: "The ledger" },
-  { id: "method", href: "#method", label: "Method" },
-  { id: "provenance", href: "#provenance", label: "Provenance" },
-  { id: "drill", href: "#drill", label: "Drill-down" },
-] as const;
+import { Separator } from "@/components/ui/separator";
+import { NAV_LINKS } from "@/marketing/content";
+import { CtaLink } from "@/marketing/cta-link";
 
 export function SiteNav() {
-  const [open, setOpen] = useState(false);
-
-  const toggleOpen = useCallback(() => setOpen((v) => !v), []);
-  const closeMenu = useCallback(() => setOpen(false), []);
-
   return (
-    <header className="sticky top-0 z-50 border-rule border-b bg-paper/90 backdrop-blur-sm">
+    <header className="sticky top-0 z-50 border-hair border-b bg-ground/95 pt-[env(safe-area-inset-top)] shadow-[0_1px_0_rgba(19,48,63,0.04)] backdrop-blur-md">
       <nav
         aria-label="Primary"
-        className="mx-auto flex max-w-6xl items-center gap-6 px-6 py-3.5 md:px-10"
+        className="page-shell flex h-16 items-center gap-3 sm:gap-6"
       >
-        {/* Logo */}
         <a
-          className="group flex items-baseline gap-2.5 no-underline"
-          href="#top"
+          className="shrink-0 font-display font-semibold text-[1.2rem] text-navy tracking-[-0.04em] transition-colors duration-200 hover:text-teal"
+          href="/landing.html"
+          translate="no"
         >
-          <span className="font-display text-xl tracking-tight transition-colors group-hover:text-stamp">
-            Clarity
-          </span>
-          <span className="rubric text-ink-faint transition-colors group-hover:text-stamp">
-            Payroll
-          </span>
+          Clarity
         </a>
-
-        <span aria-hidden="true" className="hidden h-4 w-px bg-rule sm:block" />
-
-        <span className="rubric hidden text-ink-faint sm:block">
-          {RULE_PACK.id}
-        </span>
-
-        {/* Desktop nav */}
-        <ul className="ml-auto hidden list-none items-center gap-7 p-0 lg:flex">
+        <Separator
+          className="hidden h-5 bg-hair data-vertical:h-5 md:block"
+          orientation="vertical"
+        />
+        <ul className="flex min-w-0 flex-1 items-center gap-3 overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-5 md:gap-6 [&::-webkit-scrollbar]:hidden">
           {NAV_LINKS.map((link) => (
-            <li key={link.id}>
+            <li className="shrink-0" key={link.href}>
               <a
-                className="rubric text-ink-muted no-underline transition-colors hover:text-stamp"
+                className="font-medium text-meta text-sm transition-colors duration-200 hover:text-navy"
                 href={link.href}
               >
                 {link.label}
@@ -55,56 +32,10 @@ export function SiteNav() {
             </li>
           ))}
         </ul>
-
-        <a
-          className="ml-auto rounded-sm border border-ink bg-ink px-4 py-2 font-medium text-[0.8rem] text-paper-card no-underline transition-colors hover:border-stamp hover:bg-stamp lg:ml-0"
-          href="/"
-        >
+        <CtaLink className="ml-1 shrink-0 sm:ml-auto" href="/">
           Open the app
-        </a>
-
-        {/* Mobile hamburger */}
-        <button
-          aria-expanded={open}
-          aria-label={open ? "Close menu" : "Open menu"}
-          className="flex size-8 items-center justify-center rounded-sm border border-rule text-ink transition-colors hover:border-ink lg:hidden"
-          onClick={toggleOpen}
-          type="button"
-        >
-          {open ? (
-            <XIcon className="size-4" />
-          ) : (
-            <MenuIcon className="size-4" />
-          )}
-        </button>
+        </CtaLink>
       </nav>
-
-      {/* Mobile drawer */}
-      {Boolean(open) && (
-        <div className="border-rule border-t bg-paper-card px-6 py-5 lg:hidden">
-          <ul className="flex list-none flex-col gap-1 p-0">
-            {NAV_LINKS.map((link) => (
-              <li key={link.id}>
-                <a
-                  className="block rounded-sm px-3 py-2.5 text-ink text-sm no-underline transition-colors hover:bg-paper-deep hover:text-stamp"
-                  href={link.href}
-                  onClick={closeMenu}
-                >
-                  {link.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-4 border-rule border-t pt-4">
-            <a
-              className="block rounded-sm border border-ink bg-ink px-4 py-2.5 text-center font-medium text-[0.85rem] text-paper-card no-underline transition-colors hover:border-stamp hover:bg-stamp"
-              href="/"
-            >
-              Open the app
-            </a>
-          </div>
-        </div>
-      )}
     </header>
   );
 }

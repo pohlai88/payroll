@@ -247,6 +247,7 @@ function collectMessages(error: unknown): string {
 
 /** Every table in the slice, in no particular order — TRUNCATE ... CASCADE handles the graph. */
 export const ALL_TABLES = [
+  "closure_seals",
   "audit_events",
   "finding_events",
   "anomaly_findings",

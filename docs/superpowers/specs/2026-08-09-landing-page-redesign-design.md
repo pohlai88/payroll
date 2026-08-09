@@ -1,7 +1,7 @@
 # Landing Page Redesign — Design
 
 **Date:** 2026-08-09
-**Status:** Revised after second review — awaiting final approval
+**Status:** Approved for implementation — subject to runtime-derived content gates
 **Scope:** `landing.html` and `src/marketing/**` only. The payroll SPA (`index.html`, `src/web/**`) is untouched.
 
 ## Doctrine
@@ -10,13 +10,16 @@
 
 ### Implementation gates
 
-Three hard checks, each of which has already caught a real defect in this design:
+Four hard checks. Each has already caught a real defect in this design, which is why they are gates and not guidance.
 
-1. **No marketing claim may describe a test-harness control as a production runtime control.** The golden master lives in `tests/`; it is a development and CI control, not a release gate.
-2. **No capability may be claimed unless it exists in `src/`.** Grep before writing. "EA Form" and "CP8D" were claimed and exist nowhere.
-3. **No hand-authored statutory figures.** All money and band values import from `src/marketing/content.ts`, which reads the shipped rule pack. If the page needs a value the pack lacks, the design changes — not the figure.
+1. **No capability may be claimed unless it exists in `src/`.** Grep before writing. "EA Form" and "CP8D" were claimed and exist nowhere.
+2. **No hand-authored statutory figures.** All money and band values import from `src/marketing/content.ts`, which reads the shipped rule pack. If the page needs a value the pack lacks, the design changes — not the figure.
+3. **No marketing claim may describe a test-harness or CI control as a production runtime control.** The golden master lives in `tests/`; it is a build gate, not a release gate.
+4. **Authority claims must prove both governance eligibility and temporal applicability.** Before claiming that a rule, rate or table governs a payroll result: identify the exact pack and version; confirm its lifecycle status permits runtime use; confirm its effective dates cover the calculation date; and confirm the run records that authority. Approval is not applicability — an approved 2027 contribution table must never illustrate a December 2026 example.
 
 Plus one semantic rule: **amber never dramatises a condition that did not occur.** A ceiling may only be shown as applied where the wage genuinely exceeds it.
+
+Gate 4 immediately caught defect 12 below: a governance sentence copied from a schema doc comment that the resolver contradicts.
 
 ## Purpose
 
@@ -24,7 +27,7 @@ Replace the marketing surface with a page that reads as a governance and assuran
 
 ## Corrections log
 
-Eleven content defects have been found and fixed across two review rounds. They are recorded because the failure mode is the subject of the page.
+Twelve content defects have been found and fixed across three review rounds. They are recorded because the failure mode is the subject of the page.
 
 | # | Defect | Correction |
 |---|---|---|
@@ -39,6 +42,7 @@ Eleven content defects have been found and fixed across two review rounds. They 
 | 9 | **Described the golden master as a runtime release gate** | Golden master is test-harness only. Replaced with the real gate model from `src/service/gates.ts` |
 | 10 | **Invented a five-stage run lifecycle** (Draft → Computed → Verified → Approved → Released) | Real statuses are `DRAFT / REVIEWED / APPROVED / CLOSED`; real gates are `REVIEW / APPROVAL / RELEASE / CLOSE` |
 | 11 | "Enforced by database triggers" as primary copy | Demoted to secondary technical evidence |
+| 12 | **"Only `APPROVED` and `EFFECTIVE` packs may reach a run"** — taken from the `enums.ts` doc comment | The resolver deliberately admits `SUPERSEDED` too, so a historical date resolves the rule in force then. Shipping the original sentence would have contradicted the reproducibility claim in the same section |
 
 ## Visual language
 
@@ -75,7 +79,7 @@ All money uses `font-variant-numeric: tabular-nums`. Fraunces and Geist are drop
 
 ## Narrative structure — four acts
 
-Eleven components in four acts, so the page reads as one argument rather than a documentation index. Act labels are typographic only.
+Twelve components in four acts, so the page reads as one argument rather than a documentation index. Act labels are typographic only. The count is a budget, not a target: the risk flagged at review is that each verified control invites another component until the page becomes an architecture document. Anything further must replace a component, not extend the page.
 
 ### Act I — The claim
 
@@ -150,11 +154,26 @@ A payroll product volunteering what it declines to calculate is more credible th
 
 S4 (HASiL) and S5 (HRD Corp) carry `digest: null` and are shown as "method ref · no digest" rather than given a reassuring checkmark.
 
-The register also carries the rule-pack authority ladder from `rulePackStatus`, which is real and directly supports the effective-dating claim:
+**`authority-lifecycle`** — one compact assurance component, not an exposition of the enum. Buyers should not have to learn what `SOURCE_CAPTURED` means to understand the governance model.
+
+Five stages, plain-language:
+
+`Source → Verify → Approve → Apply → Preserve`
+
+Under it, the single governing statement:
+
+> **Rules are sourced, verified and approved before use. Effective versions are selected by payroll date, while superseded versions remain preserved so historical runs can be reproduced exactly.**
+
+Two claims sit beneath it, both verified against `src/repo/rule-resolution.ts`:
+
+- **Effective does not mean newest — it means applicable to the date.** The resolver filters on the effective range first and never falls back to the most recent pack. Two approved packs overlapping one date is reported as a governance conflict, not resolved by picking one. Non-overlap is additionally enforced in the database.
+- **Approval is not applicability.** Governance status and effective dating are independent conditions, both required. A pack approved in December 2026 with an effective date of 1 January 2027 cannot govern a December 2026 payroll.
+
+The implementation enum belongs in the source register as supporting evidence, where an auditor looking for it will find it, and nowhere else:
 
 `DRAFT → SOURCE_CAPTURED → VERIFIED → APPROVED → EFFECTIVE → SUPERSEDED`
 
-Only `APPROVED` and `EFFECTIVE` packs may reach a payroll run. `SUPERSEDED` packs are retained unchanged, so a run calculated under one stays reproducible.
+`DRAFT`, `SOURCE_CAPTURED` and `VERIFIED` are excluded from payroll unconditionally — nothing short of approval may reach a run, however recent or plausible. `APPROVED`, `EFFECTIVE` and `SUPERSEDED` are all resolvable, because a pack that was approved when a period was calculated must still resolve for that period after a successor replaces it.
 
 ### Act III — Govern the run
 
@@ -175,7 +194,12 @@ Primary buyer-facing statement, replacing the golden-master claim:
 
 > **Verification is a release gate. Required payroll invariants must pass before a run can progress, and approval locks the authoritative calculation against subsequent mutation.**
 
-Secondary technical evidence, available but not leading: those invariants are held by database triggers rather than application code, so they hold regardless of which client writes.
+Two reproducibility invariants belong here, both verified in the schema:
+
+- **A run records the authority it used, not a lookup to repeat later.** `pay_runs` stamps `rule_pack_id`, `rule_pack_hash` and `calc_engine_version` alongside `calculated_at`, and each gate certification stamps the calculation revision, statutory pack and anomaly pack version. The resolver is used when calculating; the recorded authority is what reproduction and audit read. "Reproduce July 2026" therefore resolves to a specific content hash and a specific version of the calculation code, not to whatever those names refer to today.
+- **A pack used by a certified payroll is not edited in place.** Approved-or-later packs must carry an approver, an approval timestamp and a content hash; a superseded pack must name its successor. A correction is a new version that is separately sourced, verified and approved — `v12` is preserved and `v13` is created, never `v12` amended.
+
+Secondary technical evidence, available but not leading: those invariants are held by database triggers and check constraints rather than application code, so they hold regardless of which client writes.
 
 The golden master may appear only as a **development and CI control**, explicitly labelled as such — 37 verified employees pinning the engine in the test suite, where a failure stops the build. It must never be presented as a runtime gate.
 
@@ -236,6 +260,7 @@ Entry point unchanged: `landing.html` → `src/marketing/main.tsx` → `Landing`
 - **Reconciliation test (mandatory):** proof-tree branches plus gross must equal displayed net, in sen. This is the test that catches the RM9.00 class of defect.
 - **Provenance test:** every figure rendered in the proof tree and register is referentially equal to its `content.ts` constant, so literals cannot be reintroduced.
 - **Capability test:** the outputs section's report names must match the report definitions in `src/web/reports/reports-page.tsx`, so an invented report fails the build.
+- **Authority applicability test:** the illustrative scenario's calculation date must fall inside the cited pack's effective range, and the pack's status must be one the resolver admits. This is gate 4 as an assertion — it fails the build on a future-dated table illustrating a past period.
 - Per-section render tests for load-bearing content: source refs, the PCB "not calculated by Clarity" note, the participation line, gate names.
 - Amber restriction and the three implementation gates are checked at review.
 - Manual pass at 375px, 768px, 1280px, 1920px.
@@ -256,3 +281,4 @@ Entry point unchanged: `landing.html` → `src/marketing/main.tsx` → `Landing`
 - **Hero:** no payslip, no dashboard screenshot, no floating widgets.
 - **Verb:** Release, not File.
 - **Run model:** the real four statuses and four gates, never an idealised lifecycle.
+- **Authority ladder:** kept, but expressed as `Source → Verify → Approve → Apply → Preserve` in public copy, with the implementation enum confined to the source register. The governance model is the point; the enum is the evidence.

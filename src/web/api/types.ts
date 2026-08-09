@@ -369,9 +369,76 @@ export interface ClosureChecklistResponse {
   readonly checklist: readonly ChecklistItem[];
 }
 
+/** Issued inside the closing transaction — see `src/service/closure-seal.ts`. */
+export interface IssuedSeal {
+  readonly sequence: number;
+  readonly sealHash: string;
+  readonly previousSealHash: string | null;
+  readonly manifestSha256: string;
+  readonly sealVersion: string;
+  readonly closedAt: string;
+  readonly closedBy: string;
+}
+
+/** RFC 3161 outcome; SKIPPED when no authority is configured. */
+export interface TimestampOutcome {
+  readonly state: "STAMPED" | "ALREADY_STAMPED" | "SKIPPED" | "FAILED";
+  readonly detail: string;
+  readonly tokenArtifactId: string | null;
+  readonly genTime: string | null;
+}
+
 /** `POST /v1/pay-runs/:runId/close` response — see `src/service/close.ts` `closeRun`. */
 export interface CloseRunResponse {
   readonly manifestArtifactId: string;
+  readonly seal: IssuedSeal;
+  readonly timestamp: TimestampOutcome;
+}
+
+/** One seal as verification found it — see `src/service/closure-seal.ts`. */
+export interface SealStatus {
+  readonly runId: string;
+  readonly sequence: number;
+  readonly sealHash: string;
+  readonly previousSealHash: string | null;
+  readonly manifestSha256: string;
+  readonly manifestArtifactId: string;
+  readonly closedAt: string;
+  readonly closedBy: string;
+  readonly sealVersion: string;
+  readonly ok: boolean;
+  /** Empty when `ok`. Each entry names one disagreement, in plain words. */
+  readonly problems: readonly string[];
+}
+
+export interface RunSeal extends SealStatus {
+  readonly companyId: string;
+  readonly chainLength: number;
+  readonly chainOk: boolean;
+}
+
+/** Whether third-party stamping is switched on for this deployment. */
+export interface TimestampStatus {
+  readonly configured: boolean;
+  readonly tsaUrl: string | null;
+  /** What to set `TSA_URL` to if a client asks for external corroboration. */
+  readonly suggestedTsaUrl: string;
+  readonly tokenArtifactId: string | null;
+  readonly genTime: string | null;
+}
+
+/** `GET /v1/pay-runs/:runId/seal` response. `seal` is null until the run closes. */
+export interface RunSealResponse {
+  readonly seal: RunSeal | null;
+  readonly timestamp: TimestampStatus;
+}
+
+/** `GET /v1/pay-runs/:runId/closure-chain` — the whole company chain. */
+export interface ClosureChainResponse {
+  readonly companyId: string;
+  readonly length: number;
+  readonly ok: boolean;
+  readonly seals: readonly SealStatus[];
 }
 
 export type DistributionChannel =
@@ -388,7 +455,8 @@ export type ArtifactType =
   | "CASH_SHEET"
   | "PAYSLIP_PDF"
   | "MANIFEST"
-  | "EXCEPTION_REPORT";
+  | "EXCEPTION_REPORT"
+  | "TIMESTAMP_TOKEN";
 
 /** `artifacts` row — see `src/db/schema/artifacts.ts`. */
 export interface ArtifactRow {
