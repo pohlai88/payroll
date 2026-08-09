@@ -176,4 +176,43 @@ describe("parseEmployeeRow", () => {
     const headers = FIXED_HEADERS.map((h) => h.header);
     expect(new Set(headers).size).toBe(headers.length);
   });
+
+  it("rejects impossible calendar dates via isIsoDate", () => {
+    const row = baseRow();
+    row["Join Date"] = "2026-02-31";
+    const result = parseEmployeeRow(row, []);
+    if (!("errors" in result)) {
+      throw new Error("expected errors");
+    }
+    expect(result.errors.some((e) => e.field === "Join Date")).toBe(true);
+  });
+
+  it("accepts leap-day Join Date in a leap year", () => {
+    const row = baseRow();
+    row["Join Date"] = "2028-02-29";
+    const result = parseEmployeeRow(row, []);
+    expect("errors" in result).toBe(false);
+  });
+
+  it("rejects Person DOB after Join Date", () => {
+    const row = baseRow();
+    row["Person DOB"] = "2000-01-01";
+    row["Join Date"] = "1999-01-01";
+    const result = parseEmployeeRow(row, []);
+    if (!("errors" in result)) {
+      throw new Error("expected errors");
+    }
+    expect(
+      result.errors.some(
+        (e) => e.field === "Person DOB" && /Join Date/.test(e.reason)
+      )
+    ).toBe(true);
+  });
+
+  it("allows future Join Date appointments", () => {
+    const row = baseRow();
+    row["Join Date"] = "2027-01-01";
+    const result = parseEmployeeRow(row, []);
+    expect("errors" in result).toBe(false);
+  });
 });

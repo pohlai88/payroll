@@ -2,8 +2,29 @@ import { describe, expect, it } from "vitest";
 import {
   EMPLOYEE_IMPORT_MAX_BODY_BYTES,
   EmployeeImportError,
+  intraFileDuplicateKeys,
   parseEmployeeImportBody,
 } from "@/service/employee-import";
+
+describe("intraFileDuplicateKeys", () => {
+  it("flags duplicate company+employee codes within the batch", () => {
+    const keys = intraFileDuplicateKeys([
+      { "Payroll Company Code": "DLBB", "Employee Code": "A1" },
+      { "Payroll Company Code": "DLBB", "Employee Code": "A1" },
+      { "Payroll Company Code": "DLBB", "Employee Code": "A2" },
+    ]);
+    expect(keys.has("DLBB\0A1")).toBe(true);
+    expect(keys.has("DLBB\0A2")).toBe(false);
+  });
+
+  it("allows the same employee code under different companies", () => {
+    const keys = intraFileDuplicateKeys([
+      { "Payroll Company Code": "DLBB", "Employee Code": "A1" },
+      { "Payroll Company Code": "AFENDA", "Employee Code": "A1" },
+    ]);
+    expect(keys.size).toBe(0);
+  });
+});
 
 describe("parseEmployeeImportBody", () => {
   it("parses CSV rows", () => {

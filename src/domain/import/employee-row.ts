@@ -8,6 +8,7 @@
  */
 
 import { parseRM } from "@/domain/money";
+import { isIsoDate } from "@/domain/date";
 
 export type PayBasisValue = "MONTHLY" | "DAILY" | "HOURLY";
 
@@ -130,7 +131,6 @@ export const FIXED_HEADERS: ReadonlyArray<{
 ];
 
 const PAY_BASIS_VALUES = new Set(["MONTHLY", "DAILY", "HOURLY"]);
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 function blankToNull(value: string | undefined): string | null {
   const trimmed = (value ?? "").trim();
@@ -166,8 +166,10 @@ function parseCustomValue(
     return n;
   }
   if (dataType === "DATE") {
-    if (!ISO_DATE.test(raw)) {
-      throw new Error(`expected YYYY-MM-DD, got ${JSON.stringify(raw)}`);
+    if (!isIsoDate(raw)) {
+      throw new Error(
+        `expected a real calendar date YYYY-MM-DD, got ${JSON.stringify(raw)}`
+      );
     }
     return raw;
   }
@@ -216,18 +218,31 @@ export function parseEmployeeRow(
   }
 
   const joinDateRaw = (get("Join Date") ?? "").trim();
-  if (joinDateRaw !== "" && !ISO_DATE.test(joinDateRaw)) {
+  if (joinDateRaw !== "" && !isIsoDate(joinDateRaw)) {
     errors.push({
       field: "Join Date",
-      reason: `must be YYYY-MM-DD, got ${JSON.stringify(joinDateRaw)}`,
+      reason: `must be a real calendar date YYYY-MM-DD, got ${JSON.stringify(joinDateRaw)}`,
     });
   }
 
   const personDobRaw = blankToNull(get("Person DOB"));
-  if (personDobRaw !== null && !ISO_DATE.test(personDobRaw)) {
+  if (personDobRaw !== null && !isIsoDate(personDobRaw)) {
     errors.push({
       field: "Person DOB",
-      reason: `must be YYYY-MM-DD, got ${JSON.stringify(personDobRaw)}`,
+      reason: `must be a real calendar date YYYY-MM-DD, got ${JSON.stringify(personDobRaw)}`,
+    });
+  }
+
+  if (
+    personDobRaw !== null &&
+    isIsoDate(personDobRaw) &&
+    joinDateRaw !== "" &&
+    isIsoDate(joinDateRaw) &&
+    personDobRaw > joinDateRaw
+  ) {
+    errors.push({
+      field: "Person DOB",
+      reason: "must be on or before Join Date",
     });
   }
 

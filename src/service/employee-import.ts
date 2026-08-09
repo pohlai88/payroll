@@ -392,6 +392,33 @@ export async function validateImportHeaders(
   };
 }
 
+/**
+ * Keys that appear more than once in the file (company code + employee code).
+ * Detected before any persistence so both occurrences fail rather than the
+ * second depending on the first having just been inserted.
+ */
+export function intraFileDuplicateKeys(
+  rawRows: readonly Record<string, string | undefined>[]
+): Set<string> {
+  const counts = new Map<string, number>();
+  for (const raw of rawRows) {
+    const company = (raw["Payroll Company Code"] ?? "").trim();
+    const code = (raw["Employee Code"] ?? "").trim();
+    if (company === "" || code === "") {
+      continue;
+    }
+    const key = `${company}\0${code}`;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  const duplicates = new Set<string>();
+  for (const [key, count] of counts) {
+    if (count > 1) {
+      duplicates.add(key);
+    }
+  }
+  return duplicates;
+}
+
 export async function importEmployeeRows(
   db: Database,
   rawRows: readonly Record<string, string | undefined>[],
@@ -407,6 +434,8 @@ export async function importEmployeeRows(
 
   const { customFieldDefs } = validation;
 
+  const duplicateKeys = intraFileDuplicateKeys(rawRows);
+
   const rows: RowOutcome[] = [];
   let created = 0;
   let skippedExisting = 0;
@@ -415,6 +444,28 @@ export async function importEmployeeRows(
   for (let index = 0; index < rawRows.length; index += 1) {
     const raw = rawRows[index] as Record<string, string | undefined>;
     const rowNumber = index + 2; // header is row 1
+    const companyKey = (raw["Payroll Company Code"] ?? "").trim();
+    const codeKey = (raw["Employee Code"] ?? "").trim();
+    const fileKey =
+      companyKey !== "" && codeKey !== ""
+        ? `${companyKey}\0${codeKey}`
+        : null;
+    if (fileKey !== null && duplicateKeys.has(fileKey)) {
+      failed += 1;
+      rows.push({
+        status: "FAILED",
+        rowNumber,
+        employeeCode: codeKey || null,
+        errors: [
+          {
+            field: "Employee Code",
+            reason: `duplicate (Payroll Company Code, Employee Code) within the import file: ${companyKey}/${codeKey}`,
+          },
+        ],
+      });
+      continue;
+    }
+
     const parsed = parseEmployeeRow(raw, customFieldDefs);
 
     if ("errors" in parsed) {
