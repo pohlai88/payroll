@@ -157,7 +157,8 @@ export function payRunPayslipRoutes(db: Database) {
       const items = await db
         .select()
         .from(payLineItems)
-        .where(eq(payLineItems.lineId, lineId));
+        .where(eq(payLineItems.lineId, lineId))
+        .orderBy(payLineItems.sortSnap);
 
       const snap = line.employeeSnapshot as {
         id?: string;
