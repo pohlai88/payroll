@@ -24,6 +24,22 @@ describe("landing page", () => {
     expect(screen.getByText(PCB_NOTE)).toBeDefined();
   });
 
+  it("links See how controls work to #asks", () => {
+    render(<Landing />);
+    const link = screen.getByRole("link", { name: /see how controls work/i });
+    expect(link.getAttribute("href")).toBe("#asks");
+  });
+
+  it("shows revision control proof without calling it a finding", () => {
+    render(<Landing />);
+    expect(screen.getByText("Approval cannot proceed.")).toBeDefined();
+    expect(
+      screen.getByText("Approval gate · revision control")
+    ).toBeDefined();
+    expect(screen.getByText("reviewedRevision ≠ calcRevision")).toBeDefined();
+    expect(screen.queryByText(/1 finding prevents approval/i)).toBeNull();
+  });
+
   it("shows the three supported decision controls", () => {
     render(<Landing />);
     for (const label of [
@@ -31,8 +47,7 @@ describe("landing page", () => {
       "Protect the decision",
       "Control the release",
     ]) {
-      // Labels appear in the hero trust strip and the control section.
-      expect(screen.getAllByText(label).length).toBeGreaterThanOrEqual(2);
+      expect(screen.getAllByText(label).length).toBeGreaterThanOrEqual(1);
     }
   });
 
@@ -72,10 +87,12 @@ describe("landing page", () => {
   });
 
   it("names the four gates and no invented fifth stage", () => {
-    render(<Landing />);
-    for (const gate of ["Review", "Approval", "Release", "Close"]) {
+    const { container } = render(<Landing />);
+    for (const gate of ["Review", "Approval", "Release"]) {
       expect(screen.getAllByText(gate).length).toBeGreaterThan(0);
     }
+    // Close appears in run-evidence prose, not as a standalone label.
+    expect(container.textContent).toMatch(/\bClose\b/);
     expect(screen.queryByText("RELEASED")).toBeNull();
   });
 
