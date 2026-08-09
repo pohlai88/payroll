@@ -9,6 +9,22 @@ export type ControlErrorCode =
   | "VALIDATION_ERROR"
   | "CONFLICT";
 
+function defaultStatusFor(code: ControlErrorCode): number {
+  if (code === "NOT_FOUND") {
+    return 404;
+  }
+  if (
+    code === "GATE_BLOCKED" ||
+    code === "INVALID_STATE" ||
+    code === "STALE_REVISION" ||
+    code === "SCAN_INCOMPLETE" ||
+    code === "CONFLICT"
+  ) {
+    return 409;
+  }
+  return 400;
+}
+
 export class ControlError extends Error {
   readonly code: ControlErrorCode;
   readonly status: number;
@@ -17,16 +33,6 @@ export class ControlError extends Error {
     super(message);
     this.name = "ControlError";
     this.code = code;
-    this.status =
-      status ??
-      (code === "NOT_FOUND"
-        ? 404
-        : code === "GATE_BLOCKED" ||
-            code === "INVALID_STATE" ||
-            code === "STALE_REVISION" ||
-            code === "SCAN_INCOMPLETE" ||
-            code === "CONFLICT"
-          ? 409
-          : 400);
+    this.status = status ?? defaultStatusFor(code);
   }
 }

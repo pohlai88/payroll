@@ -195,12 +195,14 @@ export function detectReceivingRegistrationInvalid(
   if (facts.socsoApplicable && !facts.socsoNo?.trim()) {
     missing.push("socsoNo");
   }
-  if (facts.eisApplicable && !facts.socsoNo?.trim()) {
-    // EIS registration typically shares SOCSO employer/employee numbers in MY practice;
-    // flag missing socsoNo when EIS applies without it.
-    if (!missing.includes("socsoNo")) {
-      missing.push("socsoNo");
-    }
+  // EIS registration typically shares SOCSO employer/employee numbers in MY practice;
+  // flag missing socsoNo when EIS applies without it.
+  if (
+    facts.eisApplicable &&
+    !facts.socsoNo?.trim() &&
+    !missing.includes("socsoNo")
+  ) {
+    missing.push("socsoNo");
   }
   if (missing.length === 0) {
     return null;

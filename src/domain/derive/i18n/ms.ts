@@ -189,7 +189,9 @@ export const MS: Record<MessageKey, string> = {
   "doc.payslip.ytd-provisional": "TAHUN SEMASA (SEMENTARA)",
   "doc.payslip.statutory-wages": "GAJI BERKANUN",
   "doc.payslip.audit-annex": "LAMPIRAN AUDIT",
-  "doc.payslip.employer-note": "Sumbangan majikan \u2014 tidak ditolak daripada gaji anda.",
+  "doc.payslip.employer-note":
+    "Sumbangan majikan \u2014 tidak ditolak daripada gaji anda.",
   "doc.payslip.preview-watermark": "PRATONTON \u2014 TIDAK DIKELUARKAN",
-  "doc.payslip.employer-source-warning": "Identiti majikan diambil daripada rekod syarikat semasa \u2014 bukan rekod syarikat masa gaji diproses.",
+  "doc.payslip.employer-source-warning":
+    "Identiti majikan diambil daripada rekod syarikat semasa \u2014 bukan rekod syarikat masa gaji diproses.",
 };

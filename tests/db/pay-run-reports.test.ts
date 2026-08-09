@@ -136,6 +136,9 @@ describe("GET /v1/pay-runs/:runId/reports/payment-register", () => {
     expect(Array.isArray(body.rows)).toBe(true);
     expect((body.rows as unknown[]).length).toBeGreaterThan(0);
     const [row] = body.rows as Record<string, unknown>[];
+    if (row === undefined) {
+      throw new Error("no rows");
+    }
     expect(row.employeeCode).toBe("R001");
     expect(row.netSen).toBe(433500);
   });

@@ -185,9 +185,11 @@ export const EN = {
   "doc.payslip.ytd-provisional": "YEAR-TO-DATE (PROVISIONAL)",
   "doc.payslip.statutory-wages": "STATUTORY WAGE BASES",
   "doc.payslip.audit-annex": "CALCULATION & AUDIT ANNEX",
-  "doc.payslip.employer-note": "Employer-paid contributions \u2014 not deducted from your salary.",
+  "doc.payslip.employer-note":
+    "Employer-paid contributions \u2014 not deducted from your salary.",
   "doc.payslip.preview-watermark": "PREVIEW \u2014 NOT ISSUED",
-  "doc.payslip.employer-source-warning": "Employer identity sourced from current company record \u2014 not a payroll-time snapshot.",
+  "doc.payslip.employer-source-warning":
+    "Employer identity sourced from current company record \u2014 not a payroll-time snapshot.",
 } as const;
 
 export type MessageKey = keyof typeof EN;

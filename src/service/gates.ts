@@ -97,16 +97,18 @@ export async function evaluateGate(
     });
   }
 
-  if (gate === "CLOSE") {
-    if (run.status !== "APPROVED" && run.status !== "CLOSED") {
-      issues.push({
-        kind: "prerequisite",
-        code: "NOT_APPROVED",
-        message: "run must be APPROVED before CLOSE",
-      });
-    }
-    // Mechanical §1.5 checklist is owned by close.ts — not duplicated here.
+  if (
+    gate === "CLOSE" &&
+    run.status !== "APPROVED" &&
+    run.status !== "CLOSED"
+  ) {
+    issues.push({
+      kind: "prerequisite",
+      code: "NOT_APPROVED",
+      message: "run must be APPROVED before CLOSE",
+    });
   }
+  // Mechanical §1.5 checklist is owned by close.ts — not duplicated here.
 
   issues.push(...(await findingIssuesForGate(db, runId, gate, opts?.lineIds)));
 

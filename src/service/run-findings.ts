@@ -10,7 +10,6 @@ import { anomalyFindings, findingEvents } from "@/db/schema/findings";
 import { employments } from "@/db/schema/parties";
 import { payLineItems, payLines, payRuns, pcbEntries } from "@/db/schema/run";
 import {
-  ANOMALY_PACK_VERSION,
   NET_VARIANCE_ABS_SEN,
   NET_VARIANCE_PCT,
   OT_HOURS_OUTLIER,
@@ -25,8 +24,6 @@ import { scanRunTransferFindings } from "./findings";
 
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 type DbOrTx = Database | Transaction;
-
-export { ANOMALY_PACK_VERSION };
 
 interface LineScanRow {
   readonly lineId: string;
@@ -70,14 +67,14 @@ export async function scanRunFindings(
       );
     }
 
-    const detected = await detectRunFindings(tx, run);
+    const detectedFindings = await detectRunFindings(tx, run);
     // Run-scoped §8.6 transfer rules (prior tax, dual employer, registration…).
     await scanRunTransferFindings(tx, runId, "system");
     const scanned = await upsertRunFindings(
       tx,
       runId,
       run.calcRevision,
-      detected
+      detectedFindings
     );
 
     await tx
@@ -294,12 +291,7 @@ async function detectRunFindings(
       baseline.netSen !== null
     ) {
       const abs = Math.abs(line.netSen - baseline.netSen);
-      const pct =
-        baseline.netSen === 0
-          ? abs > 0
-            ? 1
-            : 0
-          : abs / Math.abs(baseline.netSen);
+      const pct = netVariancePct(abs, baseline.netSen);
       if (abs > NET_VARIANCE_ABS_SEN && pct > NET_VARIANCE_PCT) {
         out.push(
           detected("NET_VARIANCE_VS_PRIOR", run.id, line.lineId, {
@@ -508,7 +500,7 @@ async function upsertRunFindings(
   db: DbOrTx,
   runId: string,
   revision: string,
-  detected: DetectedFinding[]
+  detectedFindings: DetectedFinding[]
 ): Promise<number> {
   const existing = await db
     .select()
@@ -521,7 +513,7 @@ async function upsertRunFindings(
   let touched = 0;
   const seen = new Set<string>();
 
-  for (const d of detected) {
+  for (const d of detectedFindings) {
     const key = `${d.lineId ?? ""}:${d.ruleId}`;
     seen.add(key);
     const fingerprint = fingerprintOf(d.evidence);
@@ -694,6 +686,16 @@ async function loadPriorRegularBaseline(
   return { runId: priorRun.id, byEmployment };
 }
 
+function netVariancePct(
+  absVarianceSen: number,
+  baselineNetSen: number
+): number {
+  if (baselineNetSen === 0) {
+    return absVarianceSen > 0 ? 1 : 0;
+  }
+  return absVarianceSen / Math.abs(baselineNetSen);
+}
+
 function wagesSimilar(
   line: LineScanRow,
   baseline: { epfEeSen: number | null; netSen: number | null }
@@ -735,7 +737,7 @@ function statutoryStepShift(
 }
 
 function isAge57Plus(snap: Record<string, unknown>): boolean {
-  const age = snap.age;
+  const { age } = snap;
   return typeof age === "number" && age >= 57;
 }
 

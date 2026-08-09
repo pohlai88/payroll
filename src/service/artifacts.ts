@@ -128,6 +128,16 @@ export interface StoreAttachedEvidenceInput {
   readonly actor: string;
 }
 
+function toBytes(content: Buffer | Uint8Array | string): Uint8Array {
+  if (typeof content === "string") {
+    return new TextEncoder().encode(content);
+  }
+  if (content instanceof Uint8Array) {
+    return content;
+  }
+  return new Uint8Array(content);
+}
+
 /**
  * Entity-scoped evidence (transfer letters, prior-YTD payslips). Uses the same
  * ArtifactStore as run artifacts; keys are under `entities/…` when runId is absent.
@@ -143,12 +153,7 @@ export async function storeAttachedEvidence(
   byteSize: number;
 }> {
   const id = randomUUID();
-  const body =
-    typeof input.content === "string"
-      ? new TextEncoder().encode(input.content)
-      : input.content instanceof Uint8Array
-        ? input.content
-        : new Uint8Array(input.content);
+  const body = toBytes(input.content);
   const sha256 = createHash("sha256").update(body).digest("hex");
   const safeName = input.filename
     .replace(/[^a-zA-Z0-9._-]+/g, "_")

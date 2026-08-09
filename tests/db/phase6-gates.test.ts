@@ -81,15 +81,23 @@ async function setupComputedRun(): Promise<string> {
     actor: "tester@example.com",
   });
   const outcome = await recomputeRun(db, RUN_ID, "tester@example.com");
-  expect(outcome.failures).toEqual([]);
+  if (outcome.failures.length > 0) {
+    throw new Error(
+      `setup recompute failed: ${JSON.stringify(outcome.failures)}`
+    );
+  }
   const [run] = await db
     .select()
     .from(payRuns)
     .where(eq(payRuns.id, RUN_ID))
     .limit(1);
-  expect(run?.calcRevision).toBeTruthy();
-  expect(run?.findingsScannedRevision).toBe(run?.calcRevision);
-  return run!.calcRevision!;
+  if (!run?.calcRevision) {
+    throw new Error("setup did not produce a calcRevision");
+  }
+  if (run.findingsScannedRevision !== run.calcRevision) {
+    throw new Error("setup findings scan did not stamp calcRevision");
+  }
+  return run.calcRevision;
 }
 
 describe("Phase 6 gates", () => {

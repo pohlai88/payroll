@@ -82,7 +82,11 @@ beforeAll(async () => {
     actor: "control-test",
   });
   const outcome = await recomputeRun(db, RUN_ID, "control-test");
-  expect(outcome.failures).toEqual([]);
+  if (outcome.failures.length > 0) {
+    throw new Error(
+      `setup recompute failed: ${JSON.stringify(outcome.failures)}`
+    );
+  }
 });
 
 afterAll(async () => {
@@ -135,7 +139,7 @@ describe("control lifecycle", () => {
       .where(eq(paymentAttempts.batchId, batchId));
     expect(attempts).toHaveLength(1);
 
-    const attemptA = attempts[0];
+    const [attemptA] = attempts;
     if (attemptA === undefined) {
       throw new Error("missing attempt");
     }
@@ -155,7 +159,7 @@ describe("control lifecycle", () => {
       .select()
       .from(paymentAttempts)
       .where(eq(paymentAttempts.batchId, batch2));
-    const retry = retryAttempts[0];
+    const [retry] = retryAttempts;
     if (retry === undefined) {
       throw new Error("missing retry");
     }

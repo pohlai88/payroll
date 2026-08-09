@@ -240,7 +240,7 @@ export function computeLine(opts: ComposeOptions): LineResult {
   const netSen =
     deductionsTotalSen === null ? null : grossSen - deductionsTotalSen;
 
-  const hrdWagesSen = computedBases.hrdWagesSen;
+  const { hrdWagesSen } = computedBases;
   const hrdfLevySen =
     opts.hrdfLevyEnabled && (opts.hrdfLevyPct ?? settings.hrdfLevyPct) > 0
       ? pctHalfUpSen(hrdWagesSen, opts.hrdfLevyPct ?? settings.hrdfLevyPct)

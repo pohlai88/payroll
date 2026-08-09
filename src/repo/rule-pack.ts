@@ -206,12 +206,20 @@ export async function loadPayItems(db: Database): Promise<PayItemDef[]> {
       hrdWages: subjects.HRD ?? r.epfWages,
       prorates: r.prorates,
       pcbRemunerationClass:
-        pcbByItem.get(r.id) ??
-        (r.kind === "DEDUCTION"
-          ? "EXCLUDED"
-          : r.code === "BONUS"
-            ? "ADDITIONAL"
-            : "NORMAL"),
+        pcbByItem.get(r.id) ?? defaultPcbRemunerationClass(r.kind, r.code),
     };
   });
+}
+
+function defaultPcbRemunerationClass(
+  kind: string,
+  code: string
+): NonNullable<PayItemDef["pcbRemunerationClass"]> {
+  if (kind === "DEDUCTION") {
+    return "EXCLUDED";
+  }
+  if (code === "BONUS") {
+    return "ADDITIONAL";
+  }
+  return "NORMAL";
 }

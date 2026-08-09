@@ -1,7 +1,7 @@
 "use client";
 
 import { MenuIcon, XIcon } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { RULE_PACK } from "@/marketing/content";
 
 const NAV_LINKS = [
@@ -13,6 +13,9 @@ const NAV_LINKS = [
 
 export function SiteNav() {
   const [open, setOpen] = useState(false);
+
+  const toggleOpen = useCallback(() => setOpen((v) => !v), []);
+  const closeMenu = useCallback(() => setOpen(false), []);
 
   return (
     <header className="sticky top-0 z-50 border-rule border-b bg-paper/90 backdrop-blur-sm">
@@ -65,7 +68,7 @@ export function SiteNav() {
           aria-expanded={open}
           aria-label={open ? "Close menu" : "Open menu"}
           className="flex size-8 items-center justify-center rounded-sm border border-rule text-ink transition-colors hover:border-ink lg:hidden"
-          onClick={() => setOpen((v) => !v)}
+          onClick={toggleOpen}
           type="button"
         >
           {open ? (
@@ -77,7 +80,7 @@ export function SiteNav() {
       </nav>
 
       {/* Mobile drawer */}
-      {open && (
+      {Boolean(open) && (
         <div className="border-rule border-t bg-paper-card px-6 py-5 lg:hidden">
           <ul className="flex list-none flex-col gap-1 p-0">
             {NAV_LINKS.map((link) => (
@@ -85,7 +88,7 @@ export function SiteNav() {
                 <a
                   className="block rounded-sm px-3 py-2.5 text-ink text-sm no-underline transition-colors hover:bg-paper-deep hover:text-stamp"
                   href={link.href}
-                  onClick={() => setOpen(false)}
+                  onClick={closeMenu}
                 >
                   {link.label}
                 </a>

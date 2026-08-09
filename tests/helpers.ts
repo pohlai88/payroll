@@ -49,13 +49,21 @@ export function loadPayItems(): PayItemDef[] {
     eisWages: !!i.eisWages,
     hrdWages: !!i.epfWages,
     prorates: !!i.prorates,
-    pcbRemunerationClass:
-      i.kind === "DEDUCTION"
-        ? ("EXCLUDED" as const)
-        : i.code === "BONUS"
-          ? ("ADDITIONAL" as const)
-          : ("NORMAL" as const),
+    pcbRemunerationClass: defaultPcbRemunerationClass(i.kind, i.code),
   }));
+}
+
+function defaultPcbRemunerationClass(
+  kind: "EARNING" | "DEDUCTION",
+  code: string
+): NonNullable<PayItemDef["pcbRemunerationClass"]> {
+  if (kind === "DEDUCTION") {
+    return "EXCLUDED";
+  }
+  if (code === "BONUS") {
+    return "ADDITIONAL";
+  }
+  return "NORMAL";
 }
 
 /**

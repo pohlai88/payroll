@@ -246,10 +246,7 @@ export function roundUpToFiveSen(amountSen: number): number {
  * Kept here so that all Math.round calls that settle a monetary ratio live
  * inside this module (MY-STAT-S02 boundary rule).
  */
-export function roundBps(
-  deltaSen: number,
-  previousSen: number
-): number | null {
+export function roundBps(deltaSen: number, previousSen: number): number | null {
   return previousSen === 0
     ? null
     : Math.round((deltaSen / previousSen) * 10_000);

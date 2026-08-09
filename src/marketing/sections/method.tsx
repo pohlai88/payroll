@@ -41,7 +41,7 @@ export function Method() {
                 <span className="figure-nums shrink-0 font-display text-[2.5rem] text-stamp/40 leading-none transition-colors group-hover:text-stamp/70">
                   {item.index}
                 </span>
-                {ICONS[item.id] && (
+                {Boolean(ICONS[item.id]) && (
                   <svg
                     aria-hidden="true"
                     className="mt-1 size-5 shrink-0 text-ink-faint opacity-50 transition-opacity group-hover:opacity-100"

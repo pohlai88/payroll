@@ -160,8 +160,10 @@ function buildRegisterCsv(
   return [header, ...lines].join("\n");
 }
 
+const CSV_NEEDS_QUOTING_RE = /[",\n]/;
+
 function csvEscape(value: string): string {
-  if (/[",\n]/.test(value)) {
+  if (CSV_NEEDS_QUOTING_RE.test(value)) {
     return `"${value.replaceAll('"', '""')}"`;
   }
   return value;
