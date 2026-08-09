@@ -11,6 +11,7 @@ import { useParams } from "wouter";
 import type { RunStatus } from "@/components/payroll/status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import type {
+  ChecklistItem,
   EmployeeLineDto,
   GateKind,
   GateResult,
@@ -18,6 +19,7 @@ import type {
 } from "@/web/api/payroll-api";
 import { payrollApi } from "@/web/api/payroll-api";
 import { BatchDrawer } from "./batch-drawer";
+import { ClosureChecklistDialog } from "./closure-checklist-dialog";
 import { EmployeeGrid } from "./employee-grid";
 import { EmployeeSlideOver } from "./employee-slide-over";
 import { FindingsPanel } from "./findings-panel";
@@ -54,6 +56,14 @@ function WorkspacePage() {
   const [gateLoading, setGateLoading] = useState(false);
   const [gateSubmitting, setGateSubmitting] = useState(false);
   const [gateError, setGateError] = useState<string | null>(null);
+
+  const [closureDialogOpen, setClosureDialogOpen] = useState(false);
+  const [closureChecklist, setClosureChecklist] = useState<
+    readonly ChecklistItem[] | null
+  >(null);
+  const [closureLoading, setClosureLoading] = useState(false);
+  const [closureSubmitting, setClosureSubmitting] = useState(false);
+  const [closureError, setClosureError] = useState<string | null>(null);
 
   const [paymentsSelection, setPaymentsSelection] = useState<readonly string[]>(
     []
@@ -173,6 +183,53 @@ function WorkspacePage() {
     beginGateCheck("APPROVAL");
   }, [beginGateCheck]);
 
+  const closeClosureDialog = useCallback(() => {
+    if (closureSubmitting) {
+      return;
+    }
+    setClosureDialogOpen(false);
+    setClosureChecklist(null);
+    setClosureError(null);
+  }, [closureSubmitting]);
+
+  const handleClose = useCallback(async () => {
+    if (runId === undefined) {
+      return;
+    }
+    setClosureDialogOpen(true);
+    setClosureChecklist(null);
+    setClosureError(null);
+    setClosureLoading(true);
+    try {
+      const res = await payrollApi.getClosureChecklist(runId);
+      setClosureChecklist(res.checklist);
+    } catch (err) {
+      setClosureError(
+        err instanceof Error ? err.message : "Checklist evaluation failed"
+      );
+    } finally {
+      setClosureLoading(false);
+    }
+  }, [runId]);
+
+  const handleClosureConfirm = useCallback(async () => {
+    if (runId === undefined || closureChecklist === null) {
+      return;
+    }
+    setClosureSubmitting(true);
+    setClosureError(null);
+    try {
+      await payrollApi.closeRun(runId);
+      setClosureDialogOpen(false);
+      setClosureChecklist(null);
+      await reload();
+    } catch (err) {
+      setClosureError(err instanceof Error ? err.message : "Close failed");
+    } finally {
+      setClosureSubmitting(false);
+    }
+  }, [closureChecklist, reload, runId]);
+
   const handleGateConfirm = useCallback(async () => {
     if (
       runId === undefined ||
@@ -239,6 +296,7 @@ function WorkspacePage() {
     <div className="-m-6 flex flex-col gap-4">
       <RunHeader
         onApprove={handleApprove}
+        onClose={handleClose}
         onRecompute={handleRecompute}
         onReview={handleReview}
         view={view}
@@ -300,6 +358,16 @@ function WorkspacePage() {
         open={gateDialogOpen}
         result={gateResult}
         submitting={gateSubmitting}
+      />
+
+      <ClosureChecklistDialog
+        checklist={closureChecklist}
+        error={closureError}
+        loading={closureLoading}
+        onClose={closeClosureDialog}
+        onConfirm={handleClosureConfirm}
+        open={closureDialogOpen}
+        submitting={closureSubmitting}
       />
 
       <BatchDrawer

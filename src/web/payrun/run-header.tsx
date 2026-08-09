@@ -25,9 +25,16 @@ interface RunHeaderProps {
   readonly onRecompute: () => void;
   readonly onReview: () => void;
   readonly onApprove: () => void;
+  readonly onClose: () => void;
 }
 
-function RunHeader({ view, onRecompute, onReview, onApprove }: RunHeaderProps) {
+function RunHeader({
+  view,
+  onRecompute,
+  onReview,
+  onApprove,
+  onClose,
+}: RunHeaderProps) {
   const { run, actionAvailability: avail } = view;
 
   return (
@@ -59,6 +66,11 @@ function RunHeader({ view, onRecompute, onReview, onApprove }: RunHeaderProps) {
         {avail.canApprove ? (
           <Button onClick={onApprove} size="sm">
             Approve
+          </Button>
+        ) : null}
+        {avail.canClose ? (
+          <Button onClick={onClose} size="sm">
+            Close run
           </Button>
         ) : null}
       </div>
