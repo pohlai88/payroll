@@ -12,6 +12,7 @@ import type {
 } from "@/web/payrun/payslip-document/types";
 import {
   type AdminUsersResponse,
+  type AnnualRemunerationSummaryDto,
   ApiClientError,
   type ApiErrorBody,
   type ArtifactsListResponse,
@@ -20,12 +21,14 @@ import {
   type ClosureChecklistResponse,
   type DistributionChannel,
   type EmployeeSummary,
+  type ExceptionReportDto,
   type FindingsListResponse,
   type GateKind,
   type GateResult,
   type GetBatchResponse,
   type ImportReportResponse,
   type MeResponse,
+  type PaymentRegisterDto,
   type PaymentsListResponse,
   type PayRunSummary,
   type PayRunWorkspaceView,
@@ -36,6 +39,7 @@ import {
   type RunLineDiffDto,
   SessionExpiredError,
   type SignedArtifactUrlResponse,
+  type StatutorySummaryDto,
   type StoreArtifactResponse,
   type WithdrawalReason,
 } from "./types";
@@ -332,13 +336,21 @@ export function createApiClient(deps: ApiClientDeps) {
       requestJson<RunLineDiffDto>(`/v1/pay-runs/${runId}/lines/${lineId}/diff`),
     // Report endpoints
     getPaymentRegister: (runId: string) =>
-      requestJson<any>(`/v1/pay-runs/${runId}/reports/payment-register`),
+      requestJson<PaymentRegisterDto>(
+        `/v1/pay-runs/${runId}/reports/payment-register`
+      ),
     getStatutorySummary: (runId: string) =>
-      requestJson<any>(`/v1/pay-runs/${runId}/reports/statutory-summary`),
+      requestJson<StatutorySummaryDto>(
+        `/v1/pay-runs/${runId}/reports/statutory-summary`
+      ),
     getExceptionReport: (runId: string) =>
-      requestJson<any>(`/v1/pay-runs/${runId}/reports/exception-report`),
+      requestJson<ExceptionReportDto>(
+        `/v1/pay-runs/${runId}/reports/exception-report`
+      ),
     getAnnualRemunerationSummary: (employeeId: string, year: number) =>
-      requestJson<any>(`/v1/employees/${employeeId}/remuneration-summary/${year}`),
+      requestJson<AnnualRemunerationSummaryDto>(
+        `/v1/employees/${employeeId}/remuneration-summary/${year}`
+      ),
   };
 }
 

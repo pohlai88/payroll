@@ -17,7 +17,7 @@ function PaymentRegister({ data }: PaymentRegisterProps) {
         </div>
         <button
           className="rounded border px-3 py-1.5 font-medium text-xs"
-          onClick={window.print}
+          onClick={() => window.print()}
           type="button"
         >
           Print

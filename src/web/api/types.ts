@@ -446,3 +446,79 @@ export interface RunLineDiffDto {
   readonly priorRunId: string | null;
   readonly diffs: readonly NodeDiffRow[];
 }
+
+export interface ReportMeta {
+  readonly companyId: string;
+  readonly companyName: string;
+  readonly runId?: string;
+  readonly runStatus?: string;
+  readonly calcRevision?: string | null;
+  readonly generatedAt: string;
+  readonly reportSchemaVersion: string;
+}
+
+export interface PaymentRegisterRow {
+  readonly lineId: string;
+  readonly employeeCode: string;
+  readonly employeeName: string;
+  readonly netSen: number | null;
+  readonly paymentState: string | null;
+  readonly paymentRef: string | null;
+  readonly maskedBankAccount: string | null;
+}
+
+export interface PaymentRegisterDto {
+  readonly reportMeta: ReportMeta;
+  readonly rows: readonly PaymentRegisterRow[];
+  readonly totalNetSen: number;
+}
+
+export interface StatutorySummaryDto {
+  readonly reportMeta: ReportMeta;
+  readonly employeeCount: number;
+  readonly grossTotalSen: number;
+  readonly netTotalSen: number;
+  readonly epfEeTotalSen: number;
+  readonly epfErTotalSen: number;
+  readonly socsoEeCoreTotalSen: number;
+  readonly socsoErTotalSen: number;
+  readonly eisEeTotalSen: number;
+  readonly eisErTotalSen: number;
+  readonly pcbNetTotalSen: number;
+  readonly cp38TotalSen: number;
+}
+
+export interface ExceptionFindingRow {
+  readonly id: string;
+  readonly severity: string;
+  readonly status: string;
+  readonly title: string;
+  readonly detail: string;
+  readonly lineId: string | null;
+  readonly employeeName: string | null;
+}
+
+export interface ExceptionReportDto {
+  readonly reportMeta: ReportMeta;
+  readonly findings: readonly ExceptionFindingRow[];
+}
+
+export interface AnnualRemunerationSummaryDto {
+  readonly reportMeta: ReportMeta;
+  readonly year: number;
+  readonly employeeId: string;
+  readonly employeeName: string;
+  readonly employeeCode: string;
+  readonly runsIncluded: readonly string[];
+  readonly months: readonly string[];
+  readonly grossSen: number;
+  readonly netSen: number;
+  readonly epfEeSen: number;
+  readonly epfErSen: number;
+  readonly socsoEeCoreSen: number;
+  readonly eisEeSen: number;
+  readonly pcbNetSen: number;
+  readonly cp38Sen: number;
+  readonly limitationNotice: string;
+  readonly disclaimer: string;
+}

@@ -9,12 +9,21 @@ import type {
 } from "@/web/payrun/payslip-document/types";
 import type { GetEmployeesParams, GetPayRunsParams } from "./client";
 import { createApiClient } from "./client";
-import type { GateKind, ReleaseMethod, RunLineDiffDto } from "./types";
+import type {
+  AnnualRemunerationSummaryDto,
+  ExceptionReportDto,
+  GateKind,
+  PaymentRegisterDto,
+  ReleaseMethod,
+  RunLineDiffDto,
+  StatutorySummaryDto,
+} from "./types";
 
 export type { GetEmployeesParams, GetPayRunsParams } from "./client";
 export type {
   ActionAvailability,
   AggregateTile,
+  AnnualRemunerationSummaryDto,
   ArtifactRow,
   ArtifactsListResponse,
   ArtifactType,
@@ -25,6 +34,8 @@ export type {
   EmployeeLineDto,
   EmployeeSummary,
   EmployeeVarianceDto,
+  ExceptionFindingRow,
+  ExceptionReportDto,
   FindingRow,
   FindingSeverity,
   FindingStatus,
@@ -41,6 +52,8 @@ export type {
   NodeDiffRow,
   PaymentAttempt,
   PaymentAttemptStatus,
+  PaymentRegisterDto,
+  PaymentRegisterRow,
   PaymentsListResponse,
   PayRunSummary,
   PayRunWorkspaceView,
@@ -52,11 +65,13 @@ export type {
   ReleaseExcludedLine,
   ReleaseMethod,
   ReleasePreviewResponse,
+  ReportMeta,
   RootValue,
   RunLineDiffDto,
   RunSummary,
   SignedArtifactUrlResponse,
   SparkPoint,
+  StatutorySummaryDto,
   StoreArtifactResponse,
   VarianceDto,
   WithdrawalReason,
@@ -177,119 +192,31 @@ export function fetchLineDiff(
   return getPayrollApi().getLineDiff(runId, lineId);
 }
 
-// ── Report DTOs ───────────────────────────────────────────────────────────
-
-export interface ReportMeta {
-  readonly companyId: string;
-  readonly companyName: string;
-  readonly runId?: string;
-  readonly runStatus?: string;
-  readonly calcRevision?: string | null;
-  readonly generatedAt: string;
-  readonly reportSchemaVersion: string;
-}
-
-export interface PaymentRegisterRow {
-  readonly lineId: string;
-  readonly employeeCode: string;
-  readonly employeeName: string;
-  readonly netSen: number | null;
-  readonly paymentState: string | null;
-  readonly paymentRef: string | null;
-  readonly maskedBankAccount: string | null;
-}
-
-export interface PaymentRegisterDto {
-  readonly reportMeta: ReportMeta;
-  readonly rows: readonly PaymentRegisterRow[];
-  readonly totalNetSen: number;
-}
-
-export interface StatutorySummaryDto {
-  readonly reportMeta: ReportMeta;
-  readonly employeeCount: number;
-  readonly grossTotalSen: number;
-  readonly netTotalSen: number;
-  readonly epfEeTotalSen: number;
-  readonly epfErTotalSen: number;
-  readonly socsoEeCoreTotalSen: number;
-  readonly socsoErTotalSen: number;
-  readonly eisEeTotalSen: number;
-  readonly eisErTotalSen: number;
-  readonly pcbNetTotalSen: number;
-  readonly cp38TotalSen: number;
-}
-
-export interface ExceptionFindingRow {
-  readonly id: string;
-  readonly severity: string;
-  readonly status: string;
-  readonly title: string;
-  readonly detail: string;
-  readonly lineId: string | null;
-  readonly employeeName: string | null;
-}
-
-export interface ExceptionReportDto {
-  readonly reportMeta: ReportMeta;
-  readonly findings: readonly ExceptionFindingRow[];
-}
-
-export interface AnnualRemunerationSummaryDto {
-  readonly reportMeta: ReportMeta;
-  readonly year: number;
-  readonly employeeId: string;
-  readonly employeeName: string;
-  readonly employeeCode: string;
-  readonly runsIncluded: readonly string[];
-  readonly months: readonly string[];
-  readonly grossSen: number;
-  readonly netSen: number;
-  readonly epfEeSen: number;
-  readonly epfErSen: number;
-  readonly socsoEeCoreSen: number;
-  readonly eisEeSen: number;
-  readonly pcbNetSen: number;
-  readonly cp38Sen: number;
-  readonly limitationNotice: string;
-  readonly disclaimer: string;
-}
-
 export function fetchPaymentRegister(
   runId: string
 ): Promise<PaymentRegisterDto> {
-  return getPayrollApi().getPaymentRegister(
-    runId
-  ) as Promise<PaymentRegisterDto>;
+  return getPayrollApi().getPaymentRegister(runId);
 }
 
 export function fetchStatutorySummary(
   runId: string
 ): Promise<StatutorySummaryDto> {
-  return getPayrollApi().getStatutorySummary(
-    runId
-  ) as Promise<StatutorySummaryDto>;
+  return getPayrollApi().getStatutorySummary(runId);
 }
 
 export function fetchExceptionReport(
   runId: string
 ): Promise<ExceptionReportDto> {
-  return getPayrollApi().getExceptionReport(
-    runId
-  ) as Promise<ExceptionReportDto>;
+  return getPayrollApi().getExceptionReport(runId);
 }
 
 export function fetchAnnualRemunerationSummary(
   employeeId: string,
   year: number
 ): Promise<AnnualRemunerationSummaryDto> {
-  return getPayrollApi().getAnnualRemunerationSummary(
-    employeeId,
-    year
-  ) as Promise<AnnualRemunerationSummaryDto>;
+  return getPayrollApi().getAnnualRemunerationSummary(employeeId, year);
 }
 
-// Convenience functions for fetching pay runs and employees - these already exist but need to be re-exported
 export function fetchPayRuns(companyId?: string) {
   return getPayrollApi().getPayRuns({ companyId });
 }
