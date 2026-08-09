@@ -178,4 +178,18 @@ export const MS: Record<MessageKey, string> = {
   // ---- generic operations ----
   "op.sum": "Jumlah",
   "op.percent": "{pct} daripada {base}",
+
+  // Phase 8 — payslip document section labels
+  "doc.payslip.title": "PENYATA GAJI",
+  "doc.payslip.earnings": "PENDAPATAN",
+  "doc.payslip.deductions": "POTONGAN",
+  "doc.payslip.employer-contributions": "SUMBANGAN MAJIKAN",
+  "doc.payslip.net-pay": "GAJI BERSIH",
+  "doc.payslip.ytd": "TAHUN SEMASA",
+  "doc.payslip.ytd-provisional": "TAHUN SEMASA (SEMENTARA)",
+  "doc.payslip.statutory-wages": "GAJI BERKANUN",
+  "doc.payslip.audit-annex": "LAMPIRAN AUDIT",
+  "doc.payslip.employer-note": "Sumbangan majikan \u2014 tidak ditolak daripada gaji anda.",
+  "doc.payslip.preview-watermark": "PRATONTON \u2014 TIDAK DIKELUARKAN",
+  "doc.payslip.employer-source-warning": "Identiti majikan diambil daripada rekod syarikat semasa \u2014 bukan rekod syarikat masa gaji diproses.",
 };

@@ -174,6 +174,20 @@ export const EN = {
   // ---- generic operations ----
   "op.sum": "Sum",
   "op.percent": "{pct} of {base}",
+
+  // Phase 8 — payslip document section labels
+  "doc.payslip.title": "PAYSLIP",
+  "doc.payslip.earnings": "EARNINGS",
+  "doc.payslip.deductions": "EMPLOYEE DEDUCTIONS",
+  "doc.payslip.employer-contributions": "EMPLOYER CONTRIBUTIONS",
+  "doc.payslip.net-pay": "NET PAY",
+  "doc.payslip.ytd": "YEAR-TO-DATE",
+  "doc.payslip.ytd-provisional": "YEAR-TO-DATE (PROVISIONAL)",
+  "doc.payslip.statutory-wages": "STATUTORY WAGE BASES",
+  "doc.payslip.audit-annex": "CALCULATION & AUDIT ANNEX",
+  "doc.payslip.employer-note": "Employer-paid contributions \u2014 not deducted from your salary.",
+  "doc.payslip.preview-watermark": "PREVIEW \u2014 NOT ISSUED",
+  "doc.payslip.employer-source-warning": "Employer identity sourced from current company record \u2014 not a payroll-time snapshot.",
 } as const;
 
 export type MessageKey = keyof typeof EN;
