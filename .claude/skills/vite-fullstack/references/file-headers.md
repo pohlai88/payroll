@@ -10,16 +10,18 @@ Run before claiming a slice done (or periodically):
 
 ```bash
 # True untagged (no @feature anywhere in file)
-rg -L --glob '*.ts' --glob '*.tsx' --glob '!**/vite-env.d.ts' --glob '!**/node_modules/**' '@feature ' src tests scripts
+rg --files-without-match --glob '*.ts' --glob '*.tsx' --glob '!**/vite-env.d.ts' --glob '!**/node_modules/**' '@feature ' src tests scripts
 
 # Hubs (expect 17: 16 API route hubs + marketing landing; pay-run-access is not a hub)
 rg -l --glob '*.ts' --glob '*.tsx' '(?m)^\s*\* @chain' src
 
 # Leaves that require @hub (repo, service, feature UI, payslip-document, feature-bound studio/payroll)
 # Expect: no output (or only shell-optional files you intentionally skip)
-rg -L '@hub |@chain' src/repo src/service
-rg -L '@hub |@chain' src/web/payrun src/web/control src/web/reports src/web/employees src/web/companies src/web/admin src/web/dashboard src/components/payroll
+rg --files-without-match '@hub |@chain' src/repo src/service
+rg --files-without-match '@hub |@chain' src/web/payrun src/web/control src/web/reports src/web/employees src/web/companies src/web/admin src/web/dashboard src/components/payroll
 ```
+
+PowerShell: quote patterns containing `|` (e.g. `"@hub |@chain"`) — unquoted `|` is the pipe operator.
 
 PowerShell equivalent for untagged:
 
