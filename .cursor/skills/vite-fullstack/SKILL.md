@@ -101,7 +101,7 @@ For ongoing increments (not greenfield discovery):
 - Mutations use service RBAC; schema changes migrated; test if persistence/auth touched
 - UI changes came from `/rui` `/cui` or `/iui` and land in the Vite paths above (not Next `app/`)
 - Touched feature files have `@feature` / `@layer`; API hub has `@chain`; leaves have `@hub` ([file-headers.md](references/file-headers.md))
-- Untagged audit clean for touched trees: `rg -L '@feature ' …` (see file-headers.md Audit)
+- Untagged audit clean for touched trees (see file-headers.md Audit — use --files-without-match)
 
 ## References
 
