@@ -14,6 +14,9 @@ import {
   createPool,
   requireDatabaseUrl,
 } from "../src/db/client";
+import { loadEnvLocal } from "../src/server/load-env-local";
+
+loadEnvLocal();
 
 const MIGRATIONS_FOLDER = "src/db/migrations";
 

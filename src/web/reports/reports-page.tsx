@@ -23,6 +23,7 @@ import {
   useState,
 } from "react";
 import EmptyState01 from "@/components/shadcn-studio/blocks/empty-state-01/empty-state-01";
+import { VerticalIconTabs } from "@/components/shadcn-studio/tabs/tabs-22";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TabsContent } from "@/components/ui/tabs";
 import { formatApiError } from "@/web/api/format-error";
 import {
   type AnnualRemunerationSummaryDto,
@@ -253,64 +254,43 @@ function ReportsPage() {
         title="Reports"
       />
 
-      <Tabs
-        className="min-h-[28rem] overflow-hidden rounded-xl border bg-card"
+      <VerticalIconTabs
         onValueChange={onTabChange}
-        orientation="vertical"
+        sidebarLabel="Report type"
+        tabs={REPORT_TYPES.map((rt) => ({
+          id: rt.id,
+          label: rt.label,
+          icon: rt.icon,
+        }))}
         value={activeType}
       >
-        <div className="w-56 shrink-0 space-y-1 border-r p-4">
-          <p className="mb-3 font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-            Report type
-          </p>
-          <TabsList
-            className="h-auto w-full flex-col bg-transparent p-0"
-            variant="line"
-          >
-            {REPORT_TYPES.map((rt) => (
-              <TabsTrigger
-                className="w-full justify-start gap-2 px-3 py-2 data-active:bg-primary/10 data-active:text-primary"
-                key={rt.id}
-                value={rt.id}
-              >
-                {rt.icon}
-                <span className="truncate">{rt.label}</span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </div>
-
-        <div className="flex-1 space-y-4 overflow-auto p-6">
-          <TabsContent className="mt-0 space-y-4" value={activeType}>
-            <header className="space-y-1">
-              <h2 className="font-semibold text-lg tracking-tight">
-                {activeLabel}
-              </h2>
-              <p className="text-muted-foreground text-sm">
-                {activeDescription}
-              </p>
-            </header>
-            <ReportFilters
-              activeType={activeType}
-              filteredEmps={filteredEmps}
-              filteredRuns={filteredRuns}
-              onEmpChange={onEmpChange}
-              onLoad={load}
-              onRunChange={onRunChange}
-              onYearChange={onYearChange}
-              selectedEmpId={selectedEmpId}
-              selectedRunId={selectedRunId}
-              selectedYear={selectedYear}
-            />
-            <ReportBody
-              activeType={activeType}
-              data={data}
-              error={error}
-              loading={loading}
-            />
-          </TabsContent>
-        </div>
-      </Tabs>
+        <TabsContent className="mt-0 space-y-4" value={activeType}>
+          <header className="space-y-1">
+            <h2 className="font-semibold text-lg tracking-tight">
+              {activeLabel}
+            </h2>
+            <p className="text-muted-foreground text-sm">{activeDescription}</p>
+          </header>
+          <ReportFilters
+            activeType={activeType}
+            filteredEmps={filteredEmps}
+            filteredRuns={filteredRuns}
+            onEmpChange={onEmpChange}
+            onLoad={load}
+            onRunChange={onRunChange}
+            onYearChange={onYearChange}
+            selectedEmpId={selectedEmpId}
+            selectedRunId={selectedRunId}
+            selectedYear={selectedYear}
+          />
+          <ReportBody
+            activeType={activeType}
+            data={data}
+            error={error}
+            loading={loading}
+          />
+        </TabsContent>
+      </VerticalIconTabs>
     </div>
   );
 }

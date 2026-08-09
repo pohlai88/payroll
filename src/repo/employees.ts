@@ -14,7 +14,9 @@ import { employments, persons } from "@/db/schema/parties";
 
 /** Keep in sync with `src/web/api/types.ts` `EmployeeSummary`. */
 export interface EmployeeSummary {
+  /** Employment id — use as `fromEmploymentId` for transfers. */
   readonly id: string;
+  readonly personId: string;
   readonly code: string;
   readonly name: string;
   readonly companyId: string;
@@ -45,6 +47,7 @@ export async function listEmployeeSummaries(
   const rows = await db
     .select({
       id: employments.id,
+      personId: employments.personId,
       code: employments.employeeCode,
       name: persons.name,
       companyId: employments.companyId,

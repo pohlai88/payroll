@@ -97,6 +97,12 @@ function requireApiBase(): string {
   return base.trim();
 }
 
+const devAuthBypass = import.meta.env.VITE_DEV_AUTH_BYPASS === "true";
+
+function devToken(): Promise<string> {
+  return Promise.resolve("dev-bypass");
+}
+
 type PayrollApi = ReturnType<typeof createApiClient>;
 
 let payrollApiSingleton: PayrollApi | null = null;
@@ -105,7 +111,7 @@ export function getPayrollApi(): PayrollApi {
   if (payrollApiSingleton === null) {
     payrollApiSingleton = createApiClient({
       apiBase: requireApiBase(),
-      acquireToken: acquireAccessToken,
+      acquireToken: devAuthBypass ? devToken : acquireAccessToken,
     });
   }
   return payrollApiSingleton;
@@ -133,6 +139,19 @@ export const payrollApi = {
     userId: string,
     body: Parameters<PayrollApi["revokeUserRole"]>[1]
   ) => getPayrollApi().revokeUserRole(userId, body),
+  // --- @feature rbac @layer client ---
+  getAdminRoles: () => getPayrollApi().getAdminRoles(),
+  createAdminRole: (body: Parameters<PayrollApi["createAdminRole"]>[0]) =>
+    getPayrollApi().createAdminRole(body),
+  deleteAdminRole: (roleId: string) => getPayrollApi().deleteAdminRole(roleId),
+  grantAdminRolePermission: (
+    roleId: string,
+    body: Parameters<PayrollApi["grantAdminRolePermission"]>[1]
+  ) => getPayrollApi().grantAdminRolePermission(roleId, body),
+  revokeAdminRolePermission: (
+    roleId: string,
+    body: Parameters<PayrollApi["revokeAdminRolePermission"]>[1]
+  ) => getPayrollApi().revokeAdminRolePermission(roleId, body),
   // --- @feature companies @layer client ---
   getAdminCompanies: () => getPayrollApi().getAdminCompanies(),
   createAdminCompany: (body: Parameters<PayrollApi["createAdminCompany"]>[0]) =>
@@ -141,6 +160,8 @@ export const payrollApi = {
     companyId: string,
     body: Parameters<PayrollApi["updateAdminCompany"]>[1]
   ) => getPayrollApi().updateAdminCompany(companyId, body),
+  deleteAdminCompany: (companyId: string) =>
+    getPayrollApi().deleteAdminCompany(companyId),
   // --- @feature employee-import @layer client ---
   downloadEmployeeImportTemplate: (companyId?: string | null) =>
     getPayrollApi().downloadEmployeeImportTemplate(companyId),

@@ -4,8 +4,8 @@
  * @hub src/server/routes/admin-companies.ts
  *
  * Companies — multicompany directory for SYSTEM_ADMIN.
- * Studio blocks: statistics-with-status (12), form-layout-01 (company-form),
- * empty-state-01, datatable-company.
+ * Studio DNA: statistics-with-status, form-layout-01, empty-state-01,
+ * datatable-company (iui: datatable-component-06 actions/toolbar).
  */
 
 import {
@@ -21,16 +21,20 @@ import CompanyForm from "@/components/shadcn-studio/blocks/form-layout-01/compan
 import StatisticsWithStatus, {
   type StatCard,
 } from "@/components/shadcn-studio/blocks/statistics-with-status";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatApiError } from "@/web/api/format-error";
+import { useAsyncLoad } from "@/hooks/use-async-load";
+import { useDialogSubmit } from "@/hooks/use-dialog-submit";
 import { payrollApi } from "@/web/api/payroll-api";
 import type { AdminCompanyRow, CreateAdminCompanyBody } from "@/web/api/types";
 import { useAuthContext } from "@/web/context/auth-context";
@@ -38,34 +42,30 @@ import { PageTitle } from "@/web/shell/page-title";
 
 function CompaniesPage() {
   const { isSystemAdmin, loading: authLoading } = useAuthContext();
-  const [companies, setCompanies] = useState<readonly AdminCompanyRow[] | null>(
-    null
-  );
-  const [error, setError] = useState<string | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<AdminCompanyRow | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [deleting, setDeleting] = useState<AdminCompanyRow | null>(null);
 
-  const reload = useCallback(async () => {
+  const loadCompanies = useCallback(async () => {
     const result = await payrollApi.getAdminCompanies();
-    setCompanies(result.companies);
-    setError(null);
+    return result.companies;
   }, []);
+
+  const {
+    data: companies,
+    loading,
+    error: loadError,
+    reload,
+  } = useAsyncLoad(loadCompanies, "Failed to load companies");
+
+  const formSubmit = useDialogSubmit();
+  const deleteSubmit = useDialogSubmit();
 
   useEffect(() => {
     if (authLoading || !isSystemAdmin) {
       return;
     }
-    let cancelled = false;
-    reload().catch((cause: unknown) => {
-      if (!cancelled) {
-        setError(formatApiError(cause));
-        setCompanies([]);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
+    void reload();
   }, [authLoading, isSystemAdmin, reload]);
 
   const stats = useMemo(() => {
@@ -80,18 +80,23 @@ function CompaniesPage() {
 
   const openCreate = () => {
     setEditing(null);
-    setDialogOpen(true);
+    formSubmit.reset();
+    setFormOpen(true);
   };
 
   const openEdit = (company: AdminCompanyRow) => {
     setEditing(company);
-    setDialogOpen(true);
+    formSubmit.reset();
+    setFormOpen(true);
   };
 
-  const onSubmit = async (values: CreateAdminCompanyBody) => {
-    setBusy(true);
-    setError(null);
-    try {
+  const openDelete = (company: AdminCompanyRow) => {
+    setDeleting(company);
+    deleteSubmit.reset();
+  };
+
+  const onFormSubmit = async (values: CreateAdminCompanyBody) => {
+    await formSubmit.run(async () => {
       if (editing === null) {
         await payrollApi.createAdminCompany(values);
       } else {
@@ -104,14 +109,22 @@ function CompaniesPage() {
           hrdfLevyPct: values.hrdfLevyPct,
         });
       }
-      setDialogOpen(false);
+      setFormOpen(false);
       setEditing(null);
       await reload();
-    } catch (cause) {
-      setError(formatApiError(cause));
-    } finally {
-      setBusy(false);
+    }, "Failed to save company");
+  };
+
+  const onConfirmDelete = async () => {
+    if (deleting === null) {
+      return;
     }
+    const companyId = deleting.id;
+    await deleteSubmit.run(async () => {
+      await payrollApi.deleteAdminCompany(companyId);
+      setDeleting(null);
+      await reload();
+    }, "Failed to delete company");
   };
 
   if (authLoading) {
@@ -144,8 +157,6 @@ function CompaniesPage() {
     );
   }
 
-  // Hoisted out of JSX so the render stays flat: each tile owns its own
-  // governance valence rather than repeating ternaries inline.
   const statCards: readonly StatCard[] = [
     {
       title: "Companies",
@@ -173,6 +184,8 @@ function CompaniesPage() {
     },
   ];
 
+  const pageError = loadError ?? formSubmit.error ?? deleteSubmit.error;
+
   return (
     <div className="space-y-6">
       <PageTitle
@@ -186,14 +199,14 @@ function CompaniesPage() {
         title="Companies"
       />
 
-      {error === null ? null : (
-        <p className="text-destructive text-sm" role="alert">
-          {error}
-        </p>
+      {pageError === null ? null : (
+        <Alert role="alert" variant="destructive">
+          <AlertDescription>{pageError}</AlertDescription>
+        </Alert>
       )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {companies === null
+        {companies === null || loading
           ? Array.from({ length: 3 }, (_, index) => (
               <Skeleton className="h-36 w-full rounded-xl" key={index} />
             ))
@@ -209,11 +222,17 @@ function CompaniesPage() {
             ))}
       </div>
 
-      {companies === null ? (
+      {companies === null || loading ? (
         <Skeleton className="h-96 w-full rounded-xl" />
-      ) : companies.length === 0 && error === null ? (
+      ) : companies.length === 0 ? (
         <div className="flex justify-center py-6">
           <EmptyState01
+            action={
+              <Button onClick={openCreate} type="button">
+                <PlusIcon className="size-4" />
+                Add company
+              </Button>
+            }
             description="Payroll companies"
             emptyDetail="Seed db/seed/companies.json or add the first company here."
             emptyTitle="No companies yet"
@@ -228,6 +247,7 @@ function CompaniesPage() {
           <CardContent className="p-0">
             <CompanyDatatable
               data={companies}
+              onDelete={openDelete}
               onEdit={openEdit}
               title="Company directory"
             />
@@ -237,29 +257,90 @@ function CompaniesPage() {
 
       <Dialog
         onOpenChange={(open) => {
-          setDialogOpen(open);
+          setFormOpen(open);
           if (!open) {
             setEditing(null);
+            formSubmit.reset();
           }
         }}
-        open={dialogOpen}
+        open={formOpen}
       >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
               {editing === null ? "Add company" : `Edit ${editing.code}`}
             </DialogTitle>
+            <DialogDescription>
+              {editing === null
+                ? "Create a legal entity for imports and pay-run scope."
+                : "Update statutory identifiers and HRDF settings."}
+            </DialogDescription>
           </DialogHeader>
+          {formSubmit.error === null ? null : (
+            <Alert variant="destructive">
+              <AlertDescription>{formSubmit.error}</AlertDescription>
+            </Alert>
+          )}
           <CompanyForm
-            busy={busy}
+            busy={formSubmit.submitting}
             initial={editing}
+            key={editing?.id ?? "create"}
             onCancel={() => {
-              setDialogOpen(false);
+              setFormOpen(false);
               setEditing(null);
+              formSubmit.reset();
             }}
-            onSubmit={onSubmit}
+            onSubmit={onFormSubmit}
             submitLabel={editing === null ? "Create company" : "Save changes"}
           />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleting(null);
+            deleteSubmit.reset();
+          }
+        }}
+        open={deleting !== null}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete {deleting?.code}?</DialogTitle>
+            <DialogDescription>
+              Hard-delete is only allowed when the company has no employments
+              and no pay runs. Otherwise the API returns 409.
+            </DialogDescription>
+          </DialogHeader>
+          {deleteSubmit.error === null ? null : (
+            <Alert variant="destructive">
+              <AlertDescription>{deleteSubmit.error}</AlertDescription>
+            </Alert>
+          )}
+          <DialogFooter>
+            <Button
+              disabled={deleteSubmit.submitting}
+              onClick={() => {
+                setDeleting(null);
+                deleteSubmit.reset();
+              }}
+              type="button"
+              variant="outline"
+            >
+              Cancel
+            </Button>
+            <Button
+              disabled={deleteSubmit.submitting}
+              onClick={() => {
+                void onConfirmDelete();
+              }}
+              type="button"
+              variant="destructive"
+            >
+              Delete company
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

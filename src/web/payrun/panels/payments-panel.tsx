@@ -17,6 +17,7 @@
  * calls `onChanged()` so the parent can refresh from the single source of truth.
  */
 
+import { BanknoteIcon } from "lucide-react";
 import {
   type ChangeEvent,
   useCallback,
@@ -28,6 +29,7 @@ import { MoneyCell } from "@/components/payroll/money-cell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -180,16 +182,19 @@ function PaymentsPanel({
   );
 
   return (
-    <div className="rounded-lg border bg-card">
-      <div className="flex items-center gap-2 border-b px-3 py-2">
+    <div className="overflow-hidden rounded-xl border bg-card">
+      <div className="flex items-center gap-2.5 border-b px-4 py-3 sm:px-5">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+          <BanknoteIcon className="size-4" />
+        </div>
         <span className="font-medium text-sm">Payments</span>
-        <span className="text-muted-foreground text-xs">
+        <Badge className="ml-auto h-auto rounded-sm" variant="secondary">
           {payments.length} line{payments.length === 1 ? "" : "s"}
-        </span>
+        </Badge>
       </div>
 
       {error === null && actionError === null ? null : (
-        <div className="space-y-1 px-3 py-2">
+        <div className="space-y-1 border-b px-4 py-3 sm:px-5">
           {error === null ? null : (
             <p className="text-destructive text-sm">{error}</p>
           )}
@@ -200,9 +205,10 @@ function PaymentsPanel({
       )}
 
       {loading && payments.length === 0 ? (
-        <p className="px-3 py-4 text-muted-foreground text-sm">
-          Loading payments…
-        </p>
+        <div className="space-y-2 px-4 py-4 sm:px-5">
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-4 w-1/2" />
+        </div>
       ) : (
         <div className="overflow-x-auto">
           <Table>

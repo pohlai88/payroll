@@ -23,7 +23,7 @@ function IdentityBanner() {
   return (
     <Alert className="mx-4 mb-2 sm:mx-6" variant="destructive">
       <AlertTitle>
-        App identity failed — Admin and Companies stay hidden until this is
+        App identity failed — admin pages will refuse access until this is
         fixed. {identityError}
       </AlertTitle>
     </Alert>

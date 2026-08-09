@@ -8,8 +8,10 @@
  * re-derives why a line was excluded); Commit creates the release batch.
  */
 
+import { SendIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 import { MoneyCell } from "@/components/payroll/money-cell";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -113,11 +115,24 @@ function ReleasePanel({
   }
 
   return (
-    <div className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2">
-      <span className="text-sm">
-        {selectedLineIds.length} line{selectedLineIds.length === 1 ? "" : "s"}{" "}
-        selected for release
-      </span>
+    <div className="flex flex-wrap items-center justify-between gap-3 overflow-hidden rounded-xl border bg-card px-4 py-3 sm:px-5">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+          <SendIcon className="size-4" />
+        </div>
+        <div className="min-w-0">
+          <div className="font-medium text-sm">Release selection</div>
+          <div className="flex items-center gap-1.5">
+            <Badge className="h-auto rounded-sm px-1.5" variant="secondary">
+              {selectedLineIds.length} line
+              {selectedLineIds.length === 1 ? "" : "s"}
+            </Badge>
+            <span className="text-muted-foreground text-xs">
+              ready for preview
+            </span>
+          </div>
+        </div>
+      </div>
       <div className="flex items-center gap-2">
         <Button onClick={onCleared} size="sm" variant="ghost">
           Clear

@@ -54,16 +54,66 @@ export interface PermissionsResponse {
 }
 
 // --- @feature admin-users @layer client ---
+export interface AdminUserRoleSummary {
+  readonly roleCode: string;
+  readonly roleName: string;
+  readonly companyId: string | null;
+}
+
 export interface AdminUserRow {
   readonly id: string;
   readonly email: string;
   readonly name: string;
   readonly status: string;
   readonly authSubject: string | null;
+  readonly createdAt: string;
+  readonly roles: readonly AdminUserRoleSummary[];
 }
 
 export interface AdminUsersResponse {
   readonly users: readonly AdminUserRow[];
+}
+
+/** Keep in sync with `updateUserBody` Zod in `src/server/routes/admin-users.ts`. */
+export interface UpdateAdminUserBody {
+  readonly status?: "ACTIVE" | "DISABLED";
+  readonly name?: string;
+  readonly email?: string;
+}
+
+// --- @feature rbac @layer client ---
+/** Keep in sync with `AdminRoleRow` in `src/service/admin-roles.ts`. */
+export interface AdminRolePermissionCell {
+  readonly resource: PermissionResource;
+  readonly action: PermissionAction;
+}
+
+export interface AdminRoleRow {
+  readonly id: string;
+  readonly code: string;
+  readonly name: string;
+  readonly description: string | null;
+  readonly isSystem: boolean;
+  readonly scope: "GLOBAL" | "COMPANY";
+  readonly permissions: readonly AdminRolePermissionCell[];
+}
+
+export interface AdminRolesResponse {
+  readonly roles: readonly AdminRoleRow[];
+}
+
+/** Keep in sync with create body Zod in `src/server/routes/admin-roles.ts`. */
+export interface CreateAdminRoleBody {
+  readonly code: string;
+  readonly name: string;
+  readonly description?: string | null;
+  readonly scope: "GLOBAL" | "COMPANY";
+}
+
+/** Keep in sync with permission body Zod in `src/server/routes/admin-roles.ts`. */
+export interface SetAdminRolePermissionBody {
+  readonly resource: PermissionResource;
+  readonly action: PermissionAction;
 }
 
 // --- @feature companies @layer client ---
@@ -106,6 +156,11 @@ export interface UpdateAdminCompanyBody {
   readonly lhdnNo?: string | null;
   readonly hrdfEnabled?: boolean;
   readonly hrdfLevyPct?: string;
+}
+
+/** Keep in sync with DELETE `/v1/admin/companies/:companyId` JSON. */
+export interface DeleteAdminCompanyResponse {
+  readonly ok: true;
 }
 
 // --- @feature employee-import @layer client ---
@@ -161,7 +216,9 @@ export interface PayRunSummary {
  */
 // --- @feature employees @layer client ---
 export interface EmployeeSummary {
+  /** Employment id — use as `fromEmploymentId` for transfers. */
   readonly id: string;
+  readonly personId: string;
   readonly code: string;
   readonly name: string;
   readonly companyId: string;
@@ -255,10 +312,13 @@ export interface GateResult {
   readonly issues: readonly GateIssue[];
 }
 
+/** Keep in sync with `ActionAvailability` in `src/repo/workspace.ts`. */
 export interface ActionAvailability {
   readonly canRecompute: boolean;
   readonly canReview: boolean;
   readonly canApprove: boolean;
+  /** REVIEWED → DRAFT via `POST …/demote`. */
+  readonly canDemote: boolean;
   readonly canClose: boolean;
 }
 
@@ -798,10 +858,6 @@ export interface InviteAdminUserBody {
   readonly name: string;
   readonly roleCode?: string;
   readonly companyId?: string | null;
-}
-
-export interface UpdateAdminUserBody {
-  readonly status: "ACTIVE" | "DISABLED";
 }
 
 export interface AdminUserRoleBody {

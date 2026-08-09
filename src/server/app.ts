@@ -15,6 +15,7 @@ import type { VerifyJwt } from "./auth/jwt";
 import { type AuthVariables, authMiddleware } from "./auth/middleware";
 import { handleRouteError } from "./errors";
 import { adminCompanyRoutes } from "./routes/admin-companies";
+import { adminRoleRoutes } from "./routes/admin-roles";
 import { adminUserRoutes } from "./routes/admin-users";
 import { employeeImportRoutes } from "./routes/employee-import";
 import { employeeRemunerationRoutes } from "./routes/employee-remuneration";
@@ -66,6 +67,8 @@ export function createApp(deps: AppDeps): Hono {
   v1.route("/", meRoutes(deps.db));
   // --- @feature admin-users @layer spine ---
   v1.route("/", adminUserRoutes(deps.db));
+  // --- @feature rbac @layer spine ---
+  v1.route("/", adminRoleRoutes(deps.db));
   // --- @feature companies @layer spine ---
   v1.route("/", adminCompanyRoutes(deps.db));
   // --- @feature employee-import @layer spine ---

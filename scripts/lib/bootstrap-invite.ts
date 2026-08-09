@@ -45,7 +45,9 @@ export async function bootstrapInviteUser(
 
   const role = await getRoleByCode(db, roleCode);
   if (role === null) {
-    throw new Error(`role not found: ${roleCode}`);
+    throw new Error(
+      `role not found: ${roleCode} — run \`npm run db:seed\` first (see docs/developer-login.md)`
+    );
   }
   if (role.scope === "COMPANY" && input.companyId === null) {
     throw new Error(`COMPANY role ${roleCode} requires --company-id`);

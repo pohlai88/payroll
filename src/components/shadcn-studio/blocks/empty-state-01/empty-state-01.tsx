@@ -22,6 +22,7 @@ export interface EmptyState01Props {
   emptyTitle?: string;
   emptyDetail?: string;
   icon?: ReactNode;
+  action?: ReactNode;
   className?: string;
 }
 
@@ -31,6 +32,7 @@ function EmptyState01({
   emptyTitle = "No data to show",
   emptyDetail = "May take 24 hours for data to load",
   icon,
+  action,
   className,
 }: EmptyState01Props) {
   return (
@@ -46,6 +48,9 @@ function EmptyState01({
           )}
           <p className="mt-2 font-medium text-sm">{emptyTitle}</p>
           <p className="mt-1 text-muted-foreground text-sm">{emptyDetail}</p>
+          {action === undefined ? null : (
+            <div className="mt-4 flex justify-center">{action}</div>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -163,6 +163,65 @@ export async function setUserStatus(
   return row;
 }
 
+/** Partial profile edit — powers the admin datatable's inline-editable cells. */
+export async function updateUserProfile(
+  db: Database,
+  input: { userId: string; email?: string; name?: string }
+): Promise<UserRow> {
+  const patch: { email?: string; name?: string } = {};
+  if (input.email !== undefined) {
+    patch.email = normalizeEmail(input.email);
+  }
+  if (input.name !== undefined) {
+    patch.name = input.name.trim();
+  }
+  if (Object.keys(patch).length === 0) {
+    const existing = await getUserById(db, input.userId);
+    if (existing === null) {
+      throw new RbacRepoError(
+        `updateUserProfile: user ${input.userId} not found`
+      );
+    }
+    return existing;
+  }
+  const [row] = await db
+    .update(users)
+    .set(patch)
+    .where(eq(users.id, input.userId))
+    .returning();
+  if (row === undefined) {
+    throw new RbacRepoError(
+      `updateUserProfile: user ${input.userId} not found`
+    );
+  }
+  return row;
+}
+
+/**
+ * Batched role-assignment summaries for every user — one query, joined with
+ * role metadata. Powers the admin datatable's "Roles" column and expandable
+ * sub-rows without N+1 queries.
+ */
+export async function listAllUserRoleAssignments(db: Database): Promise<
+  Array<{
+    userId: string;
+    roleCode: string;
+    roleName: string;
+    companyId: string | null;
+  }>
+> {
+  const rows = await db
+    .select({
+      userId: userRoleAssignments.userId,
+      roleCode: roles.code,
+      roleName: roles.name,
+      companyId: userRoleAssignments.companyId,
+    })
+    .from(userRoleAssignments)
+    .innerJoin(roles, eq(userRoleAssignments.roleId, roles.id));
+  return rows;
+}
+
 // ---------------------------------------------------------------------------
 // Roles
 // ---------------------------------------------------------------------------
@@ -242,6 +301,20 @@ export async function getRolePermissions(
     .select()
     .from(rolePermissions)
     .where(eq(rolePermissions.roleId, roleId));
+}
+
+/** Batched permission-cell lookup for many roles at once (avoids N+1 in the matrix UI). */
+export async function listRolePermissionsForRoles(
+  db: Database,
+  roleIds: readonly string[]
+): Promise<RolePermissionRow[]> {
+  if (roleIds.length === 0) {
+    return [];
+  }
+  return await db
+    .select()
+    .from(rolePermissions)
+    .where(inArray(rolePermissions.roleId, [...roleIds]));
 }
 
 export async function grantPermission(

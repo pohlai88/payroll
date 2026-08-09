@@ -68,7 +68,9 @@ npx tsx scripts/invite-user.ts --email a@b.com --name "Ada" --role PAYROLL_OPS -
 | `VITE_NEON_AUTH_URL is not set` | Missing Vite env; copy `.env.example` → `.env.local` and restart Vite |
 | `Invalid email or password` | Wrong password, password &lt; 8 chars, or Neon Auth user never created |
 | `INVITE_REQUIRED` | Neon Auth ok, but no app `users` row for that email — run `npm run setup:dev-user` |
-| `permissions incomplete` from smoke | App user exists but is not SYSTEM_ADMIN — re-run `npm run setup:dev-user` |
+| `permissions incomplete` from smoke | App user exists but is not SYSTEM_ADMIN — run `npm run db:seed` then `npm run setup:dev-user` |
+| `role not found: SYSTEM_ADMIN` | RBAC seed missing — `npm run db:seed` (requires `DATABASE_URL` via `.env.local`) |
+| Companies/Admin show “Admin access required” | Same as incomplete permissions / missing invite — smoke + seed + setup:dev-user |
 | Developer Login button missing | `VITE_DEV_EMAIL` / `VITE_DEV_PASSWORD` unset (intentional) |
 | `AUTH_SUBJECT_CONFLICT` | Same email linked to a different Neon Auth `sub` |
 

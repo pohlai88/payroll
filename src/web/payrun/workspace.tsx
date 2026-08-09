@@ -263,6 +263,19 @@ function WorkspacePage() {
     }
   }, [runId, reload]);
 
+  const handleDemote = useCallback(async () => {
+    if (runId === undefined) {
+      return;
+    }
+    setRecomputeError(null);
+    try {
+      await payrollApi.demotePayRun(runId);
+      await reload();
+    } catch (err) {
+      setRecomputeError(formatApiError(err, "Demote failed"));
+    }
+  }, [runId, reload]);
+
   /** Opens the batch drawer for a given batchId — used both after a fresh
    * release commit (via ReleasePanel's onReleased) and for re-entry from
    * PaymentsPanel's "View batch" action on RELEASED/PAID lines. */
@@ -454,12 +467,13 @@ function WorkspacePage() {
       <RunHeader
         onApprove={handleApprove}
         onClose={handleClose}
+        onDemote={handleDemote}
         onRecompute={handleRecompute}
         onReview={handleReview}
         view={view}
       />
 
-      <div className="flex flex-col gap-4 px-6 pb-6">
+      <div className="flex flex-col gap-5 px-6 py-5 pb-8">
         {recomputeError === null ? null : (
           <p className="text-destructive text-sm" role="alert">
             {recomputeError}
@@ -468,56 +482,58 @@ function WorkspacePage() {
 
         <TotalsStrip tiles={view.totals} />
 
-        <FindingsPanel
-          findingsSummary={view.findingsSummary}
-          onChanged={reload}
-          runId={runId}
-        />
-
-        {view.run.status === "APPROVED" || view.run.status === "CLOSED" ? (
-          <PaymentsPanel
-            error={paymentsError}
-            lines={view.lines}
-            loading={paymentsLoading}
-            onChanged={handlePaymentsChanged}
-            onSelectionChange={setPaymentsSelection}
-            onViewBatch={openBatchDrawer}
-            payments={payments}
-            readOnly={view.run.status === "CLOSED"}
-            runId={runId}
-            selectedLineIds={paymentsSelection}
-          />
-        ) : null}
-
-        {view.run.status === "APPROVED" ? (
-          <ReleasePanel
-            onCleared={handleClearSelection}
-            onReleased={handleReleased}
-            runId={runId}
-            selectedLineIds={paymentsSelection}
-          />
-        ) : null}
-
-        {view.run.status === "CLOSED" ? (
-          <ClosureSealPanel
-            error={sealError}
-            loading={sealLoading}
-            onReverify={loadSeal}
-            runId={runId}
-            seal={seal}
-          />
-        ) : null}
-
-        {view.run.status === "APPROVED" || view.run.status === "CLOSED" ? (
-          <ArtifactsPanel
-            artifacts={artifacts}
-            error={artifactsError}
-            loading={artifactsLoading}
-            onUploaded={loadArtifacts}
-            readOnly={view.run.status === "CLOSED"}
+        <div className="flex flex-col gap-4">
+          <FindingsPanel
+            findingsSummary={view.findingsSummary}
+            onChanged={reload}
             runId={runId}
           />
-        ) : null}
+
+          {view.run.status === "APPROVED" || view.run.status === "CLOSED" ? (
+            <PaymentsPanel
+              error={paymentsError}
+              lines={view.lines}
+              loading={paymentsLoading}
+              onChanged={handlePaymentsChanged}
+              onSelectionChange={setPaymentsSelection}
+              onViewBatch={openBatchDrawer}
+              payments={payments}
+              readOnly={view.run.status === "CLOSED"}
+              runId={runId}
+              selectedLineIds={paymentsSelection}
+            />
+          ) : null}
+
+          {view.run.status === "APPROVED" ? (
+            <ReleasePanel
+              onCleared={handleClearSelection}
+              onReleased={handleReleased}
+              runId={runId}
+              selectedLineIds={paymentsSelection}
+            />
+          ) : null}
+
+          {view.run.status === "CLOSED" ? (
+            <ClosureSealPanel
+              error={sealError}
+              loading={sealLoading}
+              onReverify={loadSeal}
+              runId={runId}
+              seal={seal}
+            />
+          ) : null}
+
+          {view.run.status === "APPROVED" || view.run.status === "CLOSED" ? (
+            <ArtifactsPanel
+              artifacts={artifacts}
+              error={artifactsError}
+              loading={artifactsLoading}
+              onUploaded={loadArtifacts}
+              readOnly={view.run.status === "CLOSED"}
+              runId={runId}
+            />
+          ) : null}
+        </div>
 
         <EmployeeGrid
           lines={view.lines}

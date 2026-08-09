@@ -11,10 +11,12 @@
  * plainly rather than implying a guarantee nobody made.
  */
 
+import { ShieldCheckIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 import { HashChip, shortHash } from "@/components/payroll/hash-chip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type {
   ClosureChainResponse,
@@ -210,7 +212,7 @@ function SealBody({
   readonly timestamp: TimestampStatus;
 }) {
   return (
-    <div className="flex flex-col gap-3 p-3">
+    <div className="flex flex-col gap-3 px-4 py-3 sm:px-5">
       <div className="divide-y">
         <Fact label="Seal">
           <HashChip label="seal hash" value={seal.sealHash} />
@@ -263,10 +265,15 @@ function ClosureSealPanel({
   const issued = seal?.seal ?? null;
 
   return (
-    <div className="rounded-lg border bg-card">
-      <div className="flex items-center justify-between gap-2 border-b px-3 py-2">
-        <span className="font-medium text-sm">Closure seal</span>
-        <div className="flex items-center gap-2">
+    <div className="overflow-hidden rounded-xl border bg-card">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3 sm:px-5">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+            <ShieldCheckIcon className="size-4" />
+          </div>
+          <span className="font-medium text-sm">Closure seal</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
           {issued === null ? null : (
             <>
               <Verdict
@@ -293,17 +300,20 @@ function ClosureSealPanel({
       </div>
 
       {error === null ? null : (
-        <p className="px-3 py-2 text-destructive text-sm">{error}</p>
+        <p className="border-b px-4 py-3 text-destructive text-sm sm:px-5">
+          {error}
+        </p>
       )}
 
       {loading && seal === null ? (
-        <p className="px-3 py-4 text-muted-foreground text-sm">
-          Verifying the closure chain…
-        </p>
+        <div className="space-y-2 px-4 py-4 sm:px-5">
+          <Skeleton className="h-4 w-2/3" />
+          <Skeleton className="h-4 w-1/2" />
+        </div>
       ) : null}
 
       {seal !== null && issued === null ? (
-        <p className="px-3 py-4 text-muted-foreground text-sm">
+        <p className="px-4 py-4 text-muted-foreground text-sm sm:px-5">
           This run has not been closed, so nothing has been sealed yet.
         </p>
       ) : null}

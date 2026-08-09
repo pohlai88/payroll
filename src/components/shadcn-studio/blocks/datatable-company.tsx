@@ -3,13 +3,26 @@
  * @layer ui
  * @hub src/server/routes/admin-companies.ts
  *
- * Company directory table — multicompany party rows for admin management.
+ * Company directory table — search + row actions (edit / delete).
+ * Layout DNA inspired by studio datatable-component-06 (toolbar + actions menu).
  */
 
-import { Building2Icon, PencilIcon } from "lucide-react";
+import {
+  Building2Icon,
+  EllipsisVerticalIcon,
+  PencilIcon,
+  Trash2Icon,
+} from "lucide-react";
 import { type ChangeEvent, useCallback, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -25,24 +38,50 @@ interface CompanyDatatableProps {
   readonly data: readonly AdminCompanyRow[];
   readonly title?: string;
   readonly onEdit?: (company: AdminCompanyRow) => void;
+  readonly onDelete?: (company: AdminCompanyRow) => void;
 }
 
-function EditCompanyButton({
+function RowActions({
   company,
   onEdit,
+  onDelete,
 }: {
   company: AdminCompanyRow;
-  onEdit: (company: AdminCompanyRow) => void;
+  onEdit?: (company: AdminCompanyRow) => void;
+  onDelete?: (company: AdminCompanyRow) => void;
 }) {
-  const handleClick = useCallback(() => {
-    onEdit(company);
-  }, [company, onEdit]);
+  if (onEdit === undefined && onDelete === undefined) {
+    return null;
+  }
 
   return (
-    <Button onClick={handleClick} size="sm" type="button" variant="ghost">
-      <PencilIcon className="size-4" />
-      Edit
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        aria-label={`Actions for ${company.code}`}
+        className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+      >
+        <EllipsisVerticalIcon aria-hidden="true" className="size-4" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuGroup>
+          {onEdit === undefined ? null : (
+            <DropdownMenuItem onClick={() => onEdit(company)}>
+              <PencilIcon className="size-4" />
+              Edit
+            </DropdownMenuItem>
+          )}
+          {onDelete === undefined ? null : (
+            <DropdownMenuItem
+              onClick={() => onDelete(company)}
+              variant="destructive"
+            >
+              <Trash2Icon className="size-4" />
+              Delete
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -50,6 +89,7 @@ function CompanyDatatable({
   data,
   title = "Companies",
   onEdit,
+  onDelete,
 }: CompanyDatatableProps) {
   const [query, setQuery] = useState("");
   const filtered = useMemo(() => {
@@ -75,15 +115,18 @@ function CompanyDatatable({
 
   return (
     <div className="w-full">
-      <div className="flex flex-col gap-4 border-b p-6">
+      <div className="flex flex-col gap-4 border-b p-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <Building2Icon className="size-5 text-muted-foreground" />
           <span className="font-semibold text-xl">{title}</span>
+          <Badge className="rounded-sm" variant="secondary">
+            {String(filtered.length)}
+          </Badge>
         </div>
-        <input
-          className="h-9 max-w-sm rounded-md border border-input bg-background px-3 text-sm"
+        <Input
+          className="max-w-sm"
           onChange={handleQueryChange}
-          placeholder="Search code or name…"
+          placeholder="Search code, name, EPF, LHDN…"
           type="search"
           value={query}
         />
@@ -141,9 +184,11 @@ function CompanyDatatable({
                   </Badge>
                 </TableCell>
                 <TableCell className="pr-4 text-right">
-                  {onEdit === undefined ? null : (
-                    <EditCompanyButton company={company} onEdit={onEdit} />
-                  )}
+                  <RowActions
+                    company={company}
+                    onDelete={onDelete}
+                    onEdit={onEdit}
+                  />
                 </TableCell>
               </TableRow>
             ))

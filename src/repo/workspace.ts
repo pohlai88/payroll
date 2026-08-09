@@ -47,6 +47,8 @@ export interface ActionAvailability {
   readonly canRecompute: boolean;
   readonly canReview: boolean;
   readonly canApprove: boolean;
+  /** REVIEWED → DRAFT via `POST …/demote`. */
+  readonly canDemote: boolean;
   readonly canClose: boolean;
 }
 
@@ -242,6 +244,7 @@ function actionAvailabilityFor(status: string): ActionAvailability {
     canRecompute: status === "DRAFT",
     canReview: status === "DRAFT",
     canApprove: status === "REVIEWED",
+    canDemote: status === "REVIEWED",
     canClose: status === "APPROVED",
   };
 }

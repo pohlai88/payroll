@@ -8,8 +8,8 @@ Copy this shape for new admin/directory features. Prefer this over employees/pay
 
 ```
 companies-page.tsx
-  → payrollApi.getAdminCompanies / create / patch
-  → GET|POST /v1/admin/companies, PATCH /v1/admin/companies/:companyId
+  → payrollApi.getAdminCompanies / create / patch / delete
+  → GET|POST /v1/admin/companies, PATCH|DELETE /v1/admin/companies/:companyId
   → admin-companies route (Zod + c.get("user"))
   → admin-companies service (requireSystemAdmin)
   → repo/companies (list/create/update) on parties.companies

@@ -120,13 +120,22 @@ const CVD_MATRIX: Record<string, number[][]> = {
 function simulate(rgb: Rgb, kind: string): Rgb {
   const lin = rgb.map(srgbToLin);
   const m = CVD_MATRIX[kind];
+  if (m === undefined) {
+    throw new Error(`unknown CVD matrix: ${kind}`);
+  }
   return m.map((row) =>
-    clamp01(linToSrgb(clamp01(row.reduce((s, k, i) => s + k * lin[i], 0))))
+    clamp01(
+      linToSrgb(
+        clamp01(row.reduce((s, k, i) => s + k * (lin[i] ?? 0), 0))
+      )
+    )
   ) as Rgb;
 }
 
 function toOklab([r, g, b]: Rgb): [number, number, number] {
-  const [lr, lg, lb] = [r, g, b].map(srgbToLin);
+  const lr = srgbToLin(r);
+  const lg = srgbToLin(g);
+  const lb = srgbToLin(b);
   const l = Math.cbrt(
     0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb
   );
@@ -168,14 +177,20 @@ function parseBlock(css: string, selector: string): Theme {
   let match = declRe.exec(body);
   while (match !== null) {
     const [, name, rawValue] = match;
+    if (name === undefined || rawValue === undefined) {
+      match = declRe.exec(body);
+      continue;
+    }
     const value = rawValue.replace(/\/\*[\s\S]*?\*\//g, "").trim();
     const parsed = OKLCH_RE.exec(value);
     if (parsed) {
       const [, l, c, h, a] = parsed;
-      theme.set(name, {
-        rgb: oklchToRgb(Number(l), Number(c), Number(h)),
-        alpha: a === undefined ? 1 : Number(a) / 100,
-      });
+      if (l !== undefined && c !== undefined && h !== undefined) {
+        theme.set(name, {
+          rgb: oklchToRgb(Number(l), Number(c), Number(h)),
+          alpha: a === undefined ? 1 : Number(a) / 100,
+        });
+      }
     }
     match = declRe.exec(body);
   }
@@ -323,7 +338,12 @@ function auditTheme(
       let pair = "";
       for (let i = 0; i < swatches.length; i++) {
         for (let j = i + 1; j < swatches.length; j++) {
-          const d = deltaE(swatches[i], swatches[j]);
+          const left = swatches[i];
+          const right = swatches[j];
+          if (left === undefined || right === undefined) {
+            continue;
+          }
+          const d = deltaE(left, right);
           if (d < worst) {
             worst = d;
             pair = `${tokens[i]}/${tokens[j]}`;

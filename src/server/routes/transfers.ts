@@ -4,13 +4,13 @@
  * @surface POST /v1/transfers
  * @surface POST /v1/transfers/findings/:findingId/acknowledge
  * @chain
- *   ui:      (none — client wired; no SPA page yet)
+ *   ui:      src/web/transfer/transfer-page.tsx
  *   client:  commitTransfer, acknowledgeTransferFinding
  *   route:   src/server/routes/transfers.ts
  *   service: src/service/transfer.ts; src/service/findings.ts
  *   repo:    (writes via service → schema; findings via src/service/findings.ts)
  *   schema:  src/db/schema/transfer.ts; parties.ts; run.ts; findings.ts
- *   spine:   app.ts → transferRoutes
+ *   spine:   app.ts → transferRoutes; app.tsx + app-nav /transfers
  *
  * Internal group employment transfer commit under /v1/transfers.
  */

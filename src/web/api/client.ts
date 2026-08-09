@@ -18,6 +18,8 @@ import {
   type AcknowledgeTransferFindingResponse,
   type AdminCompaniesResponse,
   type AdminCompanyRow,
+  type AdminRoleRow,
+  type AdminRolesResponse,
   type AdminUserRoleBody,
   type AdminUserRow,
   type AdminUsersResponse,
@@ -32,6 +34,8 @@ import {
   type CommitTransferBody,
   type CommitTransferResponse,
   type CreateAdminCompanyBody,
+  type CreateAdminRoleBody,
+  type DeleteAdminCompanyResponse,
   type CreatePayRunBody,
   type DepartureResponse,
   type DistributionChannel,
@@ -46,6 +50,7 @@ import {
   type LineDerivationDto,
   type MeResponse,
   type OkResponse,
+  type SetAdminRolePermissionBody,
   type PaymentRegisterDto,
   type PaymentsListResponse,
   type PayRunMutationEnvelope,
@@ -197,6 +202,36 @@ export function createApiClient(deps: ApiClientDeps) {
         method: "DELETE",
         body: JSON.stringify(body),
       }),
+    // --- @feature rbac @layer client ---
+    getAdminRoles: () => requestJson<AdminRolesResponse>("/v1/admin/roles"),
+    createAdminRole: (body: CreateAdminRoleBody) =>
+      requestJson<AdminRoleRow>("/v1/admin/roles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+    deleteAdminRole: (roleId: string) =>
+      requestJson<OkResponse>(`/v1/admin/roles/${roleId}`, {
+        method: "DELETE",
+      }),
+    grantAdminRolePermission: (
+      roleId: string,
+      body: SetAdminRolePermissionBody
+    ) =>
+      requestJson<AdminRoleRow>(`/v1/admin/roles/${roleId}/permissions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }),
+    revokeAdminRolePermission: (
+      roleId: string,
+      body: SetAdminRolePermissionBody
+    ) =>
+      requestJson<AdminRoleRow>(`/v1/admin/roles/${roleId}/permissions`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }),
     // --- @feature companies @layer client ---
     getAdminCompanies: () =>
       requestJson<AdminCompaniesResponse>("/v1/admin/companies"),
@@ -212,6 +247,11 @@ export function createApiClient(deps: ApiClientDeps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       }),
+    deleteAdminCompany: (companyId: string) =>
+      requestJson<DeleteAdminCompanyResponse>(
+        `/v1/admin/companies/${companyId}`,
+        { method: "DELETE" }
+      ),
     // --- @feature employee-import @layer client ---
     downloadEmployeeImportTemplate: (companyId?: string | null) =>
       requestText(`/v1/employee-import/template${companyQuery(companyId)}`),

@@ -13,7 +13,6 @@ import {
   type ComponentProps,
   type CSSProperties,
   createContext,
-  type MouseEvent,
   useCallback,
   useContext,
   useEffect,
@@ -277,8 +276,10 @@ function SidebarTrigger({
 }: ComponentProps<typeof Button>) {
   const { toggleSidebar } = useSidebar();
 
-  const handleClick = useCallback(
-    (event: MouseEvent<HTMLButtonElement>) => {
+  const handleClick = useCallback<
+    NonNullable<ComponentProps<typeof Button>["onClick"]>
+  >(
+    (event) => {
       onClick?.(event);
       toggleSidebar();
     },

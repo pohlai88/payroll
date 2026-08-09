@@ -26,6 +26,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDarkMode } from "@/hooks/use-dark-mode";
 import { useAuthContext } from "@/web/context/auth-context";
+import type { AppNavItem } from "./app-nav";
 import { useShellNav } from "./shell-nav-context";
 
 function initialsOf(me: { name: string; email: string } | null): string {
@@ -79,8 +80,46 @@ function SidebarUserMenu() {
   );
 }
 
+function NavGroup({
+  label,
+  items,
+}: {
+  readonly label: string;
+  readonly items: readonly AppNavItem[];
+}) {
+  const { isActive } = useShellNav();
+  if (items.length === 0) {
+    return null;
+  }
+  return (
+    <SidebarGroup>
+      <SidebarGroupLabel>{label}</SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {items.map((item) => {
+            const active = isActive(item);
+            return (
+              <SidebarMenuItem key={item.id}>
+                <SidebarMenuButton
+                  aria-current={active ? "page" : undefined}
+                  isActive={active}
+                  render={<Link href={item.href} />}
+                  tooltip={item.label}
+                >
+                  <item.icon className="size-4" />
+                  <span>{item.label}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+}
+
 function SidebarNav() {
-  const { items, isActive, authReady } = useShellNav();
+  const { primaryItems, adminItems, authReady } = useShellNav();
 
   return (
     <Sidebar
@@ -103,34 +142,19 @@ function SidebarNav() {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => {
-                const active = isActive(item);
-                return (
-                  <SidebarMenuItem key={item.id}>
-                    <SidebarMenuButton
-                      aria-current={active ? "page" : undefined}
-                      isActive={active}
-                      render={<Link href={item.href} />}
-                      tooltip={item.label}
-                    >
-                      <item.icon className="size-4" />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-              {authReady ? null : (
+        <NavGroup items={primaryItems} label="Navigation" />
+        <NavGroup items={adminItems} label="Administration" />
+        {authReady ? null : (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
                 <SidebarMenuItem>
                   <Skeleton className="h-8 w-full rounded-md" />
                 </SidebarMenuItem>
-              )}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarFooter>
         <SidebarUserMenu />

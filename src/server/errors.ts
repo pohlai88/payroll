@@ -11,6 +11,8 @@ import { ZodError } from "zod";
 import { PermissionDeniedError } from "@/domain/rbac/authorize";
 import { CompanyRepoError } from "@/repo/companies";
 import { RbacRepoError } from "@/repo/rbac";
+import { AdminCompaniesError } from "@/service/admin-companies";
+import { AdminRolesError } from "@/service/admin-roles";
 import { AdminUsersError } from "@/service/admin-users";
 import { ControlError } from "@/service/control-errors";
 import { EmployeeImportError } from "@/service/employee-import";
@@ -33,6 +35,8 @@ interface CodedHttpError {
 function asCodedHttpError(error: unknown): CodedHttpError | null {
   if (
     error instanceof AdminUsersError ||
+    error instanceof AdminCompaniesError ||
+    error instanceof AdminRolesError ||
     error instanceof EmployeeImportError ||
     error instanceof ControlError ||
     error instanceof PayRunError

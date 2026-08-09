@@ -149,20 +149,20 @@ function EmployeesPage() {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="space-y-6">
       <PageTitle
         actions={
           <div className="relative w-64">
-            <SearchIcon className="pointer-events-none absolute top-2 left-2.5 size-3.5 text-muted-foreground" />
+            <SearchIcon className="pointer-events-none absolute top-2.5 left-2.5 size-3.5 text-muted-foreground" />
             <Input
-              className="pl-7"
+              className="pl-8"
               onChange={onSearchChange}
               placeholder="Search by name or code…"
               value={search}
             />
           </div>
         }
-        description="Roster for the current company scope."
+        description="Searchable roster for the current company scope."
         title="Employees"
       />
 

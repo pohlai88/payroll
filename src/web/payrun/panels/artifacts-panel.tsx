@@ -156,27 +156,37 @@ function ArtifactsPanel({
   );
 
   return (
-    <div className="rounded-lg border bg-card">
-      <div className="border-b px-3 py-2">
+    <div className="overflow-hidden rounded-xl border bg-card">
+      <div className="flex items-center gap-2.5 border-b px-4 py-3 sm:px-5">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+          <FileTextIcon className="size-4" />
+        </div>
         <span className="font-medium text-sm">Artifacts</span>
+        <Badge className="ml-auto h-auto rounded-sm" variant="secondary">
+          {artifacts.length}
+        </Badge>
       </div>
 
       {error === null ? null : (
-        <p className="px-3 py-2 text-destructive text-sm">{error}</p>
+        <p className="border-b px-4 py-3 text-destructive text-sm sm:px-5">
+          {error}
+        </p>
       )}
       {downloadError === null ? null : (
-        <p className="px-3 py-2 text-destructive text-sm">{downloadError}</p>
+        <p className="border-b px-4 py-3 text-destructive text-sm sm:px-5">
+          {downloadError}
+        </p>
       )}
 
       {loading && artifacts.length === 0 ? (
-        <div className="flex flex-col gap-2 px-3 py-4">
+        <div className="flex flex-col gap-2 px-4 py-4 sm:px-5">
           <Skeleton className="h-4 w-2/3" />
           <Skeleton className="h-4 w-1/2" />
         </div>
       ) : null}
 
       {!loading && artifacts.length === 0 ? (
-        <div className="p-3">
+        <div className="p-4 sm:p-5">
           <EmptyState
             className="border-0 shadow-none"
             description={
@@ -203,7 +213,7 @@ function ArtifactsPanel({
       ) : null}
 
       {readOnly ? null : (
-        <div className="flex flex-col gap-2 border-t p-3">
+        <div className="flex flex-col gap-2 border-t px-4 py-3 sm:px-5">
           <span className="font-medium text-sm">Attach evidence</span>
           <Select onValueChange={handleTypeChange} value={type}>
             <SelectTrigger className="w-full">
@@ -246,7 +256,7 @@ function ArtifactRowView({ artifact, onDownload }: ArtifactRowViewProps) {
   );
 
   return (
-    <li className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+    <li className="flex items-center justify-between gap-2 px-4 py-3 text-sm sm:px-5">
       <div className="flex min-w-0 flex-col gap-1">
         <div className="flex min-w-0 items-center gap-2">
           <Badge variant="outline">{artifact.type}</Badge>

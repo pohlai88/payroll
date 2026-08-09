@@ -1,10 +1,10 @@
 /**
  * @feature companies
  * @layer route
- * @surface GET|POST /v1/admin/companies; PATCH /v1/admin/companies/:companyId
+ * @surface GET|POST /v1/admin/companies; PATCH|DELETE /v1/admin/companies/:companyId
  * @chain
  *   ui:      src/web/companies/companies-page.tsx
- *   client:  getAdminCompanies, createAdminCompany, updateAdminCompany
+ *   client:  getAdminCompanies, createAdminCompany, updateAdminCompany, deleteAdminCompany
  *   route:   src/server/routes/admin-companies.ts
  *   service: src/service/admin-companies.ts
  *   repo:    src/repo/companies.ts
@@ -19,6 +19,7 @@ import { z } from "zod";
 import type { Database } from "@/db/client";
 import {
   createAdminCompany,
+  deleteAdminCompany,
   listAdminCompanies,
   updateAdminCompany,
 } from "@/service/admin-companies";
@@ -78,6 +79,18 @@ export function adminCompanyRoutes(db: Database) {
         ...body,
       });
       return c.json(company);
+    } catch (error) {
+      return handleRouteError(c, error);
+    }
+  });
+
+  app.delete("/admin/companies/:companyId", async (c) => {
+    try {
+      const result = await deleteAdminCompany(db, {
+        actorUserId: c.get("user").id,
+        companyId: c.req.param("companyId"),
+      });
+      return c.json(result);
     } catch (error) {
       return handleRouteError(c, error);
     }

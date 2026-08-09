@@ -28,6 +28,7 @@ import { Label } from "@/components/ui/label";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { initDarkModeFromStorage } from "@/hooks/use-dark-mode";
 import { AdminPage } from "@/web/admin/admin-page";
+import { RolesPage } from "@/web/admin/roles-page";
 import { formatApiError } from "@/web/api/format-error";
 import { getAuthSession, signInWithEmail } from "@/web/auth/client";
 import { CompaniesPage } from "@/web/companies/companies-page";
@@ -41,6 +42,8 @@ import { PayslipPage } from "@/web/payrun/payslip-page";
 import { WorkspacePage } from "@/web/payrun/workspace";
 import { ReportsPage } from "@/web/reports/reports-page";
 import { ShellLayout } from "@/web/shell/layout";
+import { TransferPage } from "@/web/transfer/transfer-page";
+import { TreatmentsPage } from "@/web/treatments/treatments-page";
 
 initDarkModeFromStorage();
 
@@ -54,6 +57,10 @@ export function App() {
   const [signInError, setSignInError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (import.meta.env.VITE_DEV_AUTH_BYPASS === "true") {
+      setScreen("signed_in");
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
@@ -224,6 +231,10 @@ export function App() {
               <Route component={WorkspacePage} path="/pay-runs/:runId" />
               {/* --- @feature employees @layer spine --- */}
               <Route component={EmployeesPage} path="/employees" />
+              {/* --- @feature transfer @layer spine --- */}
+              <Route component={TransferPage} path="/transfers" />
+              {/* --- @feature treatments @layer spine --- */}
+              <Route component={TreatmentsPage} path="/treatments" />
               {/* --- @feature reports @layer spine --- */}
               <Route component={ReportsPage} path="/reports" />
               {/* --- @feature control @layer spine --- */}
@@ -232,6 +243,8 @@ export function App() {
               <Route component={CompaniesPage} path="/companies" />
               {/* --- @feature admin-users @layer spine --- */}
               <Route component={AdminPage} path="/admin" />
+              {/* --- @feature rbac @layer spine --- */}
+              <Route component={RolesPage} path="/roles" />
               <Route>
                 <main className="p-6 text-muted-foreground text-sm">
                   Not found.

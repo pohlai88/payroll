@@ -3,13 +3,13 @@
  * @layer route
  * @surface POST /v1/pay-items/:payItemId/treatments/departures; POST /v1/pay-items/:payItemId/pcb-classes/departures
  * @chain
- *   ui:      (none — client wired; no SPA page yet)
+ *   ui:      src/web/treatments/treatments-page.tsx
  *   client:  recordWageTreatmentDeparture, recordPcbClassDeparture
  *   route:   src/server/routes/treatments.ts
  *   service: src/service/treatments.ts
  *   repo:    (none — service → schema)
  *   schema:  src/db/schema/treatments.ts; catalog.ts; run.ts (auditEvents)
- *   spine:   app.ts → treatmentRoutes
+ *   spine:   app.ts → treatmentRoutes; app.tsx + app-nav /treatments
  *
  * Governed pay-item wage-treatment / PCB-class APPROVED_DEPARTURE writes.
  */

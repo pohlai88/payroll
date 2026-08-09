@@ -29,6 +29,8 @@ import {
 interface ShellNavContextValue {
   location: string;
   items: readonly AppNavItem[];
+  primaryItems: readonly AppNavItem[];
+  adminItems: readonly AppNavItem[];
   currentItem: AppNavItem | null;
   authReady: boolean;
   isActive: (item: AppNavItem) => boolean;
@@ -39,15 +41,20 @@ const ShellNavContext = createContext<ShellNavContextValue | null>(null);
 
 function ShellNavProvider({ children }: { children: ReactNode }) {
   const [location, navigate] = useLocation();
-  const { isSystemAdmin, loading: authLoading } = useAuthContext();
+  const { loading: authLoading } = useAuthContext();
   const { isMobile, setOpenMobile } = useSidebar();
 
   const authReady = !authLoading;
-  // Until permissions resolve, hide admin-only destinations so we never
-  // hardcode Admin into the chrome for non-admins (or flash it early).
-  const items = useMemo(
-    () => visibleAppNavItems(authReady && isSystemAdmin, APP_NAV_ITEMS),
-    [authReady, isSystemAdmin]
+  // Mount every shell destination, including adminOnly. Page gates still
+  // enforce SYSTEM_ADMIN; filtering here made Companies/Admin look unwired.
+  const items = visibleAppNavItems(true, APP_NAV_ITEMS);
+  const primaryItems = useMemo(
+    () => items.filter((item) => item.adminOnly !== true),
+    [items]
+  );
+  const adminItems = useMemo(
+    () => items.filter((item) => item.adminOnly === true),
+    [items]
   );
 
   const currentItem = useMemo(
@@ -82,12 +89,23 @@ function ShellNavProvider({ children }: { children: ReactNode }) {
     () => ({
       location,
       items,
+      primaryItems,
+      adminItems,
       currentItem,
       authReady,
       isActive,
       navigateTo,
     }),
-    [location, items, currentItem, authReady, isActive, navigateTo]
+    [
+      location,
+      items,
+      primaryItems,
+      adminItems,
+      currentItem,
+      authReady,
+      isActive,
+      navigateTo,
+    ]
   );
 
   return (

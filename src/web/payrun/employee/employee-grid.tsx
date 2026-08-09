@@ -17,13 +17,16 @@ import {
   GitBranchIcon,
   MoreHorizontalIcon,
   PencilIcon,
+  UsersIcon,
 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { DeltaBadge } from "@/components/payroll/delta-badge";
 import { MoneyCell } from "@/components/payroll/money-cell";
 import type { Section } from "@/components/payroll/section-header";
 import { SectionHeader } from "@/components/payroll/section-header";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,6 +50,18 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import type { EmployeeLineDto, LinePaymentState } from "@/web/api/payroll-api";
+
+const WHITESPACE_REGEX = /\s+/;
+
+function initials(name: string): string {
+  const parts = name.trim().split(WHITESPACE_REGEX).filter(Boolean);
+  if (parts.length === 0) {
+    return "?";
+  }
+  const first = parts[0]?.[0] ?? "";
+  const last = parts.length > 1 ? (parts.at(-1)?.[0] ?? "") : "";
+  return `${first}${last}`.toUpperCase() || "?";
+}
 
 interface EmployeeGridProps {
   readonly lines: readonly EmployeeLineDto[];
@@ -140,13 +155,21 @@ function EmployeeGrid({
   }, [totalPages]);
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="overflow-x-auto rounded-md border border-border">
+    <Card className="overflow-hidden py-0">
+      <div className="flex items-center gap-2 border-b px-4 py-3 sm:px-6 sm:py-4">
+        <UsersIcon className="size-5 text-muted-foreground" />
+        <span className="font-semibold text-lg">Employees</span>
+        <Badge className="ml-auto h-auto rounded-sm" variant="secondary">
+          {lines.length} lines
+        </Badge>
+      </div>
+
+      <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead
-                className="sticky left-0 z-10 min-w-48 bg-muted"
+                className="sticky left-0 z-10 min-w-56 bg-muted first:pl-4"
                 rowSpan={2}
               >
                 Employee
@@ -195,13 +218,13 @@ function EmployeeGrid({
         </Table>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between border-t px-4 py-3 sm:px-6">
         <p className="text-muted-foreground text-xs">
           Showing {lines.length === 0 ? 0 : page * PAGE_SIZE + 1}–
           {Math.min((page + 1) * PAGE_SIZE, lines.length)} of {lines.length}{" "}
           employees
         </p>
-        {totalPages > 1 && (
+        {totalPages > 1 ? (
           <Pagination>
             <PaginationContent>
               <PaginationItem>
@@ -218,9 +241,9 @@ function EmployeeGrid({
               </PaginationItem>
             </PaginationContent>
           </Pagination>
-        )}
+        ) : null}
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -263,18 +286,31 @@ function EmployeeRow({
       className={cn("cursor-pointer", hasChanges && "bg-muted/30")}
       onClick={handleRowClick}
     >
-      <TableCell className="sticky left-0 z-10 bg-background">
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-muted-foreground text-xs">
-            {line.employeeCode}
-          </span>
-          <span className="text-foreground text-sm">{line.employeeName}</span>
-          {line.variance?.hasChanges && line.rootVariances?.net != null ? (
-            <DeltaBadge variance={line.rootVariances.net} />
-          ) : null}
-          {line.findingsCount > 0 ? (
-            <Badge variant="outline">{line.findingsCount}</Badge>
-          ) : null}
+      <TableCell className="sticky left-0 z-10 bg-background first:pl-4">
+        <div className="flex items-center gap-2.5">
+          <Avatar className="size-8">
+            <AvatarFallback className="text-xs">
+              {initials(line.employeeName)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span className="truncate font-medium text-foreground text-sm">
+                {line.employeeName}
+              </span>
+              {line.variance?.hasChanges && line.rootVariances?.net != null ? (
+                <DeltaBadge variance={line.rootVariances.net} />
+              ) : null}
+              {line.findingsCount > 0 ? (
+                <Badge className="h-auto rounded-sm px-1.5" variant="outline">
+                  {line.findingsCount}
+                </Badge>
+              ) : null}
+            </div>
+            <span className="font-mono text-muted-foreground text-xs">
+              {line.employeeCode}
+            </span>
+          </div>
         </div>
       </TableCell>
       {ALL_COLS.map((col) => {

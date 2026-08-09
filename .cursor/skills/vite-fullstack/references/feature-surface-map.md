@@ -31,19 +31,21 @@ rg "Keep in sync" src/web/api/types.ts src/web/payrun/payslip-document/types.ts
 |------|-----------------|------------------------|---------------------------------------------------|--------|
 | Health | `health.ts` | `app.route("/", healthRoutes)` (public) | none | OK — intentional public; no Bearer |
 | Me / permissions | `me.ts` | `meRoutes` | `getMe`, `getPermissions` | Wired |
-| Admin users | `admin-users.ts` | `adminUserRoutes` | `getAdminUsers`, `createAdminUser`, `updateAdminUser`, `assignUserRole`, `revokeUserRole` | Wired |
+| Admin users | `admin-users.ts` | `adminUserRoutes` | `getAdminUsers`, `createAdminUser`, `updateAdminUser`, `assignUserRole`, `revokeUserRole` | Wired (SPA mutations) |
 | Admin companies | `admin-companies.ts` | `adminCompanyRoutes` | `getAdminCompanies`, `createAdminCompany`, `updateAdminCompany` | Wired (gold) |
 | Employee import | `employee-import.ts` | `employeeImportRoutes` | `downloadEmployeeImportTemplate`, `importEmployees` | Wired |
 | Employees list | `employees.ts` | `employeeRoutes` | `getEmployees` | Wired; **fat-route** |
-| Pay-run CRUD / lifecycle / findings / gates | `pay-run.ts` | `payRunRoutes` | `getPayRuns`, `createPayRun`, `recompute`, `review`, `approve`, `demotePayRun`, `getFindings`, `scanFindings`, `acknowledgeFinding`, `evaluateGate` (GET) | Mostly wired |
+| Pay-run CRUD / lifecycle / findings / gates | `pay-run.ts` | `payRunRoutes` | `getPayRuns`, `createPayRun`, `recompute`, `review`, `approve`, `demotePayRun`, `getFindings`, `scanFindings`, `acknowledgeFinding`, `evaluateGate` (GET) | Wired (create + demote in SPA) |
 | Gate evaluate (POST) | `pay-run.ts` `POST …/gates/:gate/evaluate` | via `payRunRoutes` | **none** | **Orphan endpoint** — FE uses `GET …/gates/:gate` only |
 | Workspace | `pay-run-workspace.ts` | `payRunWorkspaceRoutes` | `getWorkspace` | Wired; thin route → repo |
 | Control (close/seal/payments/release/artifacts) | `pay-run-control.ts` | `payRunControlRoutes(db)` | `getPayments`, `holdLine`, `unholdLine`, `withdrawLine`, `previewRelease`, `commitRelease`, `getBatch`, `settleAttempt`, `reconcileAttempt`, `cancelRelease`, `recordDistribution`, `getArtifacts`, `uploadArtifact`, `downloadArtifact`, `getClosureChecklist`, `closeRun`, `getRunSeal`, `getClosureChain` | Wired |
-| Payslips | `pay-run-payslip.ts` | `payRunPayslipRoutes` | `getPayslip`, `getPayslipIndex` | Wired; **fat-route**; FE DTO outside `types.ts` |
+| Payslips | `pay-run-payslip.ts` | `payRunPayslipRoutes` | `getPayslip`, `getPayslipIndex` | Wired (index drives prev/next); **fat-route**; FE DTO outside `types.ts` |
 | Line diff | `pay-run-diff.ts` | `payRunDiffRoutes` | `getLineDiff` | Wired; thin route → `loadDerivedGraph` + `diffGraphs` (compute-on-read; not `pay_lines.trace`) |
 | Line derivation | `pay-run-derivation.ts` | `payRunDerivationRoutes` | `getLineDerivation` | Wired; thin route → `service/line-derivation` (compute-on-read `deriveLine`) |
-| Run reports | `pay-run-reports.ts` | `payRunReportRoutes` | `getPaymentRegister`, `getStatutorySummary`, `getExceptionReport` | Wired; **fat-route**; totals carry `incomplete` |
-| Annual remuneration | `employee-remuneration.ts` | `employeeRemunerationRoutes` | `getAnnualRemunerationSummary` | Wired; **fat-route**; totals carry `incomplete` |
+| Run reports | `pay-run-reports.ts` | `payRunReportRoutes` | `getPaymentRegister`, `getStatutorySummary`, `getExceptionReport` | Wired; thin route → `service/pay-run-reports` → `repo/pay-run-reports` (extracted); totals carry `incomplete` |
+| Annual remuneration | `employee-remuneration.ts` | `employeeRemunerationRoutes` | `getAnnualRemunerationSummary` | Wired; thin route → `service/employee-remuneration` → `repo/employee-remuneration` (extracted); totals carry `incomplete` |
+| Transfer | `transfers.ts` | `transferRoutes` | `commitTransfer`, `acknowledgeTransferFinding` | Wired SPA `/transfers` |
+| Treatments | `treatments.ts` | `treatmentRoutes` | `recordWageTreatmentDeparture`, `recordPcbClassDeparture` | Wired SPA `/treatments` |
 
 ### Route ↔ client path cheatsheet (all under `/v1` except health)
 
@@ -84,8 +86,10 @@ rg "Keep in sync" src/web/api/types.ts src/web/payrun/payslip-document/types.ts
 | `/pay-runs/:runId` | `src/web/payrun/workspace.tsx` | yes | no (nested under Pay Runs) | Intentional nested |
 | `/pay-runs/:runId/payslip/:lineId` | `src/web/payrun/payslip-page.tsx` | yes | no (nested) | Intentional nested |
 | `/employees` | `src/web/employees/employees-page.tsx` | yes | yes | Studio `datatable-employee` + `file-upload-01` + `empty-state-01` |
+| `/transfers` | `src/web/transfer/transfer-page.tsx` | yes | yes | Commit + finding acknowledge; form-layout DNA |
+| `/treatments` | `src/web/treatments/treatments-page.tsx` | yes | yes | Wage + PCB departure forms; form-layout DNA |
 | `/reports` | `src/web/reports/reports-page.tsx` | yes | yes | Studio vertical tabs (tabs-22) + `empty-state-01` |
-| `/control` | `src/web/control/control-page.tsx` | yes | yes | Studio `statistics-card-03` + `empty-state-01` |
+| `/control` | `src/web/control/control-page.tsx` | yes | yes | Studio `statistics-with-status` + `empty-state-01` |
 | `/companies` | `src/web/companies/companies-page.tsx` | yes | yes (`adminOnly`) | |
 | `/admin` | `src/web/admin/admin-page.tsx` | yes | yes (`adminOnly`) | |
 | (fallback) | inline “Not found” | yes | — | |
@@ -114,9 +118,9 @@ Marketing (`landing.html` → `src/marketing/`) is **outside** this SPA spine.
 | `AdminCompanyRow` | `CompanyDirectoryRow` in `src/service/admin-companies.ts` | service | Low — canon example |
 | `CreateAdminCompanyBody` / `UpdateAdminCompanyBody` | Zod in `admin-companies.ts` route | route Zod | Low |
 | `ArtifactRow` | `ArtifactListItem` in `src/service/artifacts.ts` | service | Low |
-| `PaymentRegisterDto` | `pay-run-reports.ts` payment-register | fat route | Med — producer is route-local |
-| `StatutorySummaryDto` | `pay-run-reports.ts` statutory-summary | fat route | Med |
-| `AnnualRemunerationSummaryDto` | `employee-remuneration.ts` | fat route | Med |
+| `PaymentRegisterDto` | `PaymentRegisterReport` in `src/service/pay-run-reports.ts` | service | Low — producer extracted |
+| `StatutorySummaryDto` | `StatutorySummaryReport` in `src/service/pay-run-reports.ts` | service | Low — producer extracted |
+| `AnnualRemunerationSummaryDto` | `AnnualRemunerationSummary` in `src/service/employee-remuneration.ts` | service | Low — producer extracted, `Keep in sync` both ways |
 | `PayRunMutationEnvelope` (+ kind union) | `src/service/pay-run-mutation-envelope.ts` | service | Low |
 | `PayslipDocumentDto` / `PayslipIndexRow` | `src/web/payrun/payslip-document/types.ts` → `pay-run-payslip.ts` | fat route | **High** — not in `types.ts`; agents often miss |
 | `PayRunSummary` | comment → `src/repo/pay-run.ts` | repo | Med — informal “see” comment, not `Keep in sync with` |
@@ -127,7 +131,7 @@ Marketing (`landing.html` → `src/marketing/`) is **outside** this SPA spine.
 | `CloseRunResponse`, seal/chain types | comments → `close.ts` / `closure-seal.ts` | service | Med |
 | `RunLineDiffDto` / `NodeDiffRow` | `Keep in sync` → `pay-run-diff.ts` | route + `service/line-derivation` load | Low — compute-on-read graphs |
 | `LineDerivationDto` / `DerivedNodeDto` | `Keep in sync` → `src/service/line-derivation.ts` | service | Low — gold-ish nested pay-run read |
-| `ExceptionReportDto` | `Keep in sync` → `pay-run-reports.ts` | fat route | Low — sibling reports aligned |
+| `ExceptionReportDto` | `ExceptionReport` in `src/service/pay-run-reports.ts` | service | Low — sibling reports aligned |
 | `MeResponse`, `AdminUserRow`, import report, `CreatePayRunBody`, invite bodies | missing or weak | various | Low–med process smell |
 
 ### Dual / deprecated fields still in play
@@ -157,8 +161,8 @@ Marketing (`landing.html` → `src/marketing/`) is **outside** this SPA spine.
 | Payslip | **fat-route** | `pay-run-payslip.ts`, `payslip-document/types.ts`, `payslip-page.tsx` | Extract builder when changing shape; sync local types file | Adding payslip fields only in `types.ts` |
 | Line diff | **gold-ish** (route→service load→domain diff) | `pay-run-diff.ts`, `service/line-derivation.ts` `loadDerivedGraph`, `domain/derive/diff.ts` | Reuse `loadDerivedGraph`; keep `mapDiff` thin | Parsing `pay_lines.trace` as a DerivationGraph |
 | Line derivation | **gold-ish** (route→service→domain) | `pay-run-derivation.ts`, `service/line-derivation.ts`, `domain/derive/emit.ts`, `derivation-drawer.tsx` | Extend mapper/DTO in service; keep route thin | Assembling graphs in the route; bloating workspace roots |
-| Run reports | **fat-route** | `pay-run-reports.ts`, `reports/*` | Extract report service/repo when extending; preserve `incomplete` | Silent FE field adds; `?? 0` on nullable sen |
-| Annual remuneration | **fat-route** | `employee-remuneration.ts` | Same as reports; keep disclaimer/limitation text | Treating as Form EA / C.P.8A |
+| Run reports | **gold-ish** (route→service→repo; extracted) | `pay-run-reports.ts` route/service/repo, `reports/*` | Extend the repo read + service DTO together; preserve `incomplete` and bank-account masking | Silent FE field adds; `?? 0` on nullable sen |
+| Annual remuneration | **gold-ish** (route→service→repo; extracted) | `employee-remuneration.ts` route/service/repo, `annual-remuneration-summary.tsx` | Extend the repo read + service DTO together; keep `incomplete` and the disclaimer/limitation text | Treating as Form EA / C.P.8A; `?? 0` on nullable sen |
 | Dashboard / Control pages | **presentation** | `dashboard-page.tsx`, `control-page.tsx` | Compose existing `payrollApi` | New endpoints only for charts |
 
 ## Domain / calc / artifacts (agents commonly miss)
@@ -192,11 +196,11 @@ Marketing (`landing.html` → `src/marketing/`) is **outside** this SPA spine.
 | Domain evaluate | `src/domain/rbac/authorize.ts` | Pure matrix check |
 | FE presentation | `isSystemAdminPresentation`, nav `adminOnly`, page early returns | **UI only** |
 
-`requirePermission` / `requireSystemAdmin` call sites (non-exhaustive by design): `service/admin-companies.ts`, `service/admin-users.ts`, `service/payrun.ts`, `service/employee-import.ts`, `service/artifacts.ts` (`requirePayRunPermission`), routes `employee-import.ts`, `employee-remuneration.ts`, and everywhere via `requirePayRunAccess`.
+`requirePermission` / `requireSystemAdmin` call sites (non-exhaustive by design): `service/admin-companies.ts`, `service/admin-users.ts`, `service/payrun.ts`, `service/employee-import.ts`, `service/artifacts.ts` (`requirePayRunPermission`), `service/employee-remuneration.ts`, route `employee-import.ts`, and everywhere via `requirePayRunAccess`.
 
 ## Continuous-dev hotspots
 
-- **Fat routes:** `employees.ts`, `pay-run-payslip.ts`, `pay-run-reports.ts`, `employee-remuneration.ts` — DTO + SQL live together; highest skew risk.
+- **Fat routes: the named four are done.** `employees.ts`, `pay-run-payslip.ts`, `employee-remuneration.ts` and `pay-run-reports.ts` are all extracted to route→service→repo; read them as worked examples. Two route modules still hold Drizzle in the handler — `pay-run-control.ts` (~403 lines) and `pay-run-diff.ts` (~214) — but those are the **control** and **diff** hubs, to be taken alone per [batching.md](../../hub-refactor/references/batching.md), not leftovers of this list. Verify with Grep `drizzle-orm|@/db/schema` over `src/server/routes`: only those two should hit. A new module appearing there is a regression.
 - **Payslip twin outside `types.ts`** — update `payslip-document/types.ts` when changing route JSON.
 - **Orphan** `POST …/gates/:gate/evaluate` — don’t add a second FE path without consolidating.
 - **Workspace** large nested DTO in `repo/workspace.ts` ↔ FE block in `types.ts` — change producer first.

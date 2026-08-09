@@ -7,35 +7,51 @@
  * Employee SOCSO, PCB, Net Pay). Renders server-computed values only:
  * `MoneyCell` shows `currentSen`, `DeltaBadge` shows the server's
  * `VarianceDto` verbatim. Never recomputes variance client-side.
+ *
+ * Visual DNA: studio statistics-money-tile (statistics-component family).
  */
 
+import {
+  BanknoteIcon,
+  LandmarkIcon,
+  ShieldIcon,
+  UmbrellaIcon,
+  WalletIcon,
+} from "lucide-react";
+import type { ReactNode } from "react";
 import { DeltaBadge } from "@/components/payroll/delta-badge";
 import { MoneyCell } from "@/components/payroll/money-cell";
-import { Card, CardContent } from "@/components/ui/card";
+import StatisticsMoneyTile from "@/components/shadcn-studio/blocks/statistics-money-tile";
 import type { AggregateTile } from "@/web/api/payroll-api";
 
 interface TotalsStripProps {
   readonly tiles: readonly AggregateTile[];
 }
 
+const TILE_ICONS: Record<string, ReactNode> = {
+  gross_pay: <BanknoteIcon />,
+  net_pay: <WalletIcon />,
+  epf_ee: <LandmarkIcon />,
+  socso_ee: <ShieldIcon />,
+  eis_ee: <UmbrellaIcon />,
+};
+
 function TotalsStrip({ tiles }: TotalsStripProps) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5">
       {tiles.map((tile) => (
-        <Card className="ring-1 ring-foreground/10" key={tile.key}>
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between gap-2">
-              <p className="truncate text-muted-foreground text-xs">
-                {tile.label}
-              </p>
-              <DeltaBadge variance={tile.variance} />
-            </div>
+        <StatisticsMoneyTile
+          caption={<DeltaBadge variance={tile.variance} />}
+          icon={TILE_ICONS[tile.key]}
+          key={tile.key}
+          title={tile.label}
+          value={
             <MoneyCell
-              className="mt-1 block font-semibold text-foreground text-lg"
+              className="block font-semibold text-foreground"
               sen={tile.currentSen}
             />
-          </CardContent>
-        </Card>
+          }
+        />
       ))}
     </div>
   );

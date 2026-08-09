@@ -3,7 +3,7 @@
  * @layer ui
  * @hub src/server/routes/admin-companies.ts
  *
- * form-layout-01 — Clarity company party fields.
+ * form-layout-01 — Clarity company party fields (dialog-hosted; no duplicate title).
  */
 
 import type { SubmitEvent } from "react";
@@ -66,16 +66,11 @@ function CompanyForm({
   );
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="mb-8 space-y-2">
-        <h2 className="font-semibold text-xl">
-          {isEdit ? "Edit company" : "New company"}
-        </h2>
-        <p className="text-muted-foreground text-sm">
-          Payroll company code matches employee import (`Payroll Company Code`)
-          and scopes pay runs across the group.
-        </p>
-      </div>
+    <form className="space-y-6" onSubmit={handleSubmit}>
+      <p className="text-muted-foreground text-sm">
+        Code matches employee import (`Payroll Company Code`) and scopes pay
+        runs. Code is fixed after create.
+      </p>
 
       <FieldGroup className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         <Field className="gap-2">
@@ -157,7 +152,7 @@ function CompanyForm({
         </Field>
       </FieldGroup>
 
-      <div className="mt-8 flex justify-end gap-2">
+      <div className="flex justify-end gap-2">
         {onCancel === undefined ? null : (
           <Button
             disabled={busy}

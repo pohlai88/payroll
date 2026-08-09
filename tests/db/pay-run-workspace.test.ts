@@ -250,6 +250,7 @@ describe("GET /v1/pay-runs/:runId/workspace", () => {
         canRecompute: true,
         canReview: true,
         canApprove: false,
+        canDemote: false,
         canClose: false,
       },
       totals: expect.any(Array),
@@ -303,6 +304,7 @@ describe("GET /v1/pay-runs/:runId/workspace", () => {
       canRecompute: false,
       canReview: false,
       canApprove: true,
+      canDemote: true,
       canClose: false,
     });
   });

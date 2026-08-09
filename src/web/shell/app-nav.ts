@@ -8,12 +8,15 @@
  */
 
 import {
+  ArrowLeftRightIcon,
   Building2Icon,
   FileTextIcon,
   LayoutDashboardIcon,
   ReceiptTextIcon,
+  ScaleIcon,
   SettingsIcon,
   ShieldCheckIcon,
+  ShieldIcon,
   UsersIcon,
 } from "lucide-react";
 import type { ComponentType } from "react";
@@ -37,10 +40,13 @@ const APP_SHELL_ROUTE_PATHS = [
   "/",
   "/pay-runs",
   "/employees",
+  "/transfers",
+  "/treatments",
   "/reports",
   "/control",
   "/companies",
   "/admin",
+  "/roles",
 ] as const;
 
 type AppShellRoutePath = (typeof APP_SHELL_ROUTE_PATHS)[number];
@@ -66,6 +72,20 @@ export const APP_NAV_ITEMS: readonly AppNavItem[] = [
     label: "Employees",
     href: "/employees",
     icon: UsersIcon,
+  },
+  // --- @feature transfer @layer spine ---
+  {
+    id: "transfers",
+    label: "Transfers",
+    href: "/transfers",
+    icon: ArrowLeftRightIcon,
+  },
+  // --- @feature treatments @layer spine ---
+  {
+    id: "treatments",
+    label: "Treatments",
+    href: "/treatments",
+    icon: ScaleIcon,
   },
   // --- @feature reports @layer spine ---
   {
@@ -95,6 +115,14 @@ export const APP_NAV_ITEMS: readonly AppNavItem[] = [
     label: "Admin",
     href: "/admin",
     icon: SettingsIcon,
+    adminOnly: true,
+  },
+  // --- @feature rbac @layer spine ---
+  {
+    id: "roles",
+    label: "Roles",
+    href: "/roles",
+    icon: ShieldIcon,
     adminOnly: true,
   },
 ];
@@ -147,9 +175,13 @@ export function resolveAppNavItem(
   return best;
 }
 
+/**
+ * Shell destinations to render. Admin links stay mounted for every signed-in
+ * user; `adminOnly` is a grouping hint — pages still gate SYSTEM_ADMIN.
+ */
 export function visibleAppNavItems(
-  isSystemAdmin: boolean,
+  _isSystemAdmin: boolean,
   items: readonly AppNavItem[] = APP_NAV_ITEMS
 ): readonly AppNavItem[] {
-  return items.filter((item) => item.adminOnly !== true || isSystemAdmin);
+  return items;
 }

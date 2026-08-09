@@ -22,6 +22,7 @@ import {
   inviteUser,
   listUsers,
   revokeUserRoleAssignment,
+  updateUserProfileFields,
   updateUserStatus,
 } from "@/service/admin-users";
 import type { AuthVariables } from "../auth/middleware";
@@ -34,9 +35,19 @@ const inviteBody = z.object({
   companyId: z.string().uuid().nullable().optional(),
 });
 
-const statusBody = z.object({
-  status: z.enum(["ACTIVE", "DISABLED"]),
-});
+const updateUserBody = z
+  .object({
+    status: z.enum(["ACTIVE", "DISABLED"]).optional(),
+    name: z.string().min(1).optional(),
+    email: z.string().min(1).optional(),
+  })
+  .refine(
+    (body) =>
+      body.status !== undefined ||
+      body.name !== undefined ||
+      body.email !== undefined,
+    { message: "At least one of status, name, or email is required" }
+  );
 
 const roleBody = z.object({
   roleCode: z.string().min(1),
@@ -81,6 +92,8 @@ export function adminUserRoutes(db: Database) {
           name: u.name,
           status: u.status,
           authSubject: u.authSubject,
+          createdAt: u.createdAt.toISOString(),
+          roles: u.roles,
         })),
       });
     } catch (error) {
@@ -90,12 +103,34 @@ export function adminUserRoutes(db: Database) {
 
   app.patch("/admin/users/:userId", async (c) => {
     try {
-      const body = statusBody.parse(await c.req.json());
-      const user = await updateUserStatus(db, {
-        actorUserId: c.get("user").id,
-        userId: c.req.param("userId"),
-        status: body.status,
-      });
+      const body = updateUserBody.parse(await c.req.json());
+      const actorUserId = c.get("user").id;
+      const userId = c.req.param("userId");
+
+      let user =
+        body.status === undefined
+          ? null
+          : await updateUserStatus(db, {
+              actorUserId,
+              userId,
+              status: body.status,
+            });
+
+      if (body.name !== undefined || body.email !== undefined) {
+        user = await updateUserProfileFields(db, {
+          actorUserId,
+          userId,
+          name: body.name,
+          email: body.email,
+        });
+      }
+
+      // Unreachable: the Zod refine above guarantees at least one field, so
+      // one of the branches above always assigns `user`.
+      if (user === null) {
+        throw new Error("unreachable: no fields to update");
+      }
+
       return c.json({
         id: user.id,
         email: user.email,

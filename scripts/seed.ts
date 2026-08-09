@@ -19,6 +19,9 @@ import {
   createPool,
   requireDatabaseUrl,
 } from "../src/db/client";
+import { loadEnvLocal } from "../src/server/load-env-local";
+
+loadEnvLocal();
 import { payItems } from "../src/db/schema/catalog";
 import { employeeCustomFieldDefs } from "../src/db/schema/employee-profile";
 import { companies, employments, persons } from "../src/db/schema/parties";

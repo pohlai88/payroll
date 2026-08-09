@@ -6,11 +6,14 @@
  * Workspace findings panel — scan trigger, severity-tagged list, and
  * acknowledge flow for OPEN warnings. BLOCKING findings cannot be
  * acknowledged (server rule); they must be fixed and re-scanned.
+ *
+ * Visual DNA: Card + Collapsible console panel with soft status badges.
  */
 
 import { ChevronDownIcon, ShieldAlertIcon } from "lucide-react";
 import { type ChangeEvent, useCallback, useEffect, useState } from "react";
 import { severityBadgeVariant } from "@/components/payroll/status-badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +22,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAsyncLoad } from "@/hooks/use-async-load";
 import { cn } from "@/lib/utils";
 import { formatApiError } from "@/web/api/format-error";
@@ -74,15 +78,18 @@ function FindingRowView({
   }, [finding.id, finding.severity, note, onAcknowledged, runId]);
 
   return (
-    <li className="flex flex-col gap-2 border-b px-3 py-3 last:border-b-0">
+    <li className="flex flex-col gap-2 border-b px-4 py-3 last:border-b-0 sm:px-5">
       <div className="flex flex-wrap items-start gap-2">
         <Badge
-          className="shrink-0"
+          className="h-auto shrink-0 rounded-sm px-1.5"
           variant={severityBadgeVariant(finding.severity)}
         >
           {finding.severity}
         </Badge>
-        <Badge className="shrink-0 font-mono text-xs" variant="outline">
+        <Badge
+          className="h-auto shrink-0 rounded-sm px-1.5 font-mono text-xs"
+          variant="outline"
+        >
           {finding.status}
         </Badge>
         <span className="min-w-0 flex-1 font-medium text-sm">
@@ -90,9 +97,7 @@ function FindingRowView({
         </span>
       </div>
       <p className="text-muted-foreground text-sm">{finding.detail}</p>
-      <p className="font-mono text-muted-foreground text-xs">
-        {finding.ruleId}
-      </p>
+      <p className="font-mono text-muted-foreground text-xs">{finding.ruleId}</p>
       {finding.status === "ACKNOWLEDGED" && finding.ackNote !== null ? (
         <p className="text-muted-foreground text-xs">
           Ack by {finding.ackActor ?? "—"}: {finding.ackNote}
@@ -124,12 +129,16 @@ function FindingRowView({
         </div>
       ) : null}
       {finding.severity === "BLOCKING" && finding.status === "OPEN" ? (
-        <p className="text-destructive text-xs">
-          Blocking — fix the condition and re-scan; cannot be acknowledged.
-        </p>
+        <Alert variant="destructive">
+          <AlertDescription>
+            Blocking — fix the condition and re-scan; cannot be acknowledged.
+          </AlertDescription>
+        </Alert>
       ) : null}
       {error === null ? null : (
-        <p className="text-destructive text-xs">{error}</p>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
     </li>
   );
@@ -192,20 +201,40 @@ function FindingsPanel({
 
   const blocking = findingsSummary?.blockingCount ?? 0;
   const warning = findingsSummary?.warningCount ?? 0;
-  const summaryLabel = hasSummary
-    ? `${blocking} blocking · ${warning} warning`
-    : "No open findings";
 
   return (
     <Collapsible onOpenChange={setOpen} open={open}>
-      <div className="rounded-lg border bg-card">
-        <div className="flex items-center gap-2 px-3 py-2">
-          <CollapsibleTrigger className="flex min-w-0 flex-1 items-center gap-2 text-left">
-            <ShieldAlertIcon className="size-4 shrink-0 text-muted-foreground" />
-            <span className="font-medium text-sm">Findings</span>
-            <span className="truncate text-muted-foreground text-xs">
-              {summaryLabel}
-            </span>
+      <div className="overflow-hidden rounded-xl border bg-card">
+        <div className="flex flex-wrap items-center gap-2 px-4 py-3 sm:px-5">
+          <CollapsibleTrigger className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <ShieldAlertIcon className="size-4" />
+            </div>
+            <div className="min-w-0">
+              <div className="font-medium text-sm">Findings</div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {hasSummary ? (
+                  <>
+                    <Badge
+                      className="h-auto rounded-sm px-1.5"
+                      variant={blocking > 0 ? "destructive" : "secondary"}
+                    >
+                      {blocking} blocking
+                    </Badge>
+                    <Badge
+                      className="h-auto rounded-sm px-1.5"
+                      variant={warning > 0 ? "outline" : "secondary"}
+                    >
+                      {warning} warning
+                    </Badge>
+                  </>
+                ) : (
+                  <span className="text-muted-foreground text-xs">
+                    No open findings
+                  </span>
+                )}
+              </div>
+            </div>
             <ChevronDownIcon
               className={cn(
                 "ml-auto size-4 shrink-0 text-muted-foreground transition-transform",
@@ -224,17 +253,20 @@ function FindingsPanel({
         </div>
         <CollapsibleContent>
           {error !== null || scanError !== null ? (
-            <p className="border-t px-3 py-2 text-destructive text-sm">
-              {error ?? scanError}
-            </p>
+            <div className="border-t px-4 py-3 sm:px-5">
+              <Alert variant="destructive">
+                <AlertDescription>{error ?? scanError}</AlertDescription>
+              </Alert>
+            </div>
           ) : null}
           {loading && findings.length === 0 ? (
-            <p className="border-t px-3 py-4 text-muted-foreground text-sm">
-              Loading findings…
-            </p>
+            <div className="space-y-2 border-t px-4 py-4 sm:px-5">
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
           ) : null}
           {!loading && findings.length === 0 ? (
-            <p className="border-t px-3 py-4 text-muted-foreground text-sm">
+            <p className="border-t px-4 py-4 text-muted-foreground text-sm sm:px-5">
               No findings for this run. Run a scan after recompute.
             </p>
           ) : null}

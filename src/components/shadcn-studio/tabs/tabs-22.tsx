@@ -1,78 +1,72 @@
 /**
  * @feature reports
  * @layer ui
- * @hub src/server/routes/pay-run-reports.ts
  *
- * Studio tabs-22 demo — vertical tabs with icons.
- * Adapted for Vite: lucide-react + `@/components/ui/tabs` (base-nova).
+ * Vertical icon tabs (studio tabs-22 DNA).
+ * Presentational shell — callers own Tabs value/content and data I/O.
  */
 
-import { BookIcon, GiftIcon, HeartIcon } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { ReactNode } from "react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
-const tabs = [
-  {
-    name: "Explore",
-    value: "explore",
-    icon: <BookIcon />,
-    content: (
-      <>
-        Discover{" "}
-        <span className="font-semibold text-foreground">fresh ideas</span>,
-        trending topics, and hidden gems curated just for you.
-      </>
-    ),
-  },
-  {
-    name: "Favorites",
-    value: "favorites",
-    icon: <HeartIcon />,
-    content: (
-      <>
-        All your{" "}
-        <span className="font-semibold text-foreground">favorites</span> are
-        saved here.
-      </>
-    ),
-  },
-  {
-    name: "Surprise Me",
-    value: "surprise",
-    icon: <GiftIcon />,
-    content: (
-      <>
-        <span className="font-semibold text-foreground">Surprise!</span>{" "}
-        Here&apos;s something unexpected.
-      </>
-    ),
-  },
-] as const;
+export interface VerticalIconTab {
+  readonly id: string;
+  readonly label: string;
+  readonly icon: ReactNode;
+}
 
-function TabsVerticalWithIconDemo() {
+interface VerticalIconTabsProps {
+  readonly tabs: readonly VerticalIconTab[];
+  readonly value: string;
+  readonly onValueChange: (value: string | number | null) => void;
+  readonly children: ReactNode;
+  readonly sidebarLabel?: string;
+  readonly className?: string;
+}
+
+function VerticalIconTabs({
+  tabs,
+  value,
+  onValueChange,
+  children,
+  sidebarLabel = "Sections",
+  className,
+}: VerticalIconTabsProps) {
   return (
-    <div className="w-full max-w-md">
-      <Tabs defaultValue="explore" orientation="vertical">
-        <TabsList className="h-full">
-          {tabs.map(({ icon, name, value }) => (
+    <Tabs
+      className={cn(
+        "min-h-[28rem] overflow-hidden rounded-xl border bg-card",
+        className
+      )}
+      onValueChange={onValueChange}
+      orientation="vertical"
+      value={value}
+    >
+      <div className="w-56 shrink-0 space-y-1 border-r p-4">
+        <p className="mb-3 font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+          {sidebarLabel}
+        </p>
+        <TabsList
+          className="h-auto w-full flex-col bg-transparent p-0"
+          variant="line"
+        >
+          {tabs.map((tab) => (
             <TabsTrigger
-              className="w-full gap-1.5 px-2.5 sm:px-3"
-              key={value}
-              value={value}
+              className="w-full justify-start gap-2 px-3 py-2 data-active:bg-primary/10 data-active:text-primary"
+              key={tab.id}
+              value={tab.id}
             >
-              {icon}
-              {name}
+              {tab.icon}
+              <span className="truncate">{tab.label}</span>
             </TabsTrigger>
           ))}
         </TabsList>
+      </div>
 
-        {tabs.map((tab) => (
-          <TabsContent key={tab.value} value={tab.value}>
-            <p className="text-muted-foreground text-sm">{tab.content}</p>
-          </TabsContent>
-        ))}
-      </Tabs>
-    </div>
+      <div className="flex-1 space-y-4 overflow-auto p-6">{children}</div>
+    </Tabs>
   );
 }
 
-export default TabsVerticalWithIconDemo;
+export { VerticalIconTabs };

@@ -22,7 +22,7 @@ interface CommandPaletteProps {
 }
 
 function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
-  const { items, navigateTo } = useShellNav();
+  const { primaryItems, adminItems, navigateTo } = useShellNav();
 
   return (
     <CommandDialog onOpenChange={onOpenChange} open={open}>
@@ -30,7 +30,7 @@ function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup heading="Navigate">
-          {items.map((item) => (
+          {primaryItems.map((item) => (
             <CommandItem
               key={item.id}
               onSelect={() => {
@@ -44,6 +44,23 @@ function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             </CommandItem>
           ))}
         </CommandGroup>
+        {adminItems.length === 0 ? null : (
+          <CommandGroup heading="Administration">
+            {adminItems.map((item) => (
+              <CommandItem
+                key={item.id}
+                onSelect={() => {
+                  navigateTo(item.href);
+                  onOpenChange(false);
+                }}
+                value={`${item.label} ${item.href}`}
+              >
+                <item.icon className="size-4" />
+                {item.label}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
       </CommandList>
     </CommandDialog>
   );
