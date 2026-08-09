@@ -21,9 +21,9 @@ import {
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { EmployeeLineDto } from "@/web/api/payroll-api";
+import { EmployeeDiff } from "../employee/employee-diff";
+import { PayslipPreview } from "../employee/payslip-preview";
 import { DerivationDrawer } from "./derivation-drawer";
-import { EmployeeDiff } from "./employee-diff";
-import { PayslipPreview } from "./payslip-preview";
 
 interface EmployeeSlideOverProps {
   readonly open: boolean;

@@ -54,7 +54,7 @@ export interface TimestampOutcome {
  * free and audited, but it is not on the MCMC's list, so it adds corroboration
  * rather than the s.62 presumption — see `.env.example`.
  */
-export const SUGGESTED_TSA_URL = "http://timestamp.digicert.com";
+const SUGGESTED_TSA_URL = "http://timestamp.digicert.com";
 
 /** Absent or blank means "do not timestamp", which is the dev/test default. */
 export function configuredTsaUrl(

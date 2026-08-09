@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import {
   CircleCheckIcon,
   InfoIcon,
@@ -5,11 +6,12 @@ import {
   OctagonXIcon,
   TriangleAlertIcon,
 } from "lucide-react";
-import { useTheme } from "next-themes";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
+import { useDarkMode } from "@/hooks/use-dark-mode";
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme();
+  const [dark] = useDarkMode();
+  const theme = dark ? "dark" : "light";
 
   return (
     <Sonner
@@ -27,9 +29,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
           "--border-radius": "var(--radius)",
-        } as React.CSSProperties
+        } as CSSProperties
       }
-      theme={theme as ToasterProps["theme"]}
+      theme={theme}
       toastOptions={{
         classNames: {
           toast: "cn-toast",

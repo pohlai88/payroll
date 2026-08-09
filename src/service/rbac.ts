@@ -5,7 +5,6 @@
 
 import type { Database } from "@/db/client";
 import {
-  hasPermission as evaluateHasPermission,
   isSystemAdmin as evaluateIsSystemAdmin,
   listEffectivePermissions as evaluateListEffective,
   requirePermission as evaluateRequire,
@@ -21,17 +20,6 @@ import {
   listCompaniesByIds,
   loadAuthRoleGrants,
 } from "@/repo/rbac";
-
-export async function hasPermission(
-  db: Database,
-  userId: string,
-  resource: PermissionResource,
-  action: PermissionAction,
-  companyId?: string | null
-): Promise<boolean> {
-  const grants = await loadAuthRoleGrants(db, userId);
-  return evaluateHasPermission(grants, resource, action, companyId);
-}
 
 export async function requirePermission(
   db: Database,

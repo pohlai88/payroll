@@ -9,7 +9,6 @@ import { MemoryArtifactStore } from "@/domain/artifacts/store";
 import {
   readRunArtifactContent,
   setArtifactStore,
-  signedArtifactUrl,
   storeArtifact,
   storeAttachedEvidence,
 } from "@/service/artifacts";
@@ -133,7 +132,7 @@ describe("run-scoped artifact access", () => {
          '2026-08-01', '2026-08-31', 22, 'DRAFT', 'artifacts-test')`);
   });
 
-  it("rejects signed URL and content when runId does not own the artifact", async () => {
+  it("rejects content when runId does not own the artifact", async () => {
     const stored = await storeArtifact(db, {
       runId: RUN_A,
       type: "EVIDENCE",
@@ -143,13 +142,6 @@ describe("run-scoped artifact access", () => {
       createdBy: "artifacts-test",
       source: "ATTACHED",
     });
-
-    const urlErr = await signedArtifactUrl(db, RUN_B, stored.id, store).then(
-      () => null,
-      (error: unknown) => error
-    );
-    expect(urlErr).toBeInstanceOf(ControlError);
-    expect((urlErr as ControlError).code).toBe("NOT_FOUND");
 
     const contentErr = await readRunArtifactContent(
       db,
@@ -166,5 +158,77 @@ describe("run-scoped artifact access", () => {
     const ok = await readRunArtifactContent(db, RUN_A, stored.id, store);
     expect(new TextDecoder().decode(ok.body)).toBe("owned");
     expect(ok.filename).toBe("owned.txt");
+  });
+
+  it("sanitizes path-like filenames into a single key segment", async () => {
+    const stored = await storeArtifact(db, {
+      runId: RUN_A,
+      type: "EVIDENCE",
+      filename: "../../evil.pdf",
+      body: new TextEncoder().encode("x"),
+      mimeType: "application/pdf",
+      createdBy: "artifacts-test",
+      source: "ATTACHED",
+    });
+    expect(stored.relativePath).toMatch(
+      /^runs\/ART-SCOPE-A\/[0-9a-f-]+\/\.\._\.\._evil\.pdf$/
+    );
+    const bytes = await store.get(stored.relativePath);
+    expect(bytes).not.toBeNull();
+  });
+
+  it("rejects content when stored bytes do not match sha256", async () => {
+    const stored = await storeArtifact(db, {
+      runId: RUN_A,
+      type: "EVIDENCE",
+      filename: "tamper.txt",
+      body: new TextEncoder().encode("original"),
+      mimeType: "text/plain",
+      createdBy: "artifacts-test",
+      source: "ATTACHED",
+    });
+    await store.put({
+      key: stored.relativePath,
+      body: new TextEncoder().encode("tampered"),
+      contentType: "text/plain",
+    });
+
+    const err = await readRunArtifactContent(db, RUN_A, stored.id, store).then(
+      () => null,
+      (error: unknown) => error
+    );
+    expect(err).toBeInstanceOf(ControlError);
+    expect((err as ControlError).code).toBe("CONFLICT");
+  });
+
+  it("deletes bytes when metadata insert fails", async () => {
+    const tracking = new (class extends MemoryArtifactStore {
+      deleted: string[] = [];
+      delete(key: string): Promise<void> {
+        this.deleted.push(key);
+        return super.delete(key);
+      }
+    })();
+
+    await expect(
+      storeArtifact(
+        db,
+        {
+          runId: "NO-SUCH-RUN",
+          type: "EVIDENCE",
+          filename: "orphan.txt",
+          body: new TextEncoder().encode("orphan"),
+          mimeType: "text/plain",
+          createdBy: "artifacts-test",
+          source: "ATTACHED",
+        },
+        tracking
+      )
+    ).rejects.toThrow();
+
+    expect(tracking.deleted).toHaveLength(1);
+    const key = tracking.deleted[0];
+    expect(key).toBeDefined();
+    expect(await tracking.get(key as string)).toBeNull();
   });
 });

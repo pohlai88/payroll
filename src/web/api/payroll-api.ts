@@ -21,7 +21,10 @@ export type {
   CloseRunResponse,
   ClosureChainResponse,
   ClosureChecklistResponse,
+  CommitTransferBody,
+  CommitTransferResponse,
   CreatePayRunBody,
+  DepartureResponse,
   DerivedNodeDto,
   DistributionChannel,
   EmployeeLineDto,
@@ -51,6 +54,7 @@ export type {
   PaymentRegisterDto,
   PaymentRegisterRow,
   PaymentsListResponse,
+  PcbClassDepartureBody,
   PayRunMutationEnvelope,
   PayRunMutationKind,
   PayRunSummary,
@@ -70,7 +74,6 @@ export type {
   RunSealResponse,
   RunSummary,
   SealStatus,
-  SignedArtifactUrlResponse,
   SparkPoint,
   StatutorySummaryDto,
   StoreArtifactResponse,
@@ -78,6 +81,7 @@ export type {
   TimestampStatus,
   UploadArtifactType,
   VarianceDto,
+  WageTreatmentDepartureBody,
   WithdrawalReason,
 } from "./types";
 
@@ -193,8 +197,6 @@ export const payrollApi = {
     runId: string,
     body: Parameters<PayrollApi["uploadArtifact"]>[1]
   ) => getPayrollApi().uploadArtifact(runId, body),
-  getArtifactUrl: (runId: string, artifactId: string) =>
-    getPayrollApi().getArtifactUrl(runId, artifactId),
   downloadArtifact: (runId: string, artifactId: string) =>
     getPayrollApi().downloadArtifact(runId, artifactId),
   getClosureChecklist: (runId: string) =>
@@ -217,4 +219,14 @@ export const payrollApi = {
     getPayrollApi().getExceptionReport(runId),
   getAnnualRemunerationSummary: (employeeId: string, year: number) =>
     getPayrollApi().getAnnualRemunerationSummary(employeeId, year),
+  commitTransfer: (body: Parameters<PayrollApi["commitTransfer"]>[0]) =>
+    getPayrollApi().commitTransfer(body),
+  recordWageTreatmentDeparture: (
+    payItemId: string,
+    body: Parameters<PayrollApi["recordWageTreatmentDeparture"]>[1]
+  ) => getPayrollApi().recordWageTreatmentDeparture(payItemId, body),
+  recordPcbClassDeparture: (
+    payItemId: string,
+    body: Parameters<PayrollApi["recordPcbClassDeparture"]>[1]
+  ) => getPayrollApi().recordPcbClassDeparture(payItemId, body),
 };

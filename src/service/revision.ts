@@ -20,7 +20,7 @@ type DbOrTx = Database | Transaction;
  * Deterministic hash of calc-relevant state for a run.
  * Excludes payment/distribution/UI/acknowledgment fields.
  */
-export async function computeCalcRevision(
+async function computeCalcRevision(
   db: DbOrTx,
   runId: string
 ): Promise<string> {

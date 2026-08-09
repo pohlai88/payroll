@@ -3,15 +3,24 @@
  * Bytes under `data/artifacts/<key>`; never trust caller paths.
  */
 
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { assertSafeArtifactKey } from "./keys";
 import type { ArtifactStore, PutObjectInput } from "./store";
+
+function isNotFound(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    "code" in error &&
+    (error as NodeJS.ErrnoException).code === "ENOENT"
+  );
+}
 
 export class LocalFsArtifactStore implements ArtifactStore {
   private readonly root: string;
 
   constructor(root = path.join(process.cwd(), "data", "artifacts")) {
-    this.root = root;
+    this.root = path.resolve(root);
   }
 
   async put(input: PutObjectInput): Promise<void> {
@@ -24,32 +33,36 @@ export class LocalFsArtifactStore implements ArtifactStore {
     try {
       return await readFile(this.resolve(key));
     } catch (error) {
-      if (
-        error instanceof Error &&
-        "code" in error &&
-        (error as NodeJS.ErrnoException).code === "ENOENT"
-      ) {
+      if (isNotFound(error)) {
         return null;
       }
       throw error;
     }
   }
 
-  signedGetUrl(key: string, _expiresInSeconds = 300): Promise<string> {
-    const absolute = this.resolve(key);
-    // file:// for local/debug; SPA downloads via authenticated GET …/content.
-    return Promise.resolve(`file://${absolute.replace(/\\/g, "/")}`);
+  async delete(key: string): Promise<void> {
+    try {
+      await unlink(this.resolve(key));
+    } catch (error) {
+      if (isNotFound(error)) {
+        return;
+      }
+      throw error;
+    }
   }
 
   private resolve(key: string): string {
-    const normalized = key.replace(/\\/g, "/");
+    const normalized = assertSafeArtifactKey(key);
+    const absolute = path.resolve(this.root, ...normalized.split("/"));
+    const relative = path.relative(this.root, absolute);
     if (
-      normalized.includes("..") ||
-      path.isAbsolute(normalized) ||
-      normalized.startsWith("/")
+      relative.length === 0 ||
+      relative.startsWith(`..${path.sep}`) ||
+      relative === ".." ||
+      path.isAbsolute(relative)
     ) {
       throw new Error(`refusing unsafe artifact key: ${key}`);
     }
-    return path.join(this.root, ...normalized.split("/"));
+    return absolute;
   }
 }

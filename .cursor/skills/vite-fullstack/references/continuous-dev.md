@@ -31,9 +31,10 @@ A) Marketing only (landing.html / src/marketing/*)
  → UI + marketing tests only. No /v1, no shell nav, no payrollApi.
  → Do not import src/web/styles.css or product pages.
 
-B) UI atom only (no new JSON / DB column)
- → components/ui | components/payroll | src/web/<feature>/
- → No fake API. Studio blocks: compose only; no I/O/RBAC inside shadcn-studio.
+B) UI atom / layout only (no new JSON / DB column)
+ → **Must** use `/rui` (refine), `/cui` (create block), or `/iui` (inspire) — see ui-studio.md
+ → Land in components/ui | shadcn-studio | payroll | src/web/<feature>/ per frontend-structure.md
+ → No fake API. No freehand layouts. No `/ftc`. No I/O/RBAC inside shadcn-studio.
 
 C) Page/shell only, API already correct
  → page + app.tsx Route (+ app-nav if shell dest) + PageTitle

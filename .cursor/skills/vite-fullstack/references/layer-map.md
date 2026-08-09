@@ -14,19 +14,24 @@ Alias: `@` → `src/`. FE calls API at `VITE_API_BASE` (default `http://localhos
 
 ## Directory roles
 
+Canonical Vite FE tree + refactor debt: [frontend-structure.md](frontend-structure.md). UI via `/rui` `/cui` `/iui` only: [ui-studio.md](ui-studio.md).
+
 ```
-src/web/                 # product SPA
+src/web/                 # product SPA (index.html → main.tsx)
   app.tsx                # session gate + wouter Switch/Route
   shell/                 # layout, nav, top-bar, breadcrumbs
   api/                   # client.ts, payroll-api.ts, types.ts
   auth/                  # Neon Auth client
   context/               # auth-context, scope-context
-  <feature>/             # pages and feature-only UI
+  <feature>/             # pages and feature-only UI (no loose web/*.tsx)
+                         # payrun/: panels/, drawers/, dialogs/, employee/, payslip-document/
+src/marketing/           # landing.html — isolated styles/entry
 src/components/
-  ui/                    # shadcn primitives (incl. skeleton)
+  ui/                    # shadcn primitives (incl. skeleton) — /rui
   payroll/               # domain widgets
-  shadcn-studio/         # imported blocks (prefer not for new domain logic)
+  shadcn-studio/         # /cui /iui blocks only (no I/O or RBAC)
 src/hooks/               # use-async-load, use-pagination, …
+src/lib/                 # cn / shared non-UI helpers
 src/server/
   app.ts                 # createApp — CORS, /health, /v1 registration spine
   auth/                  # jwt, middleware, resolve-user
@@ -89,10 +94,10 @@ schema → repo (DTO) → service (RBAC + rules) → route (Zod + user) → app.
 - **Layout**: signed-in routes wrap in `ShellLayout` (`src/web/shell/layout.tsx`)
 - **Loading**: no route-level loading files — use `Skeleton` from `src/components/ui/skeleton.tsx` or `src/hooks/use-async-load.ts`
 - **Errors**: `formatApiError` from `src/web/api/format-error`
-- **shadcn UI**: `src/components/ui` — configured by `components.json` (`style: base-nova`, `rsc: false`, CSS entry `src/web/styles.css`)
-- **shadcn studio**: `src/components/shadcn-studio` — registries in `components.json` (`@shadcn-studio`, `@ss-blocks`, `@ss-components`). Compose in pages/shell; keep I/O and RBAC out of studio modules
+- **shadcn UI**: `src/components/ui` — configured by `components.json` (`style: base-nova`, `rsc: false`, CSS entry `src/web/styles.css`). Install/refine via `/rui` only among studio commands for atoms
+- **shadcn studio**: `src/components/shadcn-studio` — registries in `components.json` (`@shadcn-studio`, `@ss-blocks`, `@ss-components`). New blocks via `/cui` or `/iui`; compose in pages/shell; keep I/O and RBAC out of studio modules. **No freehand UI; no `/ftc`.**
 - **Payroll atoms**: `src/components/payroll`
-- **Page-only UI**: stay in `src/web/<feature>/`
+- **Page-only UI**: stay in `src/web/<feature>/` (see frontend-structure refactor list)
 - **Tailwind v4**: `@tailwindcss/vite` in `vite.config.ts`; `@import "tailwindcss"`, `tw-animate-css`, `shadcn/tailwind.css` in `src/web/styles.css` — no `tailwind.config.js`
 - **Dark mode**: `next-themes` + `use-dark-mode` — package name only; app is still Vite
 

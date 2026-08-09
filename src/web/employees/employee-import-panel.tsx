@@ -6,10 +6,10 @@ import {
   AlertCircleIcon,
   CheckCircle2Icon,
   DownloadIcon,
-  UploadIcon,
   UsersIcon,
 } from "lucide-react";
 import { useCallback, useState } from "react";
+import EmployeeFileUpload from "@/components/shadcn-studio/blocks/file-upload-01/file-upload-01";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UploadDropZone } from "@/components/ui/upload-drop-zone";
 import { formatApiError } from "@/web/api/format-error";
 import { payrollApi } from "@/web/api/payroll-api";
 import {
@@ -179,34 +178,19 @@ export function EmployeeImportPanel({
         </CardFooter>
       </Card>
 
-      {/* Step 2 — upload and import */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Step 2 — Import employees</CardTitle>
-          <CardDescription>
-            Upload a filled CSV or JSON file to create employee records.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <UploadDropZone
-            accept=".csv, .json"
-            disabled={busy}
-            file={file}
-            id="import-file"
-            onChange={onFileChange}
-          />
-        </CardContent>
-        <CardFooter>
-          <Button
-            disabled={busy || file === null}
-            onClick={onImportClick}
-            type="button"
-          >
-            <UploadIcon />
-            Import
-          </Button>
-        </CardFooter>
-      </Card>
+      {/* Step 2 — upload and import (studio file-upload-01) */}
+      <EmployeeFileUpload
+        canUpload={file !== null}
+        description="Upload a filled CSV or JSON file to create employee records."
+        disabled={busy}
+        fileHint="Accepts .csv or .json. Create-only — existing rows are skipped."
+        fileLabel="Employee file"
+        fileName={file?.name ?? null}
+        onFileChange={onFileChange}
+        onUpload={onImportClick}
+        title="Step 2 — Import employees"
+        uploadLabel="Import"
+      />
 
       {/* Results */}
       {!hasResults && (

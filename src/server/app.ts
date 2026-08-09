@@ -6,6 +6,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { Database } from "@/db/client";
 import type { ArtifactStore } from "@/domain/artifacts/store";
+import { setArtifactStore } from "@/service/artifacts";
 import type { VerifyJwt } from "./auth/jwt";
 import { type AuthVariables, authMiddleware } from "./auth/middleware";
 import { handleRouteError } from "./errors";
@@ -23,6 +24,8 @@ import { payRunDiffRoutes } from "./routes/pay-run-diff";
 import { payRunPayslipRoutes } from "./routes/pay-run-payslip";
 import { payRunReportRoutes } from "./routes/pay-run-reports";
 import { payRunWorkspaceRoutes } from "./routes/pay-run-workspace";
+import { transferRoutes } from "./routes/transfers";
+import { treatmentRoutes } from "./routes/treatments";
 
 export interface AppDeps {
   readonly db: Database;
@@ -32,6 +35,10 @@ export interface AppDeps {
 }
 
 export function createApp(deps: AppDeps): Hono {
+  if (deps.artifactStore !== undefined) {
+    setArtifactStore(deps.artifactStore);
+  }
+
   const app = new Hono();
 
   app.use(
@@ -56,16 +63,15 @@ export function createApp(deps: AppDeps): Hono {
   v1.route("/", employeeImportRoutes(deps.db));
   v1.route("/", employeeRoutes(deps.db));
   v1.route("/", payRunRoutes(deps.db));
-  v1.route(
-    "/",
-    payRunControlRoutes(deps.db, { artifactStore: deps.artifactStore })
-  );
+  v1.route("/", payRunControlRoutes(deps.db));
   v1.route("/", payRunWorkspaceRoutes(deps.db));
   v1.route("/", payRunPayslipRoutes(deps.db));
   v1.route("/", payRunDiffRoutes(deps.db));
   v1.route("/", payRunDerivationRoutes(deps.db));
   v1.route("/", payRunReportRoutes(deps.db));
   v1.route("/", employeeRemunerationRoutes(deps.db));
+  v1.route("/", transferRoutes(deps.db));
+  v1.route("/", treatmentRoutes(deps.db));
   v1.onError((error, c) => handleRouteError(c, error));
 
   app.route("/v1", v1);

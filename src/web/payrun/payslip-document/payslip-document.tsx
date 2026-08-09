@@ -23,9 +23,6 @@ import { StatutoryWageBasis } from "./statutory-wage-basis";
 import type { PayslipDocumentDto } from "./types";
 import { YtdSummary } from "./ytd-summary";
 
-// Re-export the DTO type for consumers
-export type { PayslipDocumentDto } from "./types";
-
 interface PayslipDocumentProps {
   readonly dto: PayslipDocumentDto;
   readonly lang: Lang;

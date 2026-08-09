@@ -4,10 +4,12 @@ description: >
   Wires and audits full-stack features in this Vite + React + Wouter + Hono + Drizzle
   payroll repo (REST /v1, hand-mirrored DTOs, shadcn + shadcn-studio, Tailwind v4).
   Covers types, schema, repo, service/RBAC, routes, client.ts/payrollApi, pages,
-  loading, shell nav, and auth. Use when creating a page/component/API/route,
-  wiring frontend to backend, fixing FE/BE or BE/DB drift, DTO skew, orphan routes,
-  or when the user mentions payrollApi, Vite fullstack, Hono, shadcn studio, or
-  T3-style wiring. Overrides Next.js/Express/tRPC/Prisma fullstack skills here.
+  loading, shell nav, and auth. UI/UX only via /rui /cui /iui (shadcn-studio MCP).
+  Defines Vite frontend folder layout for SPA vs marketing refactor. Use when creating
+  a page/component/API/route, wiring FE/BE, fixing drift, DTO skew, orphan routes,
+  folder refactor, or when the user mentions payrollApi, Vite fullstack, Hono,
+  shadcn studio, /rui, /cui, /iui, or T3-style wiring. Overrides Next.js/Express/tRPC/Prisma
+  fullstack skills here.
 ---
 
 # Vite Fullstack
@@ -26,15 +28,18 @@ Stack one-liner: Vite SPA + Hono REST `/v1` + Drizzle + Neon Auth Bearer + Tailw
 6. Prefer companies layering (route → service → repo). Avoid fat SQL-in-route (employees/payslip).
 7. `requestJson` casts — TS will not catch DTO drift. Change producer before consumer.
 8. Context7 for Hono/Drizzle/Wouter/Zod docs — never invent Next structure.
+9. **UI/UX only via `/rui` `/cui` `/iui`** (shadcn-studio MCP). Call the matching `get-*-instructions` first; no freehand layouts, no `/ftc`. Details: [references/ui-studio.md](references/ui-studio.md).
+10. Frontend paths follow the Vite tree in [references/frontend-structure.md](references/frontend-structure.md) — SPA under `src/web/`, marketing under `src/marketing/`, primitives/studio under `src/components/`.
 
 ## Scope gate
 
 | Ask | Do |
 |-----|----|
-| New CRUD / API-backed page | Mode A — full checklist |
+| New CRUD / API-backed page | Mode A — full checklist; UI step uses `/iui` or `/cui` then wire data |
 | Drift / 404 / wrong shape / not wired | Mode B — audit then fix |
-| UI atom, no new endpoint | `components/ui`, `payroll`, or feature folder; no fake API |
+| UI atom / refine existing, no new endpoint | `/rui` (or `/cui`/`/iui` for new block) → `components/ui`, `payroll`, or feature folder; no fake API |
 | "Just the page", API missing | Add route → `client.ts` → `payrollApi` (or ask) — do not mock |
+| FE folder refactor | Follow [frontend-structure.md](references/frontend-structure.md); path moves only unless asked to redesign |
 
 ## Mode A — Create feature
 
@@ -82,8 +87,9 @@ For ongoing increments (not greenfield discovery):
 | FE API | `types.ts` → `client.ts` → `payroll-api.ts` |
 | Hono | `src/server/routes/*.ts` → `src/server/app.ts` |
 | Service / repo / schema | `src/service/`, `src/repo/`, `src/db/schema/` |
-| UI | `components/ui` (shadcn), `shadcn-studio/`, `payroll/` |
-| Styles | `src/web/styles.css` (Tailwind v4) |
+| UI | `components/ui` (shadcn), `shadcn-studio/`, `payroll/` — via `/rui` `/cui` `/iui` only |
+| Styles | `src/web/styles.css` (SPA Tailwind v4); marketing isolated |
+| FE layout | [frontend-structure.md](references/frontend-structure.md) |
 
 ## Done when
 
@@ -91,10 +97,13 @@ For ongoing increments (not greenfield discovery):
 - FE DTO matches JSON + `Keep in sync with …`
 - `app.tsx` Route; shell dests in `APP_SHELL_ROUTE_PATHS` / `APP_NAV_ITEMS`
 - Mutations use service RBAC; schema changes migrated; test if persistence/auth touched
+- UI changes came from `/rui` `/cui` or `/iui` and land in the Vite paths above (not Next `app/`)
 
 ## References
 
 - [stack.md](references/stack.md) — Vite/REST/Tailwind/shadcn/studio truth + T3 map
+- [ui-studio.md](references/ui-studio.md) — `/rui` `/cui` `/iui` gate + MCP validation
+- [frontend-structure.md](references/frontend-structure.md) — Vite SPA/marketing folder target + refactor debt
 - [layer-map.md](references/layer-map.md) — paths, anti-patterns
 - [feature-checklist.md](references/feature-checklist.md) — create steps
 - [drift-audit.md](references/drift-audit.md) — audit + DTO example

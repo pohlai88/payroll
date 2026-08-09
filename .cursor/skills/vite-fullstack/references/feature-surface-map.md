@@ -37,7 +37,7 @@ rg "Keep in sync" src/web/api/types.ts src/web/payrun/payslip-document/types.ts
 | Pay-run CRUD / lifecycle / findings / gates | `pay-run.ts` | `payRunRoutes` | `getPayRuns`, `createPayRun`, `recompute`, `review`, `approve`, `demotePayRun`, `getFindings`, `scanFindings`, `acknowledgeFinding`, `evaluateGate` (GET) | Mostly wired |
 | Gate evaluate (POST) | `pay-run.ts` `POST …/gates/:gate/evaluate` | via `payRunRoutes` | **none** | **Orphan endpoint** — FE uses `GET …/gates/:gate` only |
 | Workspace | `pay-run-workspace.ts` | `payRunWorkspaceRoutes` | `getWorkspace` | Wired; thin route → repo |
-| Control (close/seal/payments/release/artifacts) | `pay-run-control.ts` | `payRunControlRoutes(db, { artifactStore })` | `getPayments`, `holdLine`, `unholdLine`, `withdrawLine`, `previewRelease`, `commitRelease`, `getBatch`, `settleAttempt`, `reconcileAttempt`, `cancelRelease`, `recordDistribution`, `getArtifacts`, `uploadArtifact`, `getArtifactUrl`, `downloadArtifact`, `getClosureChecklist`, `closeRun`, `getRunSeal`, `getClosureChain` | Wired |
+| Control (close/seal/payments/release/artifacts) | `pay-run-control.ts` | `payRunControlRoutes(db)` | `getPayments`, `holdLine`, `unholdLine`, `withdrawLine`, `previewRelease`, `commitRelease`, `getBatch`, `settleAttempt`, `reconcileAttempt`, `cancelRelease`, `recordDistribution`, `getArtifacts`, `uploadArtifact`, `downloadArtifact`, `getClosureChecklist`, `closeRun`, `getRunSeal`, `getClosureChain` | Wired |
 | Payslips | `pay-run-payslip.ts` | `payRunPayslipRoutes` | `getPayslip`, `getPayslipIndex` | Wired; **fat-route**; FE DTO outside `types.ts` |
 | Line diff | `pay-run-diff.ts` | `payRunDiffRoutes` | `getLineDiff` | Wired; thin route → `loadDerivedGraph` + `diffGraphs` (compute-on-read; not `pay_lines.trace`) |
 | Line derivation | `pay-run-derivation.ts` | `payRunDerivationRoutes` | `getLineDerivation` | Wired; thin route → `service/line-derivation` (compute-on-read `deriveLine`) |
@@ -60,6 +60,9 @@ rg "Keep in sync" src/web/api/types.ts src/web/payrun/payslip-document/types.ts
 | POST | `/employee-import` | `importEmployees` |
 | GET | `/employees` | `getEmployees` |
 | GET | `/employees/:employeeId/remuneration-summary/:year` | `getAnnualRemunerationSummary` |
+| POST | `/transfers` | `commitTransfer` |
+| POST | `/pay-items/:payItemId/treatments/departures` | `recordWageTreatmentDeparture` |
+| POST | `/pay-items/:payItemId/pcb-classes/departures` | `recordPcbClassDeparture` |
 | GET/POST | `/pay-runs` | `getPayRuns` / `createPayRun` |
 | GET | `/pay-runs/:runId/workspace` | `getWorkspace` |
 | POST | `/pay-runs/:runId/recompute\|review\|approve\|demote` | matching methods |
@@ -76,10 +79,10 @@ rg "Keep in sync" src/web/api/types.ts src/web/payrun/payslip-document/types.ts
 | Path | Page file | In `app.tsx` | In `app-nav` | Notes |
 |------|-----------|--------------|--------------|-------|
 | `/` | `src/web/dashboard/dashboard-page.tsx` | yes | yes (`matchPrefix: false`) | Uses `getPayRuns` only |
-| `/pay-runs` | `src/web/payrun/pay-run-list.tsx` | yes | yes | List + create |
+| `/pay-runs` | `src/web/payrun/pay-run-list.tsx` | yes | yes | Studio `datatable-pay-run` + `empty-state-01` |
 | `/pay-runs/:runId` | `src/web/payrun/workspace.tsx` | yes | no (nested under Pay Runs) | Intentional nested |
 | `/pay-runs/:runId/payslip/:lineId` | `src/web/payrun/payslip-page.tsx` | yes | no (nested) | Intentional nested |
-| `/employees` | `src/web/employees/employees-page.tsx` | yes | yes | Import panel lives at `src/web/employee-import-panel.tsx` |
+| `/employees` | `src/web/employees/employees-page.tsx` | yes | yes | Studio `datatable-employee` + `file-upload-01` + `empty-state-01` |
 | `/reports` | `src/web/reports/reports-page.tsx` | yes | yes | |
 | `/control` | `src/web/control/control-page.tsx` | yes | yes | |
 | `/companies` | `src/web/companies/companies-page.tsx` | yes | yes (`adminOnly`) | |
@@ -96,11 +99,10 @@ rg "Keep in sync" src/web/api/types.ts src/web/payrun/payslip-document/types.ts
 | `companies/` | Company directory |
 | `control/` | Cross-run control console |
 | `dashboard/` | Home aggregates |
-| `employees/` | Employee list |
-| `payrun/` | List, workspace, payslip, control panels |
+| `employees/` | Employee list + import panel |
+| `payrun/` | List, workspace, payslip; `panels/`, `drawers/`, `dialogs/`, `employee/`, `payslip-document/` |
 | `reports/` | Report views |
 | `api/`, `auth/`, `context/`, `shell/` | Cross-cutting (not feature pages) |
-| `employee-import-panel.tsx` | Shared panel (root of `web/`, not its own folder) |
 
 Marketing (`landing.html` → `src/marketing/`) is **outside** this SPA spine.
 
@@ -168,13 +170,13 @@ Marketing (`landing.html` → `src/marketing/`) is **outside** this SPA spine.
 | RBAC pure | `src/domain/rbac/*` | Types + `authorize.ts`; I/O in `service/rbac.ts` + `repo/rbac.ts` |
 | Seal / timestamp | `src/domain/seal/`, `src/domain/timestamp/` | Closure hash + RFC3161 client |
 | Import row model | `src/domain/import/employee-row.ts` | Shared with import service |
-| Artifact store interface | `src/domain/artifacts/store.ts` | `put` / `get` / `signedGetUrl` |
+| Artifact store interface | `src/domain/artifacts/store.ts` | `put` / `get` / `delete` |
 | R2 impl | `src/domain/artifacts/r2-store.ts` | Wired from `dev-server.ts` when `env.r2` set |
 | Local FS fallback | `src/domain/artifacts/local-fs-store.ts` | Default in `service/artifacts.ts` if unset |
 | Test memory store | `MemoryArtifactStore` in `store.ts` | Tests only |
-| HTTP vs internal | `storeArtifact` (no AuthZ) vs `*ForActor` (PAY_RUN RBAC) | Internal writers: release/close/timestamp |
+| HTTP vs internal | `storeArtifact` (no AuthZ) vs `*ForActor` (PAY_RUN RBAC); HTTP attach types `EVIDENCE` \| `EXCEPTION_REPORT` only | Internal writers: release/close/timestamp |
 
-**Misses:** (1) payslip DTOs live under `payrun/payslip-document/types.ts`, imported by `client.ts`; (2) `ArtifactStore` is both module singleton (`setArtifactStore`) and `createApp` dep for control routes; (3) SPA downloads via authenticated `GET …/content`, not `signedGetUrl`; (4) `pay-run-access.ts` is the shared AuthZ edge for most run-scoped routes — some services also call `requirePayRunPermission` / `requirePermission` (artifacts, payrun mutations).
+**Misses:** (1) payslip DTOs live under `payrun/payslip-document/types.ts`, imported by `client.ts`; (2) `ArtifactStore` is module singleton via `setArtifactStore` from `createApp`; SPA downloads via authenticated `GET …/content` only; (3) `pay-run-access.ts` is the shared AuthZ edge for most run-scoped routes — some services also call `requirePayRunPermission` / `requirePermission` (artifacts, payrun mutations).
 
 ## Auth / RBAC touchpoints
 

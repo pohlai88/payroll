@@ -142,7 +142,7 @@ async function findExisting(
   }
 }
 
-export async function acknowledgeFinding(
+async function acknowledgeFinding(
   db: Db,
   findingId: string,
   opts: { actor: string; note?: string | null }
@@ -238,7 +238,7 @@ export async function assertApprovalAllowed(
   }
 }
 
-export async function loadTransferLinkFacts(
+async function loadTransferLinkFacts(
   db: Db,
   transferId: string
 ): Promise<TransferLinkFacts> {

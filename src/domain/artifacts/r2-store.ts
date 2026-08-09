@@ -3,11 +3,12 @@
  */
 
 import {
+  DeleteObjectCommand,
   GetObjectCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { assertSafeArtifactKey } from "./keys";
 import type { ArtifactStore, PutObjectInput } from "./store";
 
 export interface R2Config {
@@ -31,10 +32,11 @@ export function createR2Store(config: R2Config): ArtifactStore {
 
   return {
     async put(input: PutObjectInput): Promise<void> {
+      const key = assertSafeArtifactKey(input.key);
       await client.send(
         new PutObjectCommand({
           Bucket: bucket,
-          Key: input.key,
+          Key: key,
           Body: input.body,
           ContentType: input.contentType,
         })
@@ -42,15 +44,15 @@ export function createR2Store(config: R2Config): ArtifactStore {
     },
 
     async get(key: string): Promise<Uint8Array | null> {
+      const safe = assertSafeArtifactKey(key);
       try {
         const out = await client.send(
-          new GetObjectCommand({ Bucket: bucket, Key: key })
+          new GetObjectCommand({ Bucket: bucket, Key: safe })
         );
         if (out.Body === undefined) {
           return null;
         }
-        const bytes = await out.Body.transformToByteArray();
-        return bytes;
+        return await out.Body.transformToByteArray();
       } catch (error) {
         const name =
           error instanceof Error && "name" in error
@@ -63,11 +65,10 @@ export function createR2Store(config: R2Config): ArtifactStore {
       }
     },
 
-    async signedGetUrl(key: string, expiresInSeconds = 300): Promise<string> {
-      return await getSignedUrl(
-        client,
-        new GetObjectCommand({ Bucket: bucket, Key: key }),
-        { expiresIn: expiresInSeconds }
+    async delete(key: string): Promise<void> {
+      const safe = assertSafeArtifactKey(key);
+      await client.send(
+        new DeleteObjectCommand({ Bucket: bucket, Key: safe })
       );
     },
   };

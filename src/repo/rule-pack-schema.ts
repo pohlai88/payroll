@@ -42,7 +42,7 @@ const statutoryLimits = z.object({
   eaEntitlementWageCeilingSen: senAmount,
 });
 
-export type StatutoryLimits = z.infer<typeof statutoryLimits>;
+type StatutoryLimits = z.infer<typeof statutoryLimits>;
 
 const ruleSettingsSchema = z.object({
   epfTableCeilingSen: senAmount,

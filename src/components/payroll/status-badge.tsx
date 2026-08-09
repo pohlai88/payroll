@@ -88,4 +88,4 @@ function severityBadgeClass(severity: string): string {
 }
 
 export type { RunStatus, StatusBadgeProps };
-export { isRunStatus, StatusBadge, severityBadgeClass, severityBadgeVariant };
+export { isRunStatus, StatusBadge, severityBadgeVariant };

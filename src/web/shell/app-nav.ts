@@ -30,7 +30,7 @@ export interface AppNavItem {
  * `<Route path=…>` in `src/web/app.tsx` (top-level shell destinations only).
  * Not Next.js App Router.
  */
-export const APP_SHELL_ROUTE_PATHS = [
+const APP_SHELL_ROUTE_PATHS = [
   "/",
   "/pay-runs",
   "/employees",
@@ -40,7 +40,7 @@ export const APP_SHELL_ROUTE_PATHS = [
   "/admin",
 ] as const;
 
-export type AppShellRoutePath = (typeof APP_SHELL_ROUTE_PATHS)[number];
+type AppShellRoutePath = (typeof APP_SHELL_ROUTE_PATHS)[number];
 
 export const APP_NAV_ITEMS: readonly AppNavItem[] = [
   {

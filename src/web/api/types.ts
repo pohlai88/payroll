@@ -499,8 +499,8 @@ export type ArtifactType =
   | "EXCEPTION_REPORT"
   | "TIMESTAMP_TOKEN";
 
-/** Manual/API upload types — excludes server-only `TIMESTAMP_TOKEN`. */
-export type UploadArtifactType = Exclude<ArtifactType, "TIMESTAMP_TOKEN">;
+/** Manual attach via HTTP/SPA — server-generated types are not uploadable. */
+export type UploadArtifactType = "EVIDENCE" | "EXCEPTION_REPORT";
 
 /**
  * Keep in sync with `ArtifactListItem` in `src/service/artifacts.ts`.
@@ -537,11 +537,6 @@ export interface StoreArtifactResponse {
   readonly id: string;
   readonly sha256: string;
   readonly relativePath: string;
-}
-
-export interface SignedArtifactUrlResponse {
-  readonly url: string;
-  readonly filename: string;
 }
 
 /**
@@ -754,10 +749,12 @@ export interface PayRunMutationEnvelope {
   readonly mutation: PayRunMutationKind;
 }
 
+/** Keep in sync with create body Zod in `src/server/routes/pay-run.ts`. */
 export interface CreatePayRunBody {
   readonly runId: string;
   readonly companyId: string;
-  readonly rulePackId: string;
+  /** Omit to resolve MY-STATUTORY via `resolveRule` on periodEnd. */
+  readonly rulePackId?: string;
   readonly year: number;
   readonly month: number;
   readonly periodStart: string;
@@ -789,4 +786,65 @@ export interface UpdateAdminUserBody {
 export interface AdminUserRoleBody {
   readonly roleCode: string;
   readonly companyId?: string | null;
+}
+
+/** Keep in sync with commit body Zod in `src/server/routes/transfers.ts`. */
+export interface CommitTransferBody {
+  readonly personId: string;
+  readonly fromEmploymentId: string;
+  readonly effectiveDate: string;
+  readonly toCompanyId: string;
+  readonly toEmployeeCode: string;
+  readonly groupServiceContinuity: "CONTINUOUS" | "RESET";
+  readonly continuityReason?: string | null;
+  readonly leaveBenefitTreatmentNote?: string | null;
+  readonly allowOverlap?: boolean;
+  readonly overlapReason?: string | null;
+  readonly evidenceArtifactId?: string | null;
+  readonly payBasis?: "MONTHLY" | "DAILY" | "HOURLY";
+  readonly baseRateSen?: number;
+  readonly isMalaysian?: boolean;
+  readonly isPermanentResident?: boolean;
+  readonly epfApplicable?: boolean;
+  readonly socsoApplicable?: boolean;
+  readonly eisApplicable?: boolean;
+  readonly pcbApplicable?: boolean;
+  readonly epfMemberBeforeAug1998?: boolean | null;
+  readonly eisPriorContribution?: boolean | null;
+  readonly epfPartOverride?: "A" | "C" | "E" | "F" | "NONE" | null;
+  readonly socsoCategoryOverride?: "FIRST" | "SECOND" | "NONE" | null;
+  readonly epfNo?: string | null;
+  readonly socsoNo?: string | null;
+  readonly tin?: string | null;
+  readonly bankName?: string | null;
+  readonly bankAccountNo?: string | null;
+  readonly bankAccountName?: string | null;
+}
+
+/** Keep in sync with `CommitTransferResult` in `src/service/transfer.ts`. */
+export interface CommitTransferResponse {
+  readonly transferId: string;
+  readonly toEmploymentId: string;
+}
+
+/** Keep in sync with wage departure Zod in `src/server/routes/treatments.ts`. */
+export interface WageTreatmentDepartureBody {
+  readonly scheme: "EPF" | "SOCSO" | "EIS" | "HRD";
+  readonly subject: boolean;
+  readonly effectiveFrom: string;
+  readonly reason: string;
+  readonly approvedBy: string;
+}
+
+/** Keep in sync with PCB departure Zod in `src/server/routes/treatments.ts`. */
+export interface PcbClassDepartureBody {
+  readonly class: "NORMAL" | "ADDITIONAL" | "EXCLUDED";
+  readonly effectiveFrom: string;
+  readonly reason: string;
+  readonly approvedBy: string;
+}
+
+/** Keep in sync with treatments departure JSON `{ id }`. */
+export interface DepartureResponse {
+  readonly id: string;
 }

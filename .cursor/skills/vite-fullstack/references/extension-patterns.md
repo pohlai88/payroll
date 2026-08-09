@@ -114,14 +114,14 @@ Terse recipes for the next feature. Gold end-to-end file list: [companies-trace.
 
 **Goal:** Bytes in `ArtifactStore`; metadata in DB; SPA uses authenticated content GET.
 
-**Present:** `domain/artifacts/store.ts` (+ `local-fs-store`, `r2-store`, `MemoryArtifactStore`); `service/artifacts.ts`; HTTP in `pay-run-control.ts`; client `uploadArtifact` / `downloadArtifactContent` / `getArtifactUrl`.
+**Present:** `domain/artifacts/store.ts` (+ `local-fs-store`, `r2-store`, `MemoryArtifactStore`); `service/artifacts.ts`; HTTP in `pay-run-control.ts`; client `uploadArtifact` / `downloadArtifact`.
 
 ### File touch list (ordered)
 
 1. Confirm `ArtifactType` / schema enums cover the new kind (migrate if new)
 2. Prefer existing `storeArtifactForActor` / `listRunArtifactsForActor` / `readRunArtifactContentForActor`
 3. If new HTTP verb/path: add to `pay-run-control.ts` (or thin module) + `requirePayRunAccess`
-4. `app.ts` already injects `artifactStore` into `payRunControlRoutes` — keep that pattern for new modules needing bytes
+4. `createApp` calls `setArtifactStore` when `artifactStore` is provided — do not re-set inside route factories
 5. `types.ts` — `ArtifactRow` sync with `ArtifactListItem`
 6. `client.ts` — JSON via `requestJson`; **content** via raw/blob helper (existing download path)
 7. UI panel (e.g. `artifacts-panel.tsx`) — `payrollApi` only
@@ -138,10 +138,10 @@ Terse recipes for the next feature. Gold end-to-end file list: [companies-trace.
 
 | Fail | Fix |
 |------|-----|
-| Signed URL only in SPA | Prefer `/artifacts/:id/content` authenticated stream |
+| SPA opens signed URL / `file://` | Use authenticated `/artifacts/:id/content` only — no `/url` route |
 | Tests hit real R2 | Inject `MemoryArtifactStore` |
 | Upload without PAY_RUN UPDATE | Missing `*ForActor` RBAC |
-| New store wiring forgotten | Pass `artifactStore` in `AppDeps` like control routes |
+| New store wiring forgotten | Pass `artifactStore` in `createApp` / `AppDeps` |
 
 ---
 

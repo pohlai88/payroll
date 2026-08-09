@@ -21,7 +21,7 @@
       "@/*": ["src/*"]
     },
     "incremental": true,
-    "tsBuildInfoFile": ".tsbuildinfo"
+    "tsBuildInfoFile": "tmp/tsconfig.tsbuildinfo"
   },
   "include": ["src", "tests", "scripts", "api", "*.config.ts"],
   "exclude": [
@@ -29,10 +29,10 @@
     "dist",
     "coverage",
     "tmp",
+    ".cache",
     ".docker-data",
     ".vercel",
     "**/*.tsbuildinfo",
-    "src/components/shadcn-studio/blocks/pages/**",
     "tmp-*.json"
   ]
 }

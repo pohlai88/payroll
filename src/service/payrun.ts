@@ -32,6 +32,7 @@ import {
   loadRuleSettings,
   loadStatutoryTables,
 } from "@/repo/rule-pack";
+import { RuleResolutionError, resolveRule } from "@/repo/rule-resolution";
 import { ControlError } from "@/service/control-errors";
 import { certifyGate, evaluateGate } from "@/service/gates";
 import { createReadyPaymentsForRun } from "@/service/payments";
@@ -70,7 +71,11 @@ export interface PayRunActor {
 export interface CreateRunInput {
   readonly runId: string;
   readonly companyId: string;
-  readonly rulePackId: string;
+  /**
+   * Explicit pack id for reproducible runs. When omitted, `resolveRule`
+   * picks the single approved `MY-STATUTORY` pack in force on `periodEnd`.
+   */
+  readonly rulePackId?: string;
   readonly year: number;
   readonly month: number;
   readonly periodStart: string;
@@ -102,11 +107,24 @@ export async function createRun(
   input: CreateRunInput
 ): Promise<{ runId: string; lineCount: number }> {
   return await db.transaction(async (tx) => {
-    const pack = await loadApprovedRulePack(tx, input.rulePackId);
-    await insertRunRow(tx, input, pack.contentHash);
+    const rulePackId =
+      input.rulePackId ??
+      (
+        await resolveRule(tx, {
+          scheme: "STATUTORY_CALCULATION",
+          ruleCode: "MY-STATUTORY",
+          statutoryDate: input.periodEnd,
+        })
+      ).rulePackId;
+    const resolved: CreateRunInput & { rulePackId: string } = {
+      ...input,
+      rulePackId,
+    };
+    const pack = await loadApprovedRulePack(tx, resolved.rulePackId);
+    await insertRunRow(tx, resolved, pack.contentHash);
 
-    const members = await loadPeriodMembers(tx, input);
-    const selected = selectMembers(members, input);
+    const members = await loadPeriodMembers(tx, resolved);
+    const selected = selectMembers(members, resolved);
 
     const catalog = await tx.select().from(payItems);
     const catalogById = new Map(catalog.map((item) => [item.id, item]));
@@ -115,7 +133,7 @@ export async function createRun(
     for (const member of selected) {
       await createLineForMember(
         tx,
-        input,
+        resolved,
         member,
         catalogById,
         pcbClassByItemId
@@ -123,15 +141,19 @@ export async function createRun(
     }
 
     await tx.insert(auditEvents).values({
-      actor: input.actor,
-      runId: input.runId,
+      actor: resolved.actor,
+      runId: resolved.runId,
       entity: "pay_runs",
-      entityId: input.runId,
+      entityId: resolved.runId,
       action: "CREATE",
-      after: { lineCount: selected.length },
+      after: {
+        lineCount: selected.length,
+        rulePackId: resolved.rulePackId,
+        rulePackResolved: input.rulePackId === undefined,
+      },
     });
 
-    return { runId: input.runId, lineCount: selected.length };
+    return { runId: resolved.runId, lineCount: selected.length };
   });
 }
 
@@ -158,7 +180,7 @@ async function loadApprovedRulePack(tx: Transaction, rulePackId: string) {
 
 async function insertRunRow(
   tx: Transaction,
-  input: CreateRunInput,
+  input: CreateRunInput & { rulePackId: string },
   rulePackHash: string | null
 ): Promise<void> {
   await tx.insert(payRuns).values({
@@ -898,6 +920,11 @@ export async function requirePayRunPermission(
 }
 
 function mapCreateRunError(error: unknown): Error {
+  if (error instanceof RuleResolutionError) {
+    return new PayRunError("VALIDATION_ERROR", error.message, 400, {
+      cause: error,
+    });
+  }
   const message = error instanceof Error ? error.message : String(error);
   if (message.startsWith("no such rule pack")) {
     return new PayRunError("NOT_FOUND", message, 404, { cause: error });

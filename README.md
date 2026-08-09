@@ -131,7 +131,27 @@ fixture to match.** It is the only proof the calculations are correct.
 npm test
 ```
 
-## Carried assets
+## Cloudflare R2 (artifacts)
+
+Pay-run artifact bytes use R2 when all `R2_*` env vars are set; otherwise LocalFs
+under `data/artifacts/`. Bucket + Wrangler config:
+
+| | |
+|---|---|
+| Bucket | `clarity-payroll-artifacts` (APAC, Standard) |
+| Config | `wrangler.jsonc` |
+| Runtime | S3 API via `src/domain/artifacts/r2-store.ts` (Node Hono, not Workers) |
+
+```bash
+npm run r2:list
+npm run r2:info
+# Create (idempotent only if missing — already provisioned for this account):
+# npm run r2:create
+```
+
+Then create an **R2 API token** (Object Read & Write on that bucket) in the
+Cloudflare dashboard and paste `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` into
+`.env.local` with the account id and endpoint from `.env.example`.
 
 Five things survived the rebuild because they are *verified data*, not code:
 

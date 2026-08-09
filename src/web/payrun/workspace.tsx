@@ -21,21 +21,21 @@ import type {
   PayRunWorkspaceView,
 } from "@/web/api/payroll-api";
 import { payrollApi } from "@/web/api/payroll-api";
-import { ArtifactsPanel } from "./artifacts-panel";
-import { BatchDrawer } from "./batch-drawer";
 import {
   ClosureChecklistDialog,
   type ClosureOutcome,
-} from "./closure-checklist-dialog";
-import { ClosureSealPanel } from "./closure-seal-panel";
-import { EmployeeGrid } from "./employee-grid";
-import { EmployeeSlideOver } from "./employee-slide-over";
-import { FindingsPanel } from "./findings-panel";
-import { GateCheckDialog } from "./gate-check-dialog";
-import { PaymentsPanel } from "./payments-panel";
-import { ReleasePanel } from "./release-panel";
-import { RunHeader } from "./run-header";
-import { TotalsStrip } from "./totals-strip";
+} from "./dialogs/closure-checklist-dialog";
+import { GateCheckDialog } from "./dialogs/gate-check-dialog";
+import { BatchDrawer } from "./drawers/batch-drawer";
+import { EmployeeSlideOver } from "./drawers/employee-slide-over";
+import { EmployeeGrid } from "./employee/employee-grid";
+import { ArtifactsPanel } from "./panels/artifacts-panel";
+import { ClosureSealPanel } from "./panels/closure-seal-panel";
+import { FindingsPanel } from "./panels/findings-panel";
+import { PaymentsPanel } from "./panels/payments-panel";
+import { ReleasePanel } from "./panels/release-panel";
+import { RunHeader } from "./panels/run-header";
+import { TotalsStrip } from "./panels/totals-strip";
 
 function WorkspacePage() {
   const { runId } = useParams<{ runId: string }>();

@@ -38,7 +38,7 @@ function asCodedHttpError(error: unknown): CodedHttpError | null {
   return null;
 }
 
-export function errorStatus(error: unknown): {
+function errorStatus(error: unknown): {
   status: ContentfulStatusCode;
   body: ErrorBody;
 } {

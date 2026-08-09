@@ -9,12 +9,9 @@ import { z } from "zod";
 import type { Database } from "@/db/client";
 import { linePayments } from "@/db/schema/control";
 import { payLines, payRuns } from "@/db/schema/run";
-import type { ArtifactStore } from "@/domain/artifacts/store";
 import {
   listRunArtifactsForActor,
   readRunArtifactContentForActor,
-  setArtifactStore,
-  signedArtifactUrlForActor,
   storeArtifactForActor,
 } from "@/service/artifacts";
 import {
@@ -38,14 +35,7 @@ import type { AuthVariables } from "../auth/middleware";
 import { handleRouteError } from "../errors";
 import { requirePayRunAccess } from "./pay-run-access";
 
-export function payRunControlRoutes(
-  db: Database,
-  deps?: { readonly artifactStore?: ArtifactStore }
-) {
-  if (deps?.artifactStore !== undefined) {
-    setArtifactStore(deps.artifactStore);
-  }
-
+export function payRunControlRoutes(db: Database) {
   const app = new Hono<{ Variables: AuthVariables }>();
 
   app.post("/pay-runs/:runId/close", async (c) => {
@@ -346,17 +336,7 @@ export function payRunControlRoutes(
           filename: z.string().min(1),
           mimeType: z.string().min(1),
           base64: z.string().min(1),
-          type: z
-            .enum([
-              "EVIDENCE",
-              "PAYMENT_REGISTER",
-              "BANK_FILE",
-              "CASH_SHEET",
-              "PAYSLIP_PDF",
-              "MANIFEST",
-              "EXCEPTION_REPORT",
-            ])
-            .default("EVIDENCE"),
+          type: z.enum(["EVIDENCE", "EXCEPTION_REPORT"]).default("EVIDENCE"),
         })
         .parse(await c.req.json());
       const bytes = Uint8Array.from(Buffer.from(body.base64, "base64"));
@@ -367,25 +347,8 @@ export function payRunControlRoutes(
         body: bytes,
         mimeType: body.mimeType,
         createdBy: user.email,
-        source: "ATTACHED",
       });
       return c.json(stored);
-    } catch (error) {
-      return handleRouteError(c, error);
-    }
-  });
-
-  app.get("/pay-runs/:runId/artifacts/:artifactId/url", async (c) => {
-    try {
-      const runId = c.req.param("runId");
-      return c.json(
-        await signedArtifactUrlForActor(
-          db,
-          c.get("user").id,
-          runId,
-          c.req.param("artifactId")
-        )
-      );
     } catch (error) {
       return handleRouteError(c, error);
     }

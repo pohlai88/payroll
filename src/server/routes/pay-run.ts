@@ -35,7 +35,8 @@ const isoDate = z
 const createRunBody = z.object({
   runId: z.string().min(1),
   companyId: z.string().uuid(),
-  rulePackId: z.string().min(1),
+  /** Omit to resolve MY-STATUTORY via `resolveRule` on periodEnd. */
+  rulePackId: z.string().min(1).optional(),
   year: z.number().int().min(2000).max(2999),
   month: z.number().int().min(1).max(12),
   periodStart: isoDate,

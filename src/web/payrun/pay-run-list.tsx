@@ -1,54 +1,18 @@
 /**
- * Pay-run list — `GET /v1/pay-runs`, scoped by `ScopeContext` and filtered
- * client-side when the scope names specific companies. See design doc §4.
+ * Pay-run list — `GET /v1/pay-runs`, scoped by `ScopeContext`.
+ * Studio: datatable-pay-run + empty-state-01.
  */
 
 import { ReceiptTextIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { isRunStatus, StatusBadge } from "@/components/payroll/status-badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import PayRunDatatable from "@/components/shadcn-studio/blocks/datatable-pay-run";
+import EmptyState01 from "@/components/shadcn-studio/blocks/empty-state-01/empty-state-01";
+import { Card } from "@/components/ui/card";
 import type { PayRunSummary } from "@/web/api/payroll-api";
 import { payrollApi } from "@/web/api/payroll-api";
 import { useScopeContext } from "@/web/context/scope-context";
 import { PageTitle } from "@/web/shell/page-title";
-
-function formatPeriod(run: PayRunSummary): string {
-  return `${String(run.month).padStart(2, "0")}/${run.year}`;
-}
-
-interface PayRunRowProps {
-  run: PayRunSummary;
-  onOpen: (runId: string) => void;
-}
-
-function PayRunRow({ run, onOpen }: PayRunRowProps) {
-  const handleClick = useCallback(() => {
-    onOpen(run.id);
-  }, [onOpen, run.id]);
-
-  return (
-    <TableRow className="cursor-pointer" onClick={handleClick}>
-      <TableCell>{run.companyName}</TableCell>
-      <TableCell className="tabular-nums">{formatPeriod(run)}</TableCell>
-      <TableCell>
-        <StatusBadge status={isRunStatus(run.status) ? run.status : "DRAFT"} />
-      </TableCell>
-      <TableCell className="text-right tabular-nums">
-        {run.employeeCount}
-      </TableCell>
-    </TableRow>
-  );
-}
 
 function PayRunListPage() {
   const [, navigate] = useLocation();
@@ -88,50 +52,34 @@ function PayRunListPage() {
     [navigate]
   );
 
-  if (!loading && visibleRuns.length === 0) {
-    return (
-      <div className="space-y-6">
-        <PageTitle
-          description="Runs for the current scope and reporting month."
-          title="Pay Runs"
-        />
-        <EmptyState
-          description="No pay runs found for the current scope and reporting month."
-          icon={<ReceiptTextIcon />}
-          title="No Pay Runs"
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <PageTitle
         description="Runs for the current scope and reporting month."
         title="Pay Runs"
       />
-      <Card>
-        <CardHeader>
-          <CardTitle>Directory</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Company</TableHead>
-                <TableHead>Period</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Employees</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {visibleRuns.map((run) => (
-                <PayRunRow key={run.id} onOpen={openRun} run={run} />
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+
+      {!loading && visibleRuns.length === 0 ? (
+        <EmptyState01
+          className="max-w-none"
+          description="Pay runs this month"
+          emptyDetail="No pay runs found for the current scope and reporting month."
+          emptyTitle="No pay runs"
+          icon={
+            <ReceiptTextIcon className="mx-auto size-12 text-muted-foreground" />
+          }
+          title="0"
+        />
+      ) : (
+        <Card className="overflow-hidden py-0">
+          <PayRunDatatable
+            data={visibleRuns}
+            loading={loading}
+            onOpen={openRun}
+            title="Directory"
+          />
+        </Card>
+      )}
     </div>
   );
 }

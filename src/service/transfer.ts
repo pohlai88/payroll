@@ -2,9 +2,7 @@
  * Internal group transfer: ends an employment at one company and creates the
  * linked one at another, for the same person.
  *
- * Service-internal only — no Hono route / SPA client method yet. Callers are
- * other services, scripts, and tests.
- *
+ * HTTP: `POST /v1/transfers` via `commitTransferForActor`.
  * See `docs/superpowers/specs/2026-08-08-internal-group-transfer-design.md`.
  * Findings scan after commit via `scanTransferFindings`. Evidence attaches
  * only through `evidenceArtifactId` (hashed artifacts). Free-text `evidence_ref`
@@ -19,7 +17,9 @@ import { employmentPriorYtd, transfers } from "@/db/schema/transfer";
 import type { EpfPart, PayBasis, SocsoCategory } from "@/domain/calc/types";
 import { parseIsoDate } from "@/domain/date";
 import { requireArtifact } from "@/service/artifacts";
+import { ControlError } from "@/service/control-errors";
 import { scanTransferFindings } from "@/service/findings";
+import { requirePermission } from "@/service/rbac";
 
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 
@@ -78,6 +78,65 @@ type EmploymentRow = typeof employments.$inferSelect;
  * codebase's trigger convention (`docs/architecture/payroll-architecture.md`
  * §2.7) reserves triggers for exception-less invariants.
  */
+export interface TransferActor {
+  readonly userId: string;
+  readonly email: string;
+}
+
+/**
+ * AuthZ over {@link commitTransfer}: EMPLOYMENT UPDATE on the source company
+ * and EMPLOYMENT CREATE on the destination company.
+ */
+export async function commitTransferForActor(
+  db: Database,
+  actor: TransferActor,
+  input: Omit<CommitTransferInput, "actor">
+): Promise<CommitTransferResult> {
+  const [from] = await db
+    .select({ companyId: employments.companyId })
+    .from(employments)
+    .where(eq(employments.id, input.fromEmploymentId))
+    .limit(1);
+  if (from === undefined) {
+    throw new ControlError(
+      "NOT_FOUND",
+      `no such employment: ${input.fromEmploymentId}`
+    );
+  }
+  await requirePermission(
+    db,
+    actor.userId,
+    "EMPLOYMENT",
+    "UPDATE",
+    from.companyId
+  );
+  await requirePermission(
+    db,
+    actor.userId,
+    "EMPLOYMENT",
+    "CREATE",
+    input.toCompanyId
+  );
+  try {
+    return await commitTransfer(db, { ...input, actor: actor.email });
+  } catch (error) {
+    throw mapTransferError(error);
+  }
+}
+
+function mapTransferError(error: unknown): Error {
+  if (error instanceof ControlError) {
+    return error;
+  }
+  const message = error instanceof Error ? error.message : String(error);
+  if (message.startsWith("no such employment")) {
+    return new ControlError("NOT_FOUND", message, undefined, { cause: error });
+  }
+  return new ControlError("VALIDATION_ERROR", message, undefined, {
+    cause: error,
+  });
+}
+
 export async function commitTransfer(
   db: Database,
   input: CommitTransferInput

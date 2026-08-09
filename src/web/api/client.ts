@@ -25,8 +25,11 @@ import {
   type CloseRunResponse,
   type ClosureChainResponse,
   type ClosureChecklistResponse,
+  type CommitTransferBody,
+  type CommitTransferResponse,
   type CreateAdminCompanyBody,
   type CreatePayRunBody,
+  type DepartureResponse,
   type DistributionChannel,
   type EmployeeSummary,
   type ExceptionReportDto,
@@ -44,6 +47,7 @@ import {
   type PayRunMutationEnvelope,
   type PayRunSummary,
   type PayRunWorkspaceView,
+  type PcbClassDepartureBody,
   type PermissionsResponse,
   type ReleaseCommitResponse,
   type ReleaseMethod,
@@ -51,12 +55,12 @@ import {
   type RunLineDiffDto,
   type RunSealResponse,
   SessionExpiredError,
-  type SignedArtifactUrlResponse,
   type StatutorySummaryDto,
   type StoreArtifactResponse,
   type UpdateAdminCompanyBody,
   type UpdateAdminUserBody,
   type UploadArtifactType,
+  type WageTreatmentDepartureBody,
   type WithdrawalReason,
 } from "./types";
 
@@ -384,10 +388,6 @@ export function createApiClient(deps: ApiClientDeps) {
         method: "POST",
         body: JSON.stringify(body),
       }),
-    getArtifactUrl: (runId: string, artifactId: string) =>
-      requestJson<SignedArtifactUrlResponse>(
-        `/v1/pay-runs/${runId}/artifacts/${artifactId}/url`
-      ),
     downloadArtifact: async (
       runId: string,
       artifactId: string
@@ -447,6 +447,33 @@ export function createApiClient(deps: ApiClientDeps) {
     getAnnualRemunerationSummary: (employeeId: string, year: number) =>
       requestJson<AnnualRemunerationSummaryDto>(
         `/v1/employees/${employeeId}/remuneration-summary/${year}`
+      ),
+    commitTransfer: (body: CommitTransferBody) =>
+      requestJson<CommitTransferResponse>("/v1/transfers", {
+        method: "POST",
+        body: JSON.stringify(body),
+      }),
+    recordWageTreatmentDeparture: (
+      payItemId: string,
+      body: WageTreatmentDepartureBody
+    ) =>
+      requestJson<DepartureResponse>(
+        `/v1/pay-items/${payItemId}/treatments/departures`,
+        {
+          method: "POST",
+          body: JSON.stringify(body),
+        }
+      ),
+    recordPcbClassDeparture: (
+      payItemId: string,
+      body: PcbClassDepartureBody
+    ) =>
+      requestJson<DepartureResponse>(
+        `/v1/pay-items/${payItemId}/pcb-classes/departures`,
+        {
+          method: "POST",
+          body: JSON.stringify(body),
+        }
       ),
   };
 }

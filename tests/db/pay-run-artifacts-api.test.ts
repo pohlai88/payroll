@@ -151,7 +151,7 @@ describe("pay-run artifacts API", () => {
     );
   });
 
-  it("returns url and content for matching runId", async () => {
+  it("returns content for matching runId", async () => {
     await makeAdmin(ADMIN_EMAIL);
     await insertDraftRun(RUN_A, 7, "2026-07-01", "2026-07-31");
     const stored = await storeArtifact(db, {
@@ -165,15 +165,6 @@ describe("pay-run artifacts API", () => {
     });
 
     const app = adminApp();
-    const urlRes = await app.request(
-      `/v1/pay-runs/${RUN_A}/artifacts/${stored.id}/url`,
-      { headers: { Authorization: "Bearer admin" } }
-    );
-    expect(urlRes.status).toBe(200);
-    const urlBody = (await urlRes.json()) as { url: string; filename: string };
-    expect(urlBody.filename).toBe("proof.bin");
-    expect(urlBody.url.length).toBeGreaterThan(0);
-
     const contentRes = await app.request(
       `/v1/pay-runs/${RUN_A}/artifacts/${stored.id}/content`,
       { headers: { Authorization: "Bearer admin" } }
@@ -189,7 +180,7 @@ describe("pay-run artifacts API", () => {
     expect([...bytes]).toEqual([1, 2, 3, 4]);
   });
 
-  it("404s url and content when artifact belongs to another run", async () => {
+  it("404s content when artifact belongs to another run", async () => {
     await makeAdmin(ADMIN_EMAIL);
     await insertDraftRun(RUN_A, 7, "2026-07-01", "2026-07-31");
     await insertDraftRun(RUN_B, 8, "2026-08-01", "2026-08-31");
@@ -204,12 +195,6 @@ describe("pay-run artifacts API", () => {
     });
 
     const app = adminApp();
-    const urlRes = await app.request(
-      `/v1/pay-runs/${RUN_B}/artifacts/${stored.id}/url`,
-      { headers: { Authorization: "Bearer admin" } }
-    );
-    expect(urlRes.status).toBe(404);
-
     const contentRes = await app.request(
       `/v1/pay-runs/${RUN_B}/artifacts/${stored.id}/content`,
       { headers: { Authorization: "Bearer admin" } }

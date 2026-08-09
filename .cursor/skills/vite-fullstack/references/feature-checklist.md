@@ -77,11 +77,11 @@ In `src/server/app.ts`:
 
 ## 8. Page + loading + errors
 
-- Create `src/web/<feature>/<name>-page.tsx`
+- Create `src/web/<feature>/<name>-page.tsx` (paths: [frontend-structure.md](frontend-structure.md))
 - Loading: `Skeleton` and/or `use-async-load` — **not** Next `loading.tsx`
 - Errors: `formatApiError`
 - Call `payrollApi.*` only (or hooks that wrap it)
-- Use existing UI primitives from `src/components/ui` and payroll atoms from `src/components/payroll`
+- **UI/UX:** new/changed visuals via `/iui` or `/cui` (new) or `/rui` (refine) — [ui-studio.md](ui-studio.md). Compose studio/`ui`/`payroll` atoms; no freehand layouts
 
 ## 9. Layout / nav / wouter
 
@@ -111,10 +111,10 @@ In `src/server/app.ts`:
 ```
 Needs new/changed HTTP JSON or DB column?
   YES → full checklist (or Mode B audit if fixing drift)
-  NO  → component-only OK (ui / payroll / feature folder)
+  NO  → UI only via `/rui` `/cui` `/iui` → ui / shadcn-studio / payroll / feature folder
 
 User said "just the page"?
-  API already exists and matches types → page + nav/route only
+  API already exists and matches types → page + nav/route only (UI via studio commands)
   API missing or shape wrong → do not mock; extend route → client.ts → payrollApi first
 ```
 
@@ -125,7 +125,7 @@ User said "just the page"?
 | "just the page" | Confirm API exists; if not, add route→`client.ts`→`payrollApi` or refuse silent mock |
 | "just the API" | Register in `app.ts`; add FE types + `client.ts` method (and `payrollApi` wrap) or document follow-up |
 | "just the schema" | Generate migration; note repo/service still needed |
-| UI component only | Place under `components/ui` or `payroll` / feature folder; no fake API |
+| UI component only | `/rui` `/cui` or `/iui`; land under `components/ui`, `shadcn-studio`, `payroll`, or feature folder; no fake API |
 
 ## Done gate
 

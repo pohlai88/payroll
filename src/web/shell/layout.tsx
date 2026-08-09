@@ -6,6 +6,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/sonner";
 import { useAuthContext } from "@/web/context/auth-context";
 import { ShellNavProvider } from "./shell-nav-context";
 import { SidebarNav } from "./sidebar-nav";
@@ -49,6 +50,7 @@ function ShellLayout({ children }: { children: ReactNode }) {
           </div>
         </ShellNavProvider>
       </SidebarProvider>
+      <Toaster />
     </div>
   );
 }

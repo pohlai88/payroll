@@ -3,7 +3,8 @@
  * STATUTORY_DEFAULT rows come from seed/migration; this service writes
  * APPROVED_DEPARTURE supersessions only.
  *
- * Service-internal only — no Hono route / SPA client method yet.
+ * HTTP: `POST /v1/pay-items/:payItemId/treatments/departures` and
+ * `…/pcb-classes/departures` via `*ForActor` wrappers.
  */
 
 import { and, eq, isNull, sql } from "drizzle-orm";
@@ -11,6 +12,7 @@ import type { Database } from "@/db/client";
 import { payItems } from "@/db/schema/catalog";
 import { auditEvents } from "@/db/schema/run";
 import { payItemPcbClasses, payItemTreatments } from "@/db/schema/treatments";
+import { requirePermission } from "@/service/rbac";
 import { ControlError } from "./control-errors";
 
 export type TreatmentScheme = "EPF" | "SOCSO" | "EIS" | "HRD";
@@ -39,6 +41,27 @@ export interface DepartWageTreatmentInput {
   readonly reason: string;
   readonly actor: string;
   readonly approvedBy: string;
+}
+
+export interface TreatmentsActor {
+  readonly userId: string;
+  readonly email: string;
+}
+
+/**
+ * AuthZ over {@link recordWageTreatmentDeparture}: global PAY_ITEM UPDATE
+ * (catalog is not company-scoped).
+ */
+export async function recordWageTreatmentDepartureForActor(
+  db: Database,
+  actor: TreatmentsActor,
+  input: Omit<DepartWageTreatmentInput, "actor">
+): Promise<{ id: string }> {
+  await requirePermission(db, actor.userId, "PAY_ITEM", "UPDATE", null);
+  return await recordWageTreatmentDeparture(db, {
+    ...input,
+    actor: actor.email,
+  });
 }
 
 /**
@@ -130,6 +153,21 @@ export interface DepartPcbClassInput {
   readonly reason: string;
   readonly actor: string;
   readonly approvedBy: string;
+}
+
+/**
+ * AuthZ over {@link recordPcbClassDeparture}: global PAY_ITEM UPDATE.
+ */
+export async function recordPcbClassDepartureForActor(
+  db: Database,
+  actor: TreatmentsActor,
+  input: Omit<DepartPcbClassInput, "actor">
+): Promise<{ id: string }> {
+  await requirePermission(db, actor.userId, "PAY_ITEM", "UPDATE", null);
+  return await recordPcbClassDeparture(db, {
+    ...input,
+    actor: actor.email,
+  });
 }
 
 export async function recordPcbClassDeparture(

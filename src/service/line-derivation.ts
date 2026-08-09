@@ -5,10 +5,13 @@
  */
 
 import type { Database } from "@/db/client";
+import { computeLineChecked } from "@/domain/calc/compose";
 import { validateLineInputs } from "@/domain/calc/validate";
 import { type DeriveOptions, deriveLine } from "@/domain/derive/emit";
 import type { DerivationGraph, RootKey } from "@/domain/derive/graph";
 import { renderLabel } from "@/domain/derive/i18n/render";
+import { assertGraphInvariants } from "@/domain/derive/invariants";
+import { assertMirrors } from "@/domain/derive/mirror";
 import type { DerivationNode, NodeId } from "@/domain/derive/node";
 import type { NodeValue } from "@/domain/derive/value";
 import { loadRunForCompute } from "@/repo/pay-run";
@@ -202,11 +205,31 @@ export async function loadDerivedGraph(
     pcb: line.pcb,
   };
 
+  const graph = deriveLine(opts);
+  // Defence-in-depth: never serve a broken DAG or an emitter that drifts
+  // from computeLine. Same checks the golden / pcb-graph suites pin.
+  try {
+    assertGraphInvariants(graph);
+    const outcome = computeLineChecked(opts);
+    if (outcome.ok) {
+      assertMirrors(graph, outcome.result);
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    // biome-ignore lint/style/useErrorCause: ErrorOptions is the 4th constructor arg
+    throw new ControlError(
+      "VALIDATION_ERROR",
+      `derivation graph failed integrity check: ${message}`,
+      undefined,
+      { cause: error }
+    );
+  }
+
   return {
     runId,
     lineId,
     employmentId: line.employmentId,
-    graph: deriveLine(opts),
+    graph,
   };
 }
 

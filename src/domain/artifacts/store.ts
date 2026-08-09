@@ -1,8 +1,11 @@
 /**
- * Artifact byte store — R2 in production, in-memory in tests.
+ * Artifact byte store — R2 in production, LocalFs when unset, Memory in tests.
  *
  * DB rows own metadata + sha256; this interface owns only the bytes.
+ * SPA downloads via authenticated GET …/content (not signed URLs).
  */
+
+import { assertSafeArtifactKey } from "./keys";
 
 export interface PutObjectInput {
   readonly key: string;
@@ -13,8 +16,8 @@ export interface PutObjectInput {
 export interface ArtifactStore {
   put: (input: PutObjectInput) => Promise<void>;
   get: (key: string) => Promise<Uint8Array | null>;
-  /** Short-lived URL (ops/debug); SPA uses authenticated GET …/content. */
-  signedGetUrl: (key: string, expiresInSeconds?: number) => Promise<string>;
+  /** Best-effort cleanup when metadata insert fails after put. */
+  delete: (key: string) => Promise<void>;
 }
 
 /** In-memory store for tests — never hits the network. */
@@ -22,19 +25,31 @@ export class MemoryArtifactStore implements ArtifactStore {
   private readonly objects = new Map<string, Uint8Array>();
 
   put(input: PutObjectInput): Promise<void> {
-    this.objects.set(input.key, input.body);
-    return Promise.resolve();
+    try {
+      const key = assertSafeArtifactKey(input.key);
+      this.objects.set(key, input.body);
+      return Promise.resolve();
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   get(key: string): Promise<Uint8Array | null> {
-    return Promise.resolve(this.objects.get(key) ?? null);
+    try {
+      const safe = assertSafeArtifactKey(key);
+      return Promise.resolve(this.objects.get(safe) ?? null);
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
-  signedGetUrl(key: string, _expiresInSeconds = 300): Promise<string> {
-    if (!this.objects.has(key)) {
-      throw new Error(`artifact missing: ${key}`);
+  delete(key: string): Promise<void> {
+    try {
+      this.objects.delete(assertSafeArtifactKey(key));
+      return Promise.resolve();
+    } catch (error) {
+      return Promise.reject(error);
     }
-    return Promise.resolve(`memory://${key}`);
   }
 
   clear(): void {

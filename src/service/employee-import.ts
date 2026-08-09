@@ -22,7 +22,7 @@ import {
 } from "@/repo/employee-profile";
 import { requirePermission } from "@/service/rbac";
 
-export const DEFAULT_CUSTOM_FIELDS_SEED_PATH = path.join(
+const DEFAULT_CUSTOM_FIELDS_SEED_PATH = path.join(
   process.cwd(),
   "db",
   "seed",
@@ -339,7 +339,7 @@ async function autoRegisterUnrecognizedHeaders(
   return newDefs;
 }
 
-export async function validateImportHeaders(
+async function validateImportHeaders(
   db: Database,
   rawRows: readonly Record<string, string | undefined>[],
   options: ImportOptions = {}

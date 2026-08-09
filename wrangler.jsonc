@@ -1,0 +1,22 @@
+/**
+ * Wrangler config for Cloudflare R2 (payroll artifact bytes).
+ *
+ * This app talks to R2 via the S3-compatible API (`src/domain/artifacts/r2-store.ts`)
+ * from the Node Hono process — not a Workers binding at runtime. Wrangler owns
+ * bucket lifecycle (`npm run r2:create` / `r2:info` / `r2:list`).
+ *
+ * After create: Dashboard → R2 → Manage R2 API Tokens → Object Read & Write,
+ * then set all five `R2_*` keys in `.env.local` (see `.env.example`).
+ */
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "clarity-payroll",
+  "compatibility_date": "2026-08-01",
+  "account_id": "c4a3b29bfa877132a1f16c5c628dc8a2",
+  "r2_buckets": [
+    {
+      "binding": "ARTIFACTS",
+      "bucket_name": "clarity-payroll-artifacts"
+    }
+  ]
+}

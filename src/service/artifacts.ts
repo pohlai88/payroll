@@ -7,6 +7,10 @@
 import { createHash, randomUUID } from "node:crypto";
 import type { Database } from "@/db/client";
 import type { ArtifactRow } from "@/db/schema/artifacts";
+import {
+  filenameFromArtifactKey,
+  sanitizeArtifactFilename,
+} from "@/domain/artifacts/keys";
 import { LocalFsArtifactStore } from "@/domain/artifacts/local-fs-store";
 import type { ArtifactStore } from "@/domain/artifacts/store";
 import {
@@ -29,6 +33,9 @@ export type ArtifactType =
   | "MANIFEST"
   | "EXCEPTION_REPORT"
   | "TIMESTAMP_TOKEN";
+
+/** Manual HTTP attach only — generated types stay server-side. */
+export type AttachedArtifactType = "EVIDENCE" | "EXCEPTION_REPORT";
 
 /** JSON list row for HTTP — dates as ISO strings (not Drizzle `Date`). */
 export interface ArtifactListItem {
@@ -74,6 +81,16 @@ export interface StoreArtifactInput {
   readonly entityId?: string | null;
 }
 
+export interface StoreAttachedRunArtifactInput {
+  readonly runId: string;
+  readonly type: AttachedArtifactType;
+  readonly filename: string;
+  readonly body: Uint8Array;
+  readonly mimeType: string;
+  readonly createdBy: string;
+  readonly entityId?: string | null;
+}
+
 let defaultStore: ArtifactStore | null = null;
 
 export function setArtifactStore(store: ArtifactStore): void {
@@ -93,7 +110,38 @@ export function artifactObjectKey(
   artifactId: string,
   filename: string
 ): string {
-  return `runs/${runId}/${artifactId}/${filename}`;
+  const safeName = sanitizeArtifactFilename(filename);
+  return `runs/${runId}/${artifactId}/${safeName}`;
+}
+
+async function putThenInsert(
+  db: DbOrTx,
+  store: ArtifactStore,
+  relativePath: string,
+  body: Uint8Array,
+  mimeType: string,
+  row: Parameters<typeof insertArtifactRow>[1]
+): Promise<void> {
+  await store.put({
+    key: relativePath,
+    body,
+    contentType: mimeType,
+  });
+  try {
+    await insertArtifactRow(db, row);
+  } catch (error) {
+    try {
+      await store.delete(relativePath);
+    } catch (cleanupError) {
+      throw new ControlError(
+        "CONFLICT",
+        `artifact metadata insert failed and byte cleanup failed: ${relativePath}`,
+        undefined,
+        { cause: cleanupError }
+      );
+    }
+    throw error;
+  }
 }
 
 export async function storeArtifact(
@@ -105,13 +153,7 @@ export async function storeArtifact(
   const sha256 = createHash("sha256").update(input.body).digest("hex");
   const relativePath = artifactObjectKey(input.runId, id, input.filename);
 
-  await store.put({
-    key: relativePath,
-    body: input.body,
-    contentType: input.mimeType,
-  });
-
-  await insertArtifactRow(db, {
+  await putThenInsert(db, store, relativePath, input.body, input.mimeType, {
     id,
     runId: input.runId,
     entityType: "PAY_RUN",
@@ -149,24 +191,6 @@ export async function requireRunArtifact(
   return row;
 }
 
-function filenameFromRelativePath(relativePath: string): string {
-  return relativePath.split("/").pop() ?? relativePath;
-}
-
-export async function signedArtifactUrl(
-  db: Database,
-  runId: string,
-  artifactId: string,
-  store: ArtifactStore = getArtifactStore()
-): Promise<{ url: string; filename: string }> {
-  const row = await requireRunArtifact(db, runId, artifactId);
-  const url = await store.signedGetUrl(row.relativePath);
-  return {
-    url,
-    filename: filenameFromRelativePath(row.relativePath),
-  };
-}
-
 /** Bytes for authenticated SPA download (works for local FS and R2). */
 export async function readRunArtifactContent(
   db: Database,
@@ -186,10 +210,17 @@ export async function readRunArtifactContent(
       `artifact bytes missing: ${artifactId}`
     );
   }
+  const digest = createHash("sha256").update(body).digest("hex");
+  if (digest !== row.sha256) {
+    throw new ControlError(
+      "CONFLICT",
+      `artifact hash mismatch: ${artifactId}`
+    );
+  }
   return {
     body,
     mimeType: row.mimeType,
-    filename: filenameFromRelativePath(row.relativePath),
+    filename: filenameFromArtifactKey(row.relativePath),
   };
 }
 
@@ -236,20 +267,12 @@ export async function storeAttachedEvidence(
   const id = randomUUID();
   const body = toBytes(input.content);
   const sha256 = createHash("sha256").update(body).digest("hex");
-  const safeName = input.filename
-    .replace(/[^a-zA-Z0-9._-]+/g, "_")
-    .slice(0, 180);
+  const safeName = sanitizeArtifactFilename(input.filename, "evidence.bin");
   const relativePath = input.runId
-    ? artifactObjectKey(input.runId, id, safeName || "evidence.bin")
-    : `entities/${input.entityType}/${id}/${safeName || "evidence.bin"}`;
+    ? artifactObjectKey(input.runId, id, safeName)
+    : `entities/${input.entityType}/${id}/${safeName}`;
 
-  await store.put({
-    key: relativePath,
-    body,
-    contentType: input.mimeType,
-  });
-
-  await insertArtifactRow(db, {
+  await putThenInsert(db, store, relativePath, body, input.mimeType, {
     id,
     runId: input.runId ?? null,
     entityType: input.entityType,
@@ -292,22 +315,18 @@ export async function listRunArtifactsForActor(
 export async function storeArtifactForActor(
   db: Database,
   actorUserId: string,
-  input: StoreArtifactInput,
+  input: StoreAttachedRunArtifactInput,
   store: ArtifactStore = getArtifactStore()
 ): Promise<{ id: string; sha256: string; relativePath: string }> {
   await requirePayRunPermission(db, actorUserId, "UPDATE", input.runId);
-  return await storeArtifact(db, input, store);
-}
-
-export async function signedArtifactUrlForActor(
-  db: Database,
-  actorUserId: string,
-  runId: string,
-  artifactId: string,
-  store: ArtifactStore = getArtifactStore()
-): Promise<{ url: string; filename: string }> {
-  await requirePayRunPermission(db, actorUserId, "READ", runId);
-  return await signedArtifactUrl(db, runId, artifactId, store);
+  return await storeArtifact(
+    db,
+    {
+      ...input,
+      source: "ATTACHED",
+    },
+    store
+  );
 }
 
 export async function readRunArtifactContentForActor(

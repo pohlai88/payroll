@@ -34,7 +34,7 @@ let authClientSingleton: AuthClient | null = null;
  * Better Auth vanilla client. Cross-origin session cookies for the Auth URL
  * stay at the Auth SDK layer only.
  */
-export function getAuthClient(): AuthClient {
+function getAuthClient(): AuthClient {
   if (authClientSingleton === null) {
     authClientSingleton = createAuthClient(requireNeonAuthUrl(), {
       adapter: BetterAuthVanillaAdapter(),

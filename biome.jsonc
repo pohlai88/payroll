@@ -28,8 +28,14 @@
       // Ad-hoc vitest/JSON dumps and local scratch — not source of truth.
       "!!**/tmp-*.json",
       "!!**/tmp",
+      "!!**/.cache",
       "!!**/.docker-data",
-      "!!**/biome-check-out.json"
+      "!!**/biome-check-out.json",
+      // Redirected process logs at repo root / anywhere.
+      "!!**/*.log",
+      "!!**/.vite-dev.*.log",
+      "!!**/.neon",
+      "!!**/node_modules.trash"
     ]
   },
   "assist": {

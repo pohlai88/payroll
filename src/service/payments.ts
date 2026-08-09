@@ -323,7 +323,7 @@ export async function withdrawLine(
   });
 }
 
-export async function getPaymentState(
+async function getPaymentState(
   db: Database,
   lineId: string
 ): Promise<LinePaymentState> {

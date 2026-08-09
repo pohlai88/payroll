@@ -101,7 +101,7 @@ function assertBandsPresent(rows: readonly unknown[], what: string): void {
   }
 }
 
-export async function loadPersistedSettings(
+async function loadPersistedSettings(
   db: Database,
   rulePackId: string
 ): Promise<PersistedRuleSettings> {
