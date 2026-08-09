@@ -55,8 +55,8 @@ export function Closing() {
                 <CtaLink href="/" tone="inverse">
                   Open the app
                 </CtaLink>
-                <CtaLink href="#control" tone="ghost">
-                  Review control
+                <CtaLink href="#asks" tone="ghost">
+                  See how controls work
                 </CtaLink>
               </div>
             </div>

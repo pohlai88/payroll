@@ -301,6 +301,19 @@ export const HERO_ASSURANCE = [
   "Auditable control passage",
 ] as const;
 
+/**
+ * Movement 3 — illustrative finding vignette (distinct from Movement 1's
+ * revision gate prerequisite). PCB_UNVERIFIED is a real catalog ruleId.
+ */
+export const CONTROL_FAILURE = {
+  eyebrow: "When a control fails",
+  title: "Payroll stops at the gate that failed.",
+  findingTitle: "1 blocking finding prevents approval.",
+  code: "PCB_UNVERIFIED · BLOCKING · APPROVAL",
+  body: "PCB has not been verified against an approved calculation method or verified source.",
+  illustrative: "Illustrative finding · not customer data",
+} as const;
+
 export interface DecisionControl {
   readonly index: string;
   readonly label: string;
@@ -533,8 +546,7 @@ export const REPORTS: readonly Report[] = [
 ] as const;
 
 export const CLOSING = {
-  headline:
-    "Move payroll forward with the issues, revision and release conditions in view.",
+  headline: "Payroll does not move until the controls clear.",
   chain: ["Findings", "Revision", "Approval", "Release preview"],
   secondary:
     "Findings identify what needs attention. Revision checks protect what was reviewed. Release preview shows which payment lines can proceed.",

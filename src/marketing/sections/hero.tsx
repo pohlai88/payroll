@@ -1,6 +1,16 @@
 import { CONTROL_PROOF, HERO, HERO_ASSURANCE } from "@/marketing/content";
 import { CtaLink } from "@/marketing/cta-link";
 
+function stageToneClass(tone: string): string {
+  if (tone === "amber") {
+    return "text-amber-fill/90";
+  }
+  if (tone === "teal") {
+    return "text-teal-lift";
+  }
+  return "text-white/40";
+}
+
 /**
  * Movement 1 — Director Control Proof Hero.
  *
@@ -20,7 +30,7 @@ export function Hero() {
       {/* Top teal rule */}
       <div
         aria-hidden="true"
-        className="h-1 bg-gradient-to-r from-teal to-teal-lift to-72% opacity-90 rule-draw"
+        className="rule-draw h-1 bg-gradient-to-r from-teal to-72% to-teal-lift opacity-90"
       />
 
       <span
@@ -37,7 +47,7 @@ export function Hero() {
         {/* Left: eyebrow, headline, lede, CTAs */}
         <div className="flex flex-col justify-center">
           <p
-            className="rise flex items-center gap-2.5 text-teal-lift rubric"
+            className="rise rubric flex items-center gap-2.5 text-teal-lift"
             style={{ animationDelay: "0ms" }}
           >
             <span aria-hidden="true" className="block h-px w-7 bg-teal-lift" />
@@ -45,7 +55,7 @@ export function Hero() {
           </p>
 
           <h1
-            className="rise mt-5 font-display font-semibold text-[clamp(2.75rem,5vw,4.625rem)] leading-[0.98] tracking-[-0.048em] text-white"
+            className="rise mt-5 font-display font-semibold text-[clamp(2.75rem,5vw,4.625rem)] text-white leading-[0.98] tracking-[-0.048em]"
             style={{ animationDelay: "80ms" }}
           >
             {HERO.title}
@@ -87,7 +97,7 @@ export function Hero() {
           {/* Offset accent border behind the card */}
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute -inset-x-6 -top-6 inset-y-6 rounded-xl border border-teal-lift/18"
+            className="pointer-events-none absolute -inset-x-6 inset-y-6 -top-6 rounded-xl border border-teal-lift/18"
           />
 
           <article
@@ -95,9 +105,9 @@ export function Hero() {
             className="relative overflow-hidden rounded-xl border border-white/22 bg-white/[0.06] shadow-[0_18px_50px_rgba(0,0,0,0.18)] backdrop-blur-sm"
           >
             {/* Proof head */}
-            <div className="flex items-center justify-between gap-4 border-b border-white/14 px-5 py-4">
+            <div className="flex items-center justify-between gap-4 border-white/14 border-b px-5 py-4">
               <p className="rubric text-teal-lift">{CONTROL_PROOF.label}</p>
-              <span className="inline-flex items-center gap-2 rubric text-amber-fill/90">
+              <span className="rubric inline-flex items-center gap-2 text-amber-fill/90">
                 <span
                   aria-hidden="true"
                   className="block size-1.5 rounded-full bg-amber-line shadow-[0_0_0_4px_rgba(200,144,31,0.14)]"
@@ -108,50 +118,47 @@ export function Hero() {
 
             {/* Proof body */}
             <div className="px-5 py-6">
-              <p className="text-xs text-white/55 tracking-wide">
+              <p className="text-white/55 text-xs tracking-wide">
                 {CONTROL_PROOF.kicker}
               </p>
-              <h2 className="mt-2 font-display font-semibold text-[1.875rem] leading-[1.05] tracking-[-0.025em] text-white">
+              <h2 className="mt-2 font-display font-semibold text-[1.875rem] text-white leading-[1.05] tracking-[-0.025em]">
                 {CONTROL_PROOF.title}
               </h2>
-              <p className="mt-4 text-sm leading-[1.55] text-white/65">
+              <p className="mt-4 text-sm text-white/65 leading-[1.55]">
                 {CONTROL_PROOF.body}
               </p>
 
               {/* Invariant */}
               <div
-                className="mt-5 inline-flex items-center gap-2 border-l-2 border-teal-lift/70 bg-white/[0.035] px-3 py-2 font-mono text-xs text-teal-lift"
+                className="mt-5 inline-flex items-center gap-2 border-teal-lift/70 border-l-2 bg-white/[0.035] px-3 py-2 font-mono text-teal-lift text-xs"
                 translate="no"
               >
                 {CONTROL_PROOF.invariant}
               </div>
 
               {/* Control stages */}
-              <div
+              <ul
                 aria-label="Control stages"
-                className="mt-6 grid grid-cols-3 divide-x divide-white/14 border-y border-white/14"
+                className="mt-6 grid grid-cols-3 divide-x divide-white/14 border-white/14 border-y"
               >
                 {CONTROL_PROOF.stages.map((stage) => (
-                  <div className="px-0 py-4 first:pr-4 [&:not(:first-child)]:px-4" key={stage.name}>
+                  <li
+                    className="px-0 py-4 first:pr-4 [&:not(:first-child)]:px-4"
+                    key={stage.name}
+                  >
                     <p className="rubric text-white/45">{stage.name}</p>
                     <p
-                      className={`mt-1.5 text-sm font-semibold ${
-                        stage.tone === "amber"
-                          ? "text-amber-fill/90"
-                          : stage.tone === "teal"
-                            ? "text-teal-lift"
-                            : "text-white/40"
-                      }`}
+                      className={`mt-1.5 font-semibold text-sm ${stageToneClass(stage.tone)}`}
                     >
                       {stage.value}
                     </p>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
 
             {/* Proof foot */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/14 px-5 py-4 text-xs text-white/45">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-white/14 border-t px-5 py-4 text-white/45 text-xs">
               <span>{CONTROL_PROOF.foot}</span>
               <span>{CONTROL_PROOF.illustrative}</span>
             </div>
@@ -160,15 +167,12 @@ export function Hero() {
       </div>
 
       {/* Hero footer: three assurance chips only */}
-      <div className="border-t border-white/10">
+      <div className="border-white/10 border-t">
         <div className="page-shell py-5">
-          <ul
-            aria-label="Assurance"
-            className="flex flex-wrap gap-x-6 gap-y-2"
-          >
+          <ul aria-label="Assurance" className="flex flex-wrap gap-x-6 gap-y-2">
             {HERO_ASSURANCE.map((chip) => (
               <li
-                className="inline-flex items-center gap-2 text-xs text-white/55"
+                className="inline-flex items-center gap-2 text-white/55 text-xs"
                 key={chip}
               >
                 <span

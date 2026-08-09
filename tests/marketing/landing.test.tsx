@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import {
   formatRinggit,
@@ -10,7 +10,7 @@ import {
 import { Landing } from "@/marketing/landing";
 
 describe("landing page", () => {
-  it("renders one h1, carrying the operator-control promise", () => {
+  it("renders one h1, carrying the enforcement promise", () => {
     render(<Landing />);
     const headings = screen.getAllByRole("heading", { level: 1 });
     expect(headings).toHaveLength(1);
@@ -19,25 +19,74 @@ describe("landing page", () => {
     );
   });
 
-  it("states the PCB boundary in full", () => {
-    render(<Landing />);
-    expect(screen.getByText(PCB_NOTE)).toBeDefined();
-  });
-
   it("links See how controls work to #asks", () => {
     render(<Landing />);
-    const link = screen.getByRole("link", { name: /see how controls work/i });
-    expect(link.getAttribute("href")).toBe("#asks");
+    const links = screen.getAllByRole("link", {
+      name: /see how controls work/i,
+    });
+    expect(links.length).toBeGreaterThan(0);
+    for (const link of links) {
+      expect(link.getAttribute("href")).toBe("#asks");
+    }
   });
 
   it("shows revision control proof without calling it a finding", () => {
     render(<Landing />);
-    expect(screen.getByText("Approval cannot proceed.")).toBeDefined();
+    const control = document.getElementById("control");
+    expect(control).not.toBeNull();
+    const proof = within(control!).getByLabelText("Control state proof");
+    expect(within(proof).getByText("Approval cannot proceed.")).toBeDefined();
     expect(
-      screen.getByText("Approval gate · revision control")
+      within(proof).getByText("Approval gate · revision control")
     ).toBeDefined();
-    expect(screen.getByText("reviewedRevision ≠ calcRevision")).toBeDefined();
-    expect(screen.queryByText(/1 finding prevents approval/i)).toBeNull();
+    expect(
+      within(proof).getByText("reviewedRevision ≠ calcRevision")
+    ).toBeDefined();
+    expect(proof.textContent?.toLowerCase()).not.toMatch(/\bfinding\b/);
+  });
+
+  it("exposes the asks section for the primary CTA", () => {
+    const { container } = render(<Landing />);
+    expect(container.querySelector("#asks")).not.toBeNull();
+  });
+
+  it("shows a labelled illustrative control-failure beat", () => {
+    render(<Landing />);
+    expect(document.getElementById("failure")).not.toBeNull();
+    expect(
+      screen.getByText("1 blocking finding prevents approval.")
+    ).toBeDefined();
+    expect(
+      screen.getByText("Illustrative finding · not customer data")
+    ).toBeDefined();
+    expect(screen.getByText(/PCB_UNVERIFIED/)).toBeDefined();
+  });
+
+  it("keeps every spine target present", () => {
+    const { container } = render(<Landing />);
+    for (const id of [
+      "control",
+      "asks",
+      "failure",
+      "proof",
+      "authority",
+      "next",
+    ]) {
+      expect(container.querySelector(`#${id}`)).not.toBeNull();
+    }
+  });
+
+  it("keeps skip link bound to main content", () => {
+    render(<Landing />);
+    expect(
+      screen.getByRole("link", { name: "Skip to content" }).getAttribute("href")
+    ).toBe("#main-content");
+    expect(document.getElementById("main-content")).not.toBeNull();
+  });
+
+  it("states the PCB boundary in full", () => {
+    render(<Landing />);
+    expect(screen.getByText(PCB_NOTE)).toBeDefined();
   });
 
   it("shows the three supported decision controls", () => {
@@ -87,12 +136,13 @@ describe("landing page", () => {
   });
 
   it("names the four gates and no invented fifth stage", () => {
-    const { container } = render(<Landing />);
+    render(<Landing />);
     for (const gate of ["Review", "Approval", "Release"]) {
       expect(screen.getAllByText(gate).length).toBeGreaterThan(0);
     }
-    // Close appears in run-evidence prose, not as a standalone label.
-    expect(container.textContent).toMatch(/\bClose\b/);
+    expect(
+      screen.getByText(/Release and Close evaluate their applicable gate/i)
+    ).toBeDefined();
     expect(screen.queryByText("RELEASED")).toBeNull();
   });
 
@@ -111,27 +161,12 @@ describe("landing page", () => {
     ).toBeDefined();
   });
 
-  it("closes on the supported operator-control promise", () => {
+  it("closes on the heads-up enforcement promise", () => {
     render(<Landing />);
     expect(
-      screen.getByRole("heading", {
-        name: "Move payroll forward with the issues, revision and release conditions in view.",
-      })
-    ).toBeDefined();
-  });
-
-  it("exposes a skip link to main content", () => {
-    render(<Landing />);
-    const skip = screen.getByRole("link", { name: "Skip to content" });
-    expect(skip.getAttribute("href")).toBe("#main-content");
-    expect(skip.ownerDocument.getElementById("main-content")).not.toBeNull();
-  });
-
-  it("keeps every nav target present on the page", () => {
-    const { container } = render(<Landing />);
-    const anchors = ["control", "proof", "authority", "evidence"];
-    for (const id of anchors) {
-      expect(container.ownerDocument.getElementById(id)).not.toBeNull();
-    }
+      screen.getAllByRole("heading", {
+        name: "Payroll does not move until the controls clear.",
+      }).length
+    ).toBeGreaterThanOrEqual(2);
   });
 });

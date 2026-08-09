@@ -1,5 +1,6 @@
 import { AuthorityEvidence } from "@/marketing/sections/authority-evidence";
 import { Closing } from "@/marketing/sections/closing";
+import { ControlFailure } from "@/marketing/sections/control-failure";
 import { DecisionControl } from "@/marketing/sections/decision-control";
 import { Hero } from "@/marketing/sections/hero";
 import { ProofLedger } from "@/marketing/sections/proof-ledger";
@@ -8,8 +9,7 @@ import { SiteFooter } from "@/marketing/sections/site-footer";
 import { SiteNav } from "@/marketing/sections/site-nav";
 
 /**
- * Seven visual movements, with governance evidence supporting the operator
- * decision rather than leading it.
+ * Heads-up spine: Control → Asks → Failure → Proof → Authority → Next → Act.
  */
 export function Landing() {
   return (
@@ -24,6 +24,7 @@ export function Landing() {
       <main id="main-content">
         <Hero />
         <DecisionControl />
+        <ControlFailure />
         <ProofLedger />
         <AuthorityEvidence />
         <RunEvidence />

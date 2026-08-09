@@ -15,13 +15,12 @@ const CONTROL_ICONS: readonly LucideIcon[] = [
 ];
 
 /**
- * Inspired by studio features-section icon grids: equal semantic units with
- * icon, title, and supporting copy. Asymmetry remains through evidence lines
- * rather than decorative charts or fake metrics.
+ * Movement 2 — what the alert asks (`#asks`).
+ * Three equal semantic bands; evidence lines stay claim-safe to runtime.
  */
 export function DecisionControl() {
   return (
-    <section className="section-space relative bg-ground" id="control">
+    <section className="section-space relative bg-ground" id="asks">
       <span
         aria-hidden="true"
         className="pattern-grid-light pointer-events-none absolute inset-0 opacity-40"
@@ -30,7 +29,7 @@ export function DecisionControl() {
         <SectionIntro
           align="split"
           body="The product does not ask an operator to infer readiness from a dashboard. Each decision returns the issues, revision conditions, or line exclusions that determine what can proceed."
-          eyebrow="Operational control"
+          eyebrow="What the alert asks"
           title="Three questions before payroll moves."
         />
 

@@ -17,7 +17,6 @@ import {
   formatRinggit,
   formatSen,
   HERO,
-  HERO_ASSURANCE,
   ILLUSTRATIVE_DIFF_NOTE,
   LEDGER_EMPLOYEE,
   LEDGER_GROSS_SEN,
@@ -33,9 +32,7 @@ import {
 
 describe("operator-facing claim boundaries", () => {
   it("leads with the enforcement-first headline", () => {
-    expect(HERO.title).toBe(
-      "Payroll does not move until the controls clear."
-    );
+    expect(HERO.title).toBe("Payroll does not move until the controls clear.");
     expect(HERO.body).toContain("revision checks");
     expect(HERO.body).toContain("unresolved findings");
   });
@@ -59,7 +56,7 @@ describe("operator-facing claim boundaries", () => {
 
   it("does not make universal explainability a release condition", () => {
     expect(CLOSING.headline).toBe(
-      "Move payroll forward with the issues, revision and release conditions in view."
+      "Payroll does not move until the controls clear."
     );
     expect(CLOSING.headline).not.toMatch(/cannot be released/i);
   });
@@ -212,9 +209,7 @@ describe("the rule-change diff keeps unchanged rows", () => {
 
 describe("heads-up enforcement content model", () => {
   it("locks the heads-up enforcement headline", () => {
-    expect(HERO.title).toBe(
-      "Payroll does not move until the controls clear."
-    );
+    expect(HERO.title).toBe("Payroll does not move until the controls clear.");
     expect(HERO.body).toContain("revision checks");
     expect(HERO.body).toContain("unresolved findings");
   });
